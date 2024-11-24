@@ -1,0 +1,15 @@
+{
+  "originHash" : "0c43ca87aa3148650da6ce9f661d47c73f05438d4c0f33a1583ae8d7f386f1b4",
+  "pins" : [
+    {
+      "identity" : "nwwebsocket",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/pusher/NWWebSocket",
+      "state" : {
+        "revision" : "1e545fcb53966272fc042aa17ae932f11239e00f",
+        "version" : "0.5.4"
+      }
+    }
+  ],
+  "version" : 3
+}
