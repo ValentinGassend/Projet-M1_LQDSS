@@ -13,7 +13,7 @@ class WebSocketClient:ObservableObject {
     static let instance = WebSocketClient()
     
     var routes = [String:NWWebSocket]()
-    var ipAddress = "192.168.1.15:3030/"
+    var ipAddress = "192.168.1.15:8080/"
     
     @Published var messageReceive:String = ""
     
