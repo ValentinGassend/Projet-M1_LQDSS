@@ -200,7 +200,7 @@ public final class FFNN {
         }
         
     }
-    
+
     /// Propagates the given inputs through the neural network, returning the network's output.
     /// - Parameter inputs: An array of `Float`s, each element corresponding to one input node.
     /// - Returns: The network's output after applying the given inputs, as an array of `Float`s.
@@ -208,8 +208,9 @@ public final class FFNN {
         // Ensure that the correct number of inputs is given
         guard inputs.count == self.numInputs else {
             throw FFNNError.invalidAnswerError("Invalid number of inputs given: \(inputs.count). Expected: \(self.numInputs)")
+            print("inputs.count !== self.numInputs")
         }
-        
+        print("inputs.count == self.numInputs")
         // Cache the inputs
         // Note: A bias node is inserted at index 0, followed by each of the given inputs
         self.inputCache[0] = 1.0

@@ -1,92 +1,74 @@
-//
-//  ContentView.swift
-//  SpheroManager
-//
-//  Created by Valentin Gassant on 23/11/2024.
-//
-
 import SwiftUI
 
+// Vue principale
 struct ContentView: View {
-    @ObservedObject var wsClient = WebSocketClient.instance
-    @State var isSpheroConnectedToIphone: Bool = false
-    @State var isIphoneConnectedToWsS: Bool = false
-    @State var showSheet: Bool = false
-    var body: some View {
-        VStack {
-            Spacer()
-            Button("Connect Iphone") {
-                wsClient.connectForIdentification(route: .iPhoneConnect)
-                isIphoneConnectedToWsS = true
-            }
-            Spacer()
-            Button("Connect Sphero to Iphone") {
-                DispatchQueue.main.async {
-                    print("Searching")
-                    // SB-313C
-                    SharedToyBox.instance.searchForBoltsNamed(["SB-313C"]) { err in
-                        if err == nil {
-                            isSpheroConnectedToIphone = true
-                            print("Connected")
-                        }
-                        
-                        
-                    }
-                }
-            }
-            Spacer()
-            Button("ConnectSpheroTyphoon") {
-                wsClient.connectForIdentification(route: .spheroTyphoonConnect)
-            }
-            Spacer()
-        }
-        .padding()
-        .sheet(isPresented: Binding(get: {
-            isSpheroConnectedToIphone && isIphoneConnectedToWsS
-        }, set: { newValue in
-            // Optionally handle the dismissal of the sheet
-            showSheet = newValue
-        })) {
-            // Content displayed in the sheet
-            Text("Sphero and iPhone are successfully connected!")
-                .font(.headline)
-                .padding()
-            // text SharedToyBox.instance.bolt?.descriptor
-            if let bolt = SharedToyBox.instance.bolt {
-                VStack {
-                    Text("Bolt Name: \(bolt.peripheral?.name ?? "Unknown")")
-                    Button("Send Bolt Name to Typhoon Route") {
-                        if let peripheralName = bolt.peripheral?.name {
-                            wsClient.sendSpheroTyphoonName(msg: peripheralName)
-                            print("Sent peripheral name: \(peripheralName)")
-                        } else {
-                            print("No peripheral name available to send.")
-                        }
-                    }
-                    
-                }
-            }
-            
-        }
-        
-        
-    }
-    
-    private func connectSphero() {
-        DispatchQueue.main.async {
-            print("Searching")
-            SharedToyBox.instance.searchForBoltsNamed(["SB-8630"]) { err in
-                if err == nil {
-                    print("Connected")
-                }
-                
-                
-            }
-        }
-    }
-    
-}
+    @State private var showConnectSheet = false // Contrôle l'affichage de la feuille
+    @State private var isSpheroConnected = false // Indique si une Sphero est connectée
+    @State private var connectionStatus: String = "" // Statut de la connexion
 
-#Preview {
-    ContentView()
+    var body: some View {
+        NavigationStack {
+            VStack {
+                Spacer()
+
+                NavigationLink(destination: SpheroToWsServerView()) {
+                    Text("Go to SpheroToWsServerView")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+
+                Spacer()
+
+                NavigationLink(destination: SpheroSensorControlView()) {
+                    Text("Go to SpheroSensorControlViewController")
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+
+                Spacer()
+                NavigationLink(destination: MatrixLedView(isSpheroConnected: $isSpheroConnected)) {
+                    Text("Go to Matrix led view")
+                        .padding()
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+
+                Spacer()
+                NavigationLink(destination: SpheroDirectionView(isSpheroConnected: $isSpheroConnected)) {
+                    Text("Go to Direction view")
+                        .padding()
+                        .background(Color.yellow)
+                        .foregroundColor(.black)
+                        .cornerRadius(8)
+                }
+
+                Spacer()
+
+                // Bouton pour ouvrir la feuille de connexion
+                Button(action: {
+                    showConnectSheet = true
+                }) {
+                    Text(isSpheroConnected ? "Reconnect to Sphero" : "Connect to Sphero")
+                        .padding()
+                        .background(isSpheroConnected ? Color.orange : Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+
+                Spacer()
+            }
+            .navigationTitle("Sphero Manager")
+        }
+        .sheet(isPresented: $showConnectSheet) {
+            SpheroConnectionSheetView(
+                isSpheroConnected: $isSpheroConnected,
+                connectionStatus: $connectionStatus
+            )
+        }
+    }
 }

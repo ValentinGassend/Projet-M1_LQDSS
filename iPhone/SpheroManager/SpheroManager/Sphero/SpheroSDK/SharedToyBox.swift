@@ -34,6 +34,14 @@ class SharedToyBox {
         box.start()
     }
     
+    func disconnectAllToys() {
+            // Assuming the ToyBox itself manages the disconnection of connected toys
+        for toy in bolts {
+            box.disconnect(toy: toy)
+        }
+            bolts.removeAll() // Clear the list of connected bolts
+        }
+    
     func stopScan() {
         box.stopScan()
     }
