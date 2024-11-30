@@ -4,6 +4,7 @@ import SwiftUI
 struct ContentView: View {
     @State private var showConnectSheet = false // Contrôle l'affichage de la feuille
     @State private var isSpheroConnected = false // Indique si une Sphero est connectée
+    @State private var connectedSpheroNames: [String] = [] 
     @State private var connectionStatus: String = "" // Statut de la connexion
 
     var body: some View {
@@ -39,7 +40,7 @@ struct ContentView: View {
                 }
 
                 Spacer()
-                NavigationLink(destination: SpheroDirectionView(isSpheroConnected: $isSpheroConnected)) {
+                NavigationLink(destination: SpheroDirectionView(isSpheroConnected: $isSpheroConnected, connectedSpheroNames:$connectedSpheroNames)) {
                     Text("Go to Direction view")
                         .padding()
                         .background(Color.yellow)
@@ -67,7 +68,8 @@ struct ContentView: View {
         .sheet(isPresented: $showConnectSheet) {
             SpheroConnectionSheetView(
                 isSpheroConnected: $isSpheroConnected,
-                connectionStatus: $connectionStatus
+                connectionStatus: $connectionStatus,
+                connectedSpheroNames: $connectedSpheroNames
             )
         }
     }

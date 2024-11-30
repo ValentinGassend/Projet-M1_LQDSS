@@ -4,6 +4,7 @@ import SwiftUI
 struct SpheroConnectionSheetView: View {
     @Binding var isSpheroConnected: Bool // Binding pour indiquer l'état de la connexion
     @Binding var connectionStatus: String // Binding pour afficher le statut de connexion
+    @Binding var connectedSpheroNames: [String] // Binding pour stocker le nom de la Sphero connectée
 
     var body: some View {
         VStack {
@@ -21,7 +22,7 @@ struct SpheroConnectionSheetView: View {
 
             // Button to connect to Default Sphero
             Button("Connect to Default Sphero") {
-                connectSphero(named: "SB-8630")
+                connectSphero(named: "SB-8630", spheroId: "default")
             }
             .padding()
             .background(Color.blue)
@@ -30,7 +31,7 @@ struct SpheroConnectionSheetView: View {
 
             // Button to connect to Bottled Sphero
             Button("Connect to Bottled Sphero") {
-                connectSphero(named: "SB-313C")
+                connectSphero(named: "SB-313C", spheroId: "bottled")
             }
             .padding()
             .background(Color.blue)
@@ -52,7 +53,7 @@ struct SpheroConnectionSheetView: View {
     }
 
     // Fonction pour se connecter à une Sphero spécifique
-    private func connectSphero(named name: String) {
+    private func connectSphero(named name: String, spheroId: String? = nil) {
         connectionStatus = "Connecting to \(name)..."
         DispatchQueue.main.async {
             SharedToyBox.instance.searchForBoltsNamed([name]) { err in
@@ -60,10 +61,14 @@ struct SpheroConnectionSheetView: View {
                     print("Connected to \(name)")
                     isSpheroConnected = true
                     connectionStatus = "Connected to \(name)"
+                    if let surname = spheroId {
+                        connectedSpheroNames.append(surname)
+                    }
                 } else {
                     print("Failed to connect to \(name)")
                     isSpheroConnected = false
                     connectionStatus = "Failed to connect to \(name)"
+
                 }
             }
         }
@@ -76,6 +81,7 @@ struct SpheroConnectionSheetView: View {
                 SharedToyBox.instance.disconnectAllToys() // Call the new method to disconnect all toys
                 isSpheroConnected = false
                 connectionStatus = "Disconnected"
+                connectedSpheroNames.removeAll()
             }
         }
 }
