@@ -17,8 +17,14 @@ var cancellable:AnyCancellable? = nil
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
     serverWS.rpiSession = session
     print("RPI Connecté")
-    serverWS.rpiSession?.writeText("start 100")
-    serverWS.rpiSession?.writeText("stop")
+}, dataCode: { session, receivedData in
+    print(receivedData)
+}))
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rvrTornadoConnect", textCode: { session, receivedText in
+    serverWS.rvrTornadoSession = session
+    print("RVR tornado Connecté")
+    serverWS.rvrTornadoSession?.writeText("start 100")
+    serverWS.rvrTornadoSession?.writeText("stop")
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))

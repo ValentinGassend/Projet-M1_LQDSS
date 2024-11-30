@@ -21,6 +21,7 @@ class WebSockerServer {
     
     var rpiSession: WebSocketSession?
     var iPhoneSession: WebSocketSession?
+    var rvrTornadoSession: WebSocketSession?
     var spheroTyphoonId: String?
     var spheroTyphoonIsConnected: Bool = false
     var spheroStickId: String?

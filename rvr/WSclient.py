@@ -43,7 +43,7 @@ def on_open(ws):
     ws.send("Bonjour, serveur !")
 
 # Remplacez 'wss://example.com/socket' par l'URL de votre WebSocket
-ws = websocket.WebSocketApp("ws://192.168.1.144:8080/rpiConnect",
+ws = websocket.WebSocketApp("ws://192.168.1.144:8080/rvrTornadoConnect",
                             on_open=on_open,
                             on_message=on_message,
                             on_error=on_error,
