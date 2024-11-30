@@ -17,6 +17,8 @@ var cancellable:AnyCancellable? = nil
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
     serverWS.rpiSession = session
     print("RPI Connecté")
+    serverWS.rpiSession?.writeText("start 100")
+    serverWS.rpiSession?.writeText("stop")
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
