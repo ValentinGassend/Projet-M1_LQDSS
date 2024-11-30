@@ -6,7 +6,7 @@
 //
 
 enum IdentificationRoute: String, CaseIterable {
-    case spheroTyphoonConnect = "spheroTyphoon"
+    case spheroIdentificationConnect = "spheroIdentification"
     case iPhoneConnect = "iPhone"
     case rpiConnect = "rpi"
     

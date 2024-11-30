@@ -35,10 +35,17 @@ struct SpheroToWsServerView: View {
                 }
             }
             Spacer()
-            Button("ConnectSpheroTyphoon") {
-                wsClient.connectForIdentification(route: .spheroTyphoonConnect)
+            
+            if let bolt = SharedToyBox.instance.bolt {
+                if let peripheralName = bolt.peripheral?.name {
+                    Button("identificate my sphero") {
+                        wsClient.connectForIdentification(route: .spheroIdentificationConnect)
+                        wsClient.sentToRoute(route: .spheroIdentificationConnect, msg: peripheralName)
+                        print("Sent peripheral name: \(peripheralName)")
+                    }
+                    Spacer()
+                }
             }
-            Spacer()
         }
         .padding()
         .sheet(isPresented: Binding(get: {

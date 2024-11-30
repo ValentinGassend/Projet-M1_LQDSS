@@ -44,9 +44,16 @@ class WebSocketClient:ObservableObject {
         routes[route]?.disconnect()
     }
     
+    
     func sendSpheroTyphoonName(msg:String) {
         self.connect(route: "spheroTyphoon")
         routes["spheroTyphoon"]?.send(string: msg)
+    }
+    func sentToRoute(route:IdentificationRoute, msg:String) {
+        if let socket = routes[route.rawValue] {
+            socket.send(string: msg)
+            print("Sended: \(msg) to \(route.rawValue)")
+        }
     }
     func sendWelcomeMessage(for route: IdentificationRoute) {
         // Envoie le message de bienvenue pour cette route
