@@ -13,7 +13,7 @@ class WebSocketClient:ObservableObject {
     static let instance = WebSocketClient()
     
     var routes = [String:NWWebSocket]()
-    var ipAddress = "192.168.1.15:8080/"
+    var ipAddress = "192.168.1.50:8080/"
     
     @Published var messageReceive:String = ""
     
@@ -60,7 +60,7 @@ class WebSocketClient:ObservableObject {
         if let socket = routes[route.rawValue] {
             let message = route.welcomeMessage
             socket.send(string: message)
-            print("Message sent: \(message)")
+            print("Message sent: \(message) to \(route.rawValue)")
         }
     }
 }

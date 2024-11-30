@@ -24,7 +24,7 @@ struct SpheroToWsServerView: View {
                 DispatchQueue.main.async {
                     print("Searching")
                     // SB-313C
-                    SharedToyBox.instance.searchForBoltsNamed(["SB-313C"]) { err in
+                    SharedToyBox.instance.searchForBoltsNamed(["SB-8630"]) { err in
                         if err == nil {
                             isSpheroConnectedToIphone = true
                             print("Connected")
@@ -41,7 +41,6 @@ struct SpheroToWsServerView: View {
                     Button("identificate my sphero") {
                         wsClient.connectForIdentification(route: .spheroIdentificationConnect)
                         wsClient.sentToRoute(route: .spheroIdentificationConnect, msg: peripheralName)
-                        print("Sent peripheral name: \(peripheralName)")
                     }
                     Spacer()
                 }

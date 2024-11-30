@@ -32,24 +32,23 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "iPhoneConnect",
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
     print(receivedText)
     if let iPhoneSession = serverWS.iPhoneSession {
-        if (receivedText == "sb-8630") {
-            serverWS.spheroTyphoonId = "sb-8630"
+        if (receivedText == "SB-8630") {
+            serverWS.spheroTyphoonId = "SB-8630"
             print("spheroTyphoonId connecté")
             serverWS.spheroTyphoonIsConnected = true
+            
+            if serverWS.spheroTyphoonIsConnected {
+                iPhoneSession.writeText("\(serverWS.spheroTyphoonId) [consigne]")
+            }
         }
-        else if (receivedText == "sb-313C") {
-            serverWS.spheroStickId = "sb-313C"
+        else if (receivedText == "SB-313C") {
+            serverWS.spheroStickId = "SB-313C"
             print("spheroStickId connecté")
             serverWS.spheroStickIsConnected = true
-            
-//            consigne d'envoie d'info
-//            if serverWS.spheroTyphoonIsConnected {
-//                iPhoneSession.writeText("\(serverWS.spheroTyphoonId) [consigne]")
-//            }
-//
-//            if serverWS.spheroTyphoonIsConnected {
-//                iPhoneSession.writeText("\(serverWS.spheroStickId) [consigne]")
-//            }
+
+            if serverWS.spheroTyphoonIsConnected {
+                iPhoneSession.writeText("\(serverWS.spheroStickId) [consigne]")
+            }
         }
     }
     else {
