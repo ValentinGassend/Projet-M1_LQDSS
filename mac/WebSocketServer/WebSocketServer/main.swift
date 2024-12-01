@@ -10,6 +10,8 @@ import Combine
 import Swifter
 
 var serverWS = WebSockerServer()
+
+
 var cmd = TerminalCommandExecutor()
 var cancellable:AnyCancellable? = nil
 
@@ -17,6 +19,7 @@ var cancellable:AnyCancellable? = nil
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
     serverWS.rpiSession = session
     print("RPI Connecté")
+   
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
@@ -29,31 +32,10 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "iPhoneConnect",
 }))
 
 
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaser", textCode: { session, receivedText in
+    serverWS.laserSession = session
     print(receivedText)
-    if let iPhoneSession = serverWS.iPhoneSession {
-        if (receivedText == "SB-8630") {
-            serverWS.spheroTyphoonId = "SB-8630"
-            print("spheroTyphoonId connecté")
-            serverWS.spheroTyphoonIsConnected = true
-            
-            if serverWS.spheroTyphoonIsConnected {
-                iPhoneSession.writeText("\(serverWS.spheroTyphoonId) [consigne]")
-            }
-        }
-        else if (receivedText == "SB-313C") {
-            serverWS.spheroStickId = "SB-313C"
-            print("spheroStickId connecté")
-            serverWS.spheroStickIsConnected = true
-
-            if serverWS.spheroTyphoonIsConnected {
-                iPhoneSession.writeText("\(serverWS.spheroStickId) [consigne]")
-            }
-        }
-    }
-    else {
-        print("iPhoneSession Non connecté")
-    }
+    serverWS.laserSession?.writeText("python3 laser.py")
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
@@ -155,4 +137,3 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "imagePromptingT
 serverWS.start()
 
 RunLoop.main.run()
-
