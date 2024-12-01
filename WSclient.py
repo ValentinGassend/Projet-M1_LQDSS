@@ -27,6 +27,8 @@ def on_open(ws):
     # send_data_toRoute("rpiLaser","toRoute data")
 
 def launch_laser():
+    global DetectedObject  # Indique que nous modifions la variable globale
+
      # Lancer le processus avec Popen
     process = subprocess.Popen(
         "python3 laser.py",
@@ -39,30 +41,36 @@ def launch_laser():
     # Lire les sorties en temps réel
     try:
         while True:
-            # Lire une ligne de la sortie standard
-            output = process.stdout.readline()
-            if output == "Laser aligné.":
-                DetectedObject = True
-            else:
-                print("le laser n'a pas changé")
-            if output == '' and process.poll() is not None:
-                break
-            if output:
-                print(output, end="")  # Afficher chaque ligne en temps réel
-            
-        # Lire la sortie d'erreur
-        while True:
-            error = process.stderr.readline()
-            if error == '' and process.poll() is not None:
-                break
-            if error:
-                print(f"Erreur : {error.strip()}", end="\n")
-    except KeyboardInterrupt:
-            print("Exécution interrompue par l'utilisateur.")
-            process.terminate()
+            output = process.stdout.readline().strip()  # Lire la sortie
+            if output:  # Si une ligne est lue
+                print(f"Sortie de laser.py : {output}")
+                
+                # Vérifier si le laser est aligné
+                if output == "Laser aligné." and not DetectedObject:
+                    DetectedObject = True
+                    print("DEBUG: DetectedObject est maintenant", DetectedObject)
+                    # Envoi immédiat au serveur
+                    send_data_toRoute(ws_rpiLaser, "Laser détecté")
+                
+                # Réinitialiser DetectedObject si le laser est hors ligne
+                elif output != "Laser aligné." and DetectedObject:
+                    DetectedObject = False
+                    print("DEBUG: DetectedObject est maintenant", DetectedObject)
 
-def send_data_toRoute(route,data):  
-    route.send(data)
+            if output == "" and process.poll() is not None:
+                break  # Terminer si le processus est terminé
+    except Exception as e:
+        print(f"Erreur dans launch_laser : {e}")
+    finally:
+        process.terminate()
+        print("laser.py terminé.")
+
+def send_data_toRoute(ws, data):
+    try:
+        ws.send(data)
+        print(f"Données envoyées au serveur : {data}")
+    except Exception as e:
+        print(f"Erreur lors de l'envoi des données : {e}")
 
 def send_data_continuously(data):
     while True:
@@ -112,8 +120,9 @@ time.sleep(5)
 
 # send_data("data laser")
 # send_data_toRoute(ws_rpiLaser,"data laser")  
-while True:
-    if DetectedObject:
-        send_data_toRoute(ws_rpiLaser,DetectedObject)  
-    time.sleep(3)
+# while True:
+#     if DetectedObject:
+#         print("DEBUG: Envoi de DetectedObject au serveur (True)")
+#         send_data_toRoute(ws_rpiLaser,"DetectedObject")  
+#     time.sleep(5)
    
