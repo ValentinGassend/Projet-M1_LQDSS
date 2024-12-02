@@ -16,6 +16,20 @@ var cmd = TerminalCommandExecutor()
 var cancellable:AnyCancellable? = nil
 
 
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
+    serverWS.remoteControllerSession = session
+    print("Remote controller Connecté")
+}, dataCode: { session, receivedData in
+    print(receivedData)
+}))
+
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
+    serverWS.remoteControllerSession = session
+    print(receivedText)
+}, dataCode: { session, receivedData in
+    print(receivedData)
+}))
+
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
     serverWS.rpiSession = session
     print("RPI Connecté")
