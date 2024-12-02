@@ -5,8 +5,65 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34b4f6b9-854b-4661-ae7f-6e18a09df754" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.pbxproj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/contents.xcworkspacedata" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/xcshareddata/xcschemes/remoteControler.xcscheme" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/xcuserdata/valentin.xcuserdatad/xcdebugger/Breakpoints_v2.xcbkptlist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/Assets.xcassets/AccentColor.colorset/Contents.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/Assets.xcassets/AppIcon.appiconset/Contents.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/Assets.xcassets/Contents.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/ContentView.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/Preview Content/Preview Assets.xcassets/Contents.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/SpheroConnectionSheetView.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/WsClient/IdentificationRoute.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/WsClient/WebSocketClient.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/CBUUID+SpheroUUIDs.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/SensorControl.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/Toy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/ToyProtocols.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V1Toys/BB8Toy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V1Toys/SPRKToy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V1Toys/SensorControlV1.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V1Toys/SpheroV1Toy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V1Toys/SpheroV1ToyCore.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/BB9EToy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/BoltToy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/MiniToy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/R2D2Toy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/SensorControlV2.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/SpheroV2Toy.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/Toy/V2Toys/SpheroV2ToyCore.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/BLE/ToyBox/ToyBox.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Color+Utils.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/CollisionData.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/PowerStateResponse.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/SensorCommandResponse.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/SensorCommandResponseV2.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/SensorMaskCommandResponse.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/ShouldActionCompleteResponse.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandResponses/VersionsCommandResponse.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandV1/CommandV1.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandV1/CommandV1Operation.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandV1/CommandV1Sequencer.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandV2/CommandOperationV2.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandV2/CommandSequencerV2.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/CommandV2/CommandV2.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Commands/SensorUtils.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/Double+Utils.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/SDKUtils.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SDK/String+Utils.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/libs/SpheroSDK/SharedToyBox.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/remoteControlerApp.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControler/remoteControllerApp.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControlerTests/remoteControlerTests.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControlerUITests/remoteControlerUITests.swift" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../iPhone/remoteControler/remoteControler/remoteControlerUITests/remoteControlerUITestsLaunchTests.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/../../iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/WebSocketServer/WebSocketServer.swift" beforeDir="false" afterPath="$PROJECT_DIR$/WebSocketServer/WebSocketServer.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/WebSocketServer/main.swift" beforeDir="false" afterPath="$PROJECT_DIR$/WebSocketServer/main.swift" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -19,9 +76,10 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 5
-}]]></component>
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="/opt/homebrew/Cellar/php/8.4.1/bin/php" />
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
   <component name="ProjectId" id="2pIWVOa6Jr1FxIgNSVHYAwSK5Jx" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -30,7 +88,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "typhoon/sphero",
+    "git-widget-placeholder": "remoteControl",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -56,6 +114,7 @@
       <option name="presentableId" value="Default" />
       <updated>1732454092376</updated>
       <workItem from="1732454093415" duration="876000" />
+      <workItem from="1733098325119" duration="93000" />
     </task>
     <servers />
   </component>

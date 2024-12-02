@@ -10,6 +10,8 @@ import Combine
 import Swifter
 
 var serverWS = WebSockerServer()
+
+
 var cmd = TerminalCommandExecutor()
 var cancellable:AnyCancellable? = nil
 
@@ -22,7 +24,7 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControlle
 }))
 
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
-//    serverWS.remoteControllerSession = session
+    serverWS.remoteControllerSession = session
     print(receivedText)
 }, dataCode: { session, receivedData in
     print(receivedData)
@@ -31,6 +33,7 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControlle
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
     serverWS.rpiSession = session
     print("RPI Connecté")
+   
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
@@ -74,7 +77,9 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentific
     }
     else {
         print("iPhoneSession Non connecté")
-    }
+    }}, dataCode: { session, receivedData in
+        print(receivedData)
+    }))
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
     serverWS.laserSession = session
     serverWS.laserSession?.writeText("python3 laser.py")
@@ -83,12 +88,20 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserConnect
 }))
 
 
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
-    print(receivedText)
-    if receivedText ==  "true"
+    serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
+        print(receivedText)
+        if receivedText ==  "True"
         {
-        serverWS.rpiSession?.writeText("start 100")
-    }
+            serverWS.rpiSession?.writeText("start 100")
+        }
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+}))
+
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaser", textCode: { session, receivedText in
+    serverWS.laserSession = session
+    print(receivedText)
+    serverWS.laserSession?.writeText("python3 laser.py")
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
@@ -190,4 +203,3 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "imagePromptingT
 serverWS.start()
 
 RunLoop.main.run()
-

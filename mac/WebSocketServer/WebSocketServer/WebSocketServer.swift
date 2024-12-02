@@ -20,13 +20,16 @@ class WebSockerServer {
     let server = HttpServer()
     
     var rpiSession: WebSocketSession?
+    var laserSession: WebSocketSession?
+    
     var iPhoneSession: WebSocketSession?
     var rvrTornadoSession: WebSocketSession?
+
+    var remoteControllerSession: WebSocketSession?
     var spheroTyphoonId: String?
     var spheroTyphoonIsConnected: Bool = false
     var spheroStickId: String?
-    var spheroStickIsConnected: Bool = false
-    
+    var spheroStickIsConnected: Bool = false    
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
