@@ -59,17 +59,27 @@ async def main(speed: int = 128):
 
 
 
-    await rvr.raw_motors(
-
-        left_mode=RawMotorModesEnum.forward.value,
-
-        left_duty_cycle=speed,  # Valid speed values are 0-255
-
-        right_mode=RawMotorModesEnum.reverse.value,
-
-        right_duty_cycle=speed  # Valid speed values are 0-255
-
-    )
+    try:
+        while True:  # Boucle principale
+            await rvr.raw_motors(
+                left_mode=RawMotorModesEnum.forward.value,
+                left_duty_cycle=speed,  # Valid speed values are 0-255
+                right_mode=RawMotorModesEnum.reverse.value,
+                right_duty_cycle=speed  # Valid speed values are 0-255
+            )
+            await asyncio.sleep(0.1)  # Délai pour éviter une surcharge inutile
+    except asyncio.CancelledError:
+        print("Boucle principale annulée.")
+    except KeyboardInterrupt:
+        print("\nProgramme interrompu par l'utilisateur.")
+    finally:
+        await rvr.raw_motors(
+            left_mode=RawMotorModesEnum.off.value,
+            left_duty_cycle=0,
+            right_mode=RawMotorModesEnum.off.value,
+            right_duty_cycle=0
+        )
+        await rvr.close()
 
 
 

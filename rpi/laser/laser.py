@@ -11,16 +11,9 @@ GPIO.setup(LASER_SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # Configure la 
 
 try:
     print("Surveillance du capteur photosensible...")
-    
-    start_time = time.time()  # Enregistre le temps de début
-    duration = 10  # Durée maximale d'exécution en secondes
+
     
     while True:
-        # Vérifie si le temps d'exécution dépasse la limite
-        elapsed_time = time.time() - start_time
-        if elapsed_time > duration:
-            print("Temps d'exécution atteint. Arrêt du script.")
-            break
 
         # Lit l'état du capteur
         sensor_state = GPIO.input(LASER_SENSOR_PIN)

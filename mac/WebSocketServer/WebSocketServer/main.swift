@@ -82,7 +82,9 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentific
     }))
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
     serverWS.laserSession = session
+    
     serverWS.laserSession?.writeText("python3 laser.py")
+
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
@@ -92,6 +94,7 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserConnect
         print(receivedText)
         if receivedText ==  "True"
         {
+            serverWS.laserSession?.writeText("stop")
             serverWS.rpiSession?.writeText("start 100")
         }
     }, dataCode: { session, receivedData in
