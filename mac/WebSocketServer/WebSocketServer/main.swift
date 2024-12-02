@@ -14,6 +14,20 @@ var cmd = TerminalCommandExecutor()
 var cancellable:AnyCancellable? = nil
 
 
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
+    serverWS.remoteControllerSession = session
+    print("Remote controller Connecté")
+}, dataCode: { session, receivedData in
+    print(receivedData)
+}))
+
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
+//    serverWS.remoteControllerSession = session
+    print(receivedText)
+}, dataCode: { session, receivedData in
+    print(receivedData)
+}))
+
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
     serverWS.rpiSession = session
     print("RPI Connecté")
@@ -35,7 +49,6 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "iPhoneConnect",
 }, dataCode: { session, receivedData in
     print(receivedData)
 }))
-
 
 serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
     print(receivedText)
@@ -61,6 +74,20 @@ serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentific
     }
     else {
         print("iPhoneSession Non connecté")
+    }
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
+    serverWS.laserSession = session
+    serverWS.laserSession?.writeText("python3 laser.py")
+}, dataCode: { session, receivedData in
+    print(receivedData)
+}))
+
+
+serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
+    print(receivedText)
+    if receivedText ==  "true"
+        {
+        serverWS.rpiSession?.writeText("start 100")
     }
 }, dataCode: { session, receivedData in
     print(receivedData)
