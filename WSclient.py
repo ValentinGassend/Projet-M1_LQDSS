@@ -41,24 +41,23 @@ def launch_laser():
     # Lire les sorties en temps réel
     try:
         while True:
-            output = process.stdout.readline().strip()  # Lire la sortie
-            if output:  # Si une ligne est lue
+            output = process.stdout.readline().strip()
+            if output:
                 print(f"Sortie de laser.py : {output}")
-                
-                # Vérifier si le laser est aligné
-                if output == "Laser aligné." and not DetectedObject:
-                    DetectedObject = True
-                    print("DEBUG: DetectedObject est maintenant", DetectedObject)
-                    # Envoi immédiat au serveur
-                    send_data_toRoute(ws_rpiLaser, "Laser détecté")
-                
-                # Réinitialiser DetectedObject si le laser est hors ligne
-                elif output != "Laser aligné." and DetectedObject:
-                    DetectedObject = False
-                    print("DEBUG: DetectedObject est maintenant", DetectedObject)
+
+                # Changer l'état uniquement si nécessaire
+                if output == "Laser aligné.":
+                    if not DetectedObject:  # Transition de False à True
+                        DetectedObject = True
+                        print("DEBUG: DetectedObject est maintenant True")
+                        send_data_toRoute(ws_rpiLaser, "Laser détecté")
+                else:
+                    if DetectedObject:  # Transition de True à False
+                        DetectedObject = False
+                        print("DEBUG: DetectedObject est maintenant False")
 
             if output == "" and process.poll() is not None:
-                break  # Terminer si le processus est terminé
+                break  # Le processus est terminé
     except Exception as e:
         print(f"Erreur dans launch_laser : {e}")
     finally:
@@ -116,7 +115,7 @@ thread_laser.daemon = True
 
 thread_connect.start()
 thread_laser.start()
-time.sleep(5)
+time.sleep(10)
 
 # send_data("data laser")
 # send_data_toRoute(ws_rpiLaser,"data laser")  
