@@ -61,16 +61,28 @@ class WebSocketClient:ObservableObject {
     }
     
     private func updateConnectedDevices(from message: String) {
-            // Si le message reçu est une liste d'appareils, on peut essayer de le décoder
-            if let jsonData = message.data(using: .utf8) {
-                do {
-                    let devices = try JSONDecoder().decode([Device].self, from: jsonData)
-                    self.connectedDevices = devices // Met à jour la liste des appareils
-                } catch {
-                    print("Erreur lors du décodage JSON : \(error)")
+        if let jsonData = message.data(using: .utf8) {
+            do {
+                let newDevices = try JSONDecoder().decode([Device].self, from: jsonData)
+                DispatchQueue.main.async {
+                    // Fusionner les nouveaux appareils avec les existants
+                    for newDevice in newDevices {
+                        if let index = self.connectedDevices.firstIndex(where: { $0.macAddress == newDevice.macAddress }) {
+                            self.connectedDevices[index] = newDevice
+                        } else {
+                            self.connectedDevices.append(newDevice)
+                        }
+                    }
+                    print("Updated connected devices: \(self.connectedDevices)")
                 }
+            } catch {
+                print("Erreur lors du décodage JSON : \(error)")
             }
+        } else {
+            print("Erreur: Le message reçu n'est pas un format JSON valide")
         }
+    }
+
     private func createMessageRoute(for route: IdentificationRoute) {
         // Construire l'URL pour la route de message
         let messageRouteKey = "\(route.rawValue)Message"
@@ -169,10 +181,10 @@ extension WebSocketClient: WebSocketConnectionDelegate {
     func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
         // Lorsque vous recevez un message, mettez à jour la variable messageReceive
         print("Receive String Message \(string)")
+        
         DispatchQueue.main.async {
             self.messageReceive = string // Mettez à jour le message reçu ici
-            self.updateConnectedDevices(from: string)
-
+            self.updateConnectedDevices(from: string) // Mettez à jour la liste des appareils
         }
         print(messageReceive)
     }

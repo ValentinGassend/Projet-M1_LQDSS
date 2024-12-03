@@ -25,23 +25,21 @@ struct DashboardView: View {
                     .font(.title)
                     .fontWeight(.bold)
                     .padding()
-                    List(wsClient.connectedDevices) { device in
-                        HStack {
-                            VStack(alignment: .leading) {
-                                Text(device.device)
-                                    .font(.headline)
-                                Text("MAC: \(device.macAddress)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
-                            Spacer()
-                            Text(device.isConnected ? "Online" : "Offline")
-                                .foregroundColor(
-                                    device.isConnected ? .green : .red
-                                )
+                List(wsClient.connectedDevices) { device in
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text(device.device)
+                                .font(.headline)
+                            Text("MAC: \(device.macAddress)")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
                         }
+                        Spacer()
+                        Text(String(device.isConnected))
+                        Text(device.isConnected ? "Online" : "Offline")
+                            .foregroundColor(device.isConnected ? .green : .red)
+                    }
                 }
-
                 Button(action: {
                     wsClient.sendToDashboardroute(route: .remoteControllerConnect, msg: "getDevices")
                 }) {
@@ -56,11 +54,6 @@ struct DashboardView: View {
             .navigationTitle("Dashboard")
         }.onAppear {
             wsClient.connectForIdentification(route: .remoteControllerConnect)
-        }.onChange(of: wsClient.messageReceive) { newValue in
-            // Ce bloc s'exécutera chaque fois que `messageReceive` change
-            print("Message received: \(newValue)")
-            print("wsClient.connectedDevices \(wsClient.connectedDevices)")
-            // Si nécessaire, vous pouvez ajouter des actions supplémentaires ici.
         }
     }
 

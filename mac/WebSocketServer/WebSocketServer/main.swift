@@ -21,6 +21,9 @@ let routes: [RouteInfos] = [
         print("Remote controller connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.remoteControllerSession = nil
+        print("Remote controller déconnecté")
     }),
     
     RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
@@ -33,32 +36,32 @@ let routes: [RouteInfos] = [
         // Envoie l'état actuel des appareils connectés au client
         serverWS.remoteControllerSession = session
         if receivedText == "getDevices" {
-                // Mise à jour dynamique des états des appareils
-                serverWS.deviceStates["rpiLaser"]?.isConnected = (serverWS.laserSession != nil)
-                serverWS.deviceStates["iPhone"]?.isConnected = (serverWS.iPhoneSession != nil)
+            // Mise à jour dynamique des états des appareils
+            serverWS.deviceStates["rpiLaser"]?.isConnected = (serverWS.laserSession != nil)
+            serverWS.deviceStates["iPhone"]?.isConnected = (serverWS.iPhoneSession != nil)
             serverWS.deviceStates["remoteController"]?.isConnected = (serverWS.remoteControllerSession != nil)
-                serverWS.deviceStates["rvrTornado"]?.isConnected = (serverWS.rvrTornadoSession != nil)
-                
-                // Générer le JSON pour le retour
-                let devicesJSON = serverWS.deviceStates.map { key, value in
-                    [
-                        "device": key,
-                        "macAddress": value.macAddress,
-                        "isConnected": value.isConnected
-                    ]
-                }
-                
-                // Convertir en JSON et envoyer
-                do {
-                    let jsonData = try JSONSerialization.data(withJSONObject: devicesJSON, options: .prettyPrinted)
-                    if let jsonString = String(data: jsonData, encoding: .utf8) {
-                        session.writeText(jsonString)
-                        print("Envoyé à la requête 'getDevices': \(jsonString)")
-                    }
-                } catch {
-                    print("Erreur lors de la génération du JSON: \(error)")
-                }
+            serverWS.deviceStates["rvrTornado"]?.isConnected = (serverWS.rvrTornadoSession != nil)
+            
+            // Générer le JSON pour le retour
+            let devicesJSON = serverWS.deviceStates.map { key, value in
+                [
+                    "device": key,
+                    "macAddress": value.macAddress,
+                    "isConnected": value.isConnected
+                ]
             }
+            
+            // Convertir en JSON et envoyer
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: devicesJSON, options: .prettyPrinted)
+                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                    session.writeText(jsonString)
+                    print("Envoyé à la requête 'getDevices': \(jsonString)")
+                }
+            } catch {
+                print("Erreur lors de la génération du JSON: \(error)")
+            }
+        }
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -68,6 +71,9 @@ let routes: [RouteInfos] = [
         print("RPI connecté : \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.rpiSession = nil
+        print("rpiSession déconnecté")
     }),
     
     RouteInfos(routeName: "rvrTornadoConnect", textCode: { session, receivedText in
@@ -77,6 +83,9 @@ let routes: [RouteInfos] = [
         serverWS.rvrTornadoSession?.writeText("stop")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.rvrTornadoSession = nil
+        print("rvrTornado déconnecté")
     }),
     
     RouteInfos(routeName: "iPhoneConnect", textCode: { session, receivedText in
@@ -84,6 +93,9 @@ let routes: [RouteInfos] = [
         print("iPhone connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.iPhoneSession = nil
+        print("iPhone déconnecté")
     }),
     
     RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
@@ -113,6 +125,9 @@ let routes: [RouteInfos] = [
         serverWS.laserSession?.writeText("python3 laser.py")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.laserSession = nil
+        print("Rpi lasser déconnecté")
     }),
     
     RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in

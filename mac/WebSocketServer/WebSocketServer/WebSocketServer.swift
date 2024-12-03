@@ -12,6 +12,8 @@ struct RouteInfos {
     var routeName: String
     var textCode: (WebSocketSession, String) -> ()
     var dataCode: (WebSocketSession, Data) -> ()
+    var connectedCode: ((WebSocketSession) -> ())? = nil
+    var disconnectedCode: ((WebSocketSession) -> ())? = nil
 }
 
 class WebSockerServer {
@@ -23,18 +25,18 @@ class WebSockerServer {
         "iPhone": ("AA:BB:CC:DD:EE:03", false),
         "rvrTornado": ("AA:BB:CC:DD:EE:04", false),
         "remoteController": ("AA:BB:CC:DD:EE:04", false),
-        ]
+    ]
     var rpiSession: WebSocketSession?
     var laserSession: WebSocketSession?
     
     var iPhoneSession: WebSocketSession?
     var rvrTornadoSession: WebSocketSession?
-
+    
     var remoteControllerSession: WebSocketSession?
     var spheroTyphoonId: String?
     var spheroTyphoonIsConnected: Bool = false
     var spheroStickId: String?
-    var spheroStickIsConnected: Bool = false    
+    var spheroStickIsConnected: Bool = false
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
@@ -48,9 +50,11 @@ class WebSockerServer {
             },
             connected: { session in
                 print("Client connected to route: /\(routeInfos.routeName)")
+                routeInfos.connectedCode?(session)
             },
             disconnected: { session in
                 print("Client disconnected from route: /\(routeInfos.routeName)")
+                routeInfos.disconnectedCode?(session)
             }
         )
     }
@@ -62,5 +66,11 @@ class WebSockerServer {
         } catch {
             print("Server failed to start: \(error.localizedDescription)")
         }
+    }
+}
+
+extension WebSockerServer {
+    func onDisconnectedHandle(_ handle: WebSocketSession) {
+        // deconnecte la session
     }
 }
