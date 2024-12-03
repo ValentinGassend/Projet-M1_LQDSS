@@ -11,12 +11,14 @@ import NWWebSocket
 
 class WebSocketClient:ObservableObject {
     static let instance = WebSocketClient()
-    
+    private var webSocketTask: URLSessionWebSocketTask?
+
     var routes = [String:NWWebSocket]()
-    var ipAddress = "192.168.1.15:8080/"
+    var ipAddress = "192.168.10.146:8080/"
     
     @Published var messageReceive:String = ""
-    
+    @Published var connectedDevices: [Device] = []
+
     func connectForIdentification(route: IdentificationRoute) {
         // Construire l'URL pour la route
         if let socketURL = URL(string: "ws://\(ipAddress)\(route.rawValue)Connect") {
@@ -28,9 +30,47 @@ class WebSocketClient:ObservableObject {
             // Envoyer le message de bienvenue pour la route
             sendWelcomeMessage(for: route)
             createMessageRoute(for: route)
+            if route == .remoteControllerConnect {
+                
+                let dashboardRouteKey = "\(route.rawValue)Dashboard"
+                if let socketURL = URL(string: "ws://\(ipAddress)\(dashboardRouteKey)") {
+                    let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
+                    socket.delegate = self
+                    socket.connect()
+                    routes[dashboardRouteKey] = socket
+                    
+                    print("Message route created for \(dashboardRouteKey)")
+                }
+            }
 
         }
     }
+    
+    func sendToDashboardroute (route:IdentificationRoute, msg: String ,completion: ((String?) -> Void)? = nil) {
+        let dashboardRouteKey = "\(route.rawValue)Dashboard"
+        guard let url = URL(string: "ws://\(ipAddress)\(dashboardRouteKey)") else { return }
+        
+        webSocketTask = URLSession.shared.webSocketTask(with: url)
+        webSocketTask?.resume()
+        if let socket = routes[dashboardRouteKey] {
+            socket.send(string: msg)
+            print("Sent: \(msg) to \(dashboardRouteKey)")
+        } else {
+            print("Error: Message route \(dashboardRouteKey) not found!")
+        }
+    }
+    
+    private func updateConnectedDevices(from message: String) {
+            // Si le message reçu est une liste d'appareils, on peut essayer de le décoder
+            if let jsonData = message.data(using: .utf8) {
+                do {
+                    let devices = try JSONDecoder().decode([Device].self, from: jsonData)
+                    self.connectedDevices = devices // Met à jour la liste des appareils
+                } catch {
+                    print("Erreur lors du décodage JSON : \(error)")
+                }
+            }
+        }
     private func createMessageRoute(for route: IdentificationRoute) {
         // Construire l'URL pour la route de message
         let messageRouteKey = "\(route.rawValue)Message"
@@ -127,10 +167,16 @@ extension WebSocketClient: WebSocketConnectionDelegate {
     }
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
-        // Respond to a WebSocket connection receiving a `String` message
+        // Lorsque vous recevez un message, mettez à jour la variable messageReceive
         print("Receive String Message \(string)")
-        messageReceive = string
+        DispatchQueue.main.async {
+            self.messageReceive = string // Mettez à jour le message reçu ici
+            self.updateConnectedDevices(from: string)
+
+        }
+        print(messageReceive)
     }
+
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, data: Data) {
         // Respond to a WebSocket connection receiving a binary `Data` message

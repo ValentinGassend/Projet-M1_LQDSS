@@ -186,7 +186,13 @@ struct ContentView: View {
                 } label: {
                     Text("ConnectToRemoteController")
                 }
-
+                NavigationLink(destination: DashboardView()) {
+                    Text("Go to Dashboard")
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
             }
             .navigationTitle("Remote Controller")
         }

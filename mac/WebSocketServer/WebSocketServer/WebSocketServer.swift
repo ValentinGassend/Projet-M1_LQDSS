@@ -18,7 +18,12 @@ class WebSockerServer {
     
     static let instance = WebSockerServer()
     let server = HttpServer()
-    
+    var deviceStates: [String: (macAddress: String, isConnected: Bool)] = [
+        "rpiLaser": ("AA:BB:CC:DD:EE:01", false),
+        "iPhone": ("AA:BB:CC:DD:EE:03", false),
+        "rvrTornado": ("AA:BB:CC:DD:EE:04", false),
+        "remoteController": ("AA:BB:CC:DD:EE:04", false),
+        ]
     var rpiSession: WebSocketSession?
     var laserSession: WebSocketSession?
     

@@ -9,200 +9,160 @@ import Foundation
 import Combine
 import Swifter
 
+// Initialisation du serveur WebSocket
 var serverWS = WebSockerServer()
-
-
 var cmd = TerminalCommandExecutor()
-var cancellable:AnyCancellable? = nil
+var cancellable: AnyCancellable? = nil
 
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
-    serverWS.remoteControllerSession = session
-    print("Remote controller Connecté")
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
-    serverWS.remoteControllerSession = session
-    print(receivedText)
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
-    serverWS.rpiSession = session
-    print("RPI Connecté")
-   
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rvrTornadoConnect", textCode: { session, receivedText in
-    serverWS.rvrTornadoSession = session
-    print("RVR tornado Connecté")
-    serverWS.rvrTornadoSession?.writeText("start 100")
-    serverWS.rvrTornadoSession?.writeText("stop")
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "iPhoneConnect", textCode: { session, receivedText in
-    serverWS.iPhoneSession = session
-    print("IPhone Connecté")
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
-    print(receivedText)
-    if let iPhoneSession = serverWS.iPhoneSession {
-        if (receivedText == "SB-8630") {
-            serverWS.spheroTyphoonId = "SB-8630"
-            print("spheroTyphoonId connecté")
-            serverWS.spheroTyphoonIsConnected = true
-            
-            if serverWS.spheroTyphoonIsConnected {
-                iPhoneSession.writeText("\(serverWS.spheroTyphoonId) [consigne]")
+// Liste des routes avec leur logique associée
+let routes: [RouteInfos] = [
+    RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
+        serverWS.remoteControllerSession = session
+        print("Remote controller connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
+        print(receivedText)
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "remoteControllerDashboard", textCode: { session, receivedText in
+        // Envoie l'état actuel des appareils connectés au client
+        serverWS.remoteControllerSession = session
+        if receivedText == "getDevices" {
+                // Mise à jour dynamique des états des appareils
+                serverWS.deviceStates["rpiLaser"]?.isConnected = (serverWS.laserSession != nil)
+                serverWS.deviceStates["iPhone"]?.isConnected = (serverWS.iPhoneSession != nil)
+            serverWS.deviceStates["remoteController"]?.isConnected = (serverWS.remoteControllerSession != nil)
+                serverWS.deviceStates["rvrTornado"]?.isConnected = (serverWS.rvrTornadoSession != nil)
+                
+                // Générer le JSON pour le retour
+                let devicesJSON = serverWS.deviceStates.map { key, value in
+                    [
+                        "device": key,
+                        "macAddress": value.macAddress,
+                        "isConnected": value.isConnected
+                    ]
+                }
+                
+                // Convertir en JSON et envoyer
+                do {
+                    let jsonData = try JSONSerialization.data(withJSONObject: devicesJSON, options: .prettyPrinted)
+                    if let jsonString = String(data: jsonData, encoding: .utf8) {
+                        session.writeText(jsonString)
+                        print("Envoyé à la requête 'getDevices': \(jsonString)")
+                    }
+                } catch {
+                    print("Erreur lors de la génération du JSON: \(error)")
+                }
             }
-        }
-        else if (receivedText == "SB-313C") {
-            serverWS.spheroStickId = "SB-313C"
-            print("spheroStickId connecté")
-            serverWS.spheroStickIsConnected = true
-
-            if serverWS.spheroTyphoonIsConnected {
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
+        serverWS.rpiSession = session
+        print("RPI connecté : \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "rvrTornadoConnect", textCode: { session, receivedText in
+        serverWS.rvrTornadoSession = session
+        print("RVR Tornado connecté")
+        serverWS.rvrTornadoSession?.writeText("start 100")
+        serverWS.rvrTornadoSession?.writeText("stop")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "iPhoneConnect", textCode: { session, receivedText in
+        serverWS.iPhoneSession = session
+        print("iPhone connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
+        print(receivedText)
+        if let iPhoneSession = serverWS.iPhoneSession {
+            if receivedText == "SB-8630" {
+                serverWS.spheroTyphoonId = "SB-8630"
+                serverWS.spheroTyphoonIsConnected = true
+                print("spheroTyphoonId connecté")
+                iPhoneSession.writeText("\(serverWS.spheroTyphoonId) [consigne]")
+            } else if receivedText == "SB-313C" {
+                serverWS.spheroStickId = "SB-313C"
+                serverWS.spheroStickIsConnected = true
+                print("spheroStickId connecté")
                 iPhoneSession.writeText("\(serverWS.spheroStickId) [consigne]")
             }
+        } else {
+            print("iPhoneSession non connecté")
         }
-    }
-    else {
-        print("iPhoneSession Non connecté")
-    }}, dataCode: { session, receivedData in
+    }, dataCode: { session, receivedData in
         print(receivedData)
-    }))
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
-    serverWS.laserSession = session
+    }),
     
-    serverWS.laserSession?.writeText("python3 laser.py")
-
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-
-    serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
+    RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
+        serverWS.laserSession = session
+        print("Laser connecté")
+        serverWS.laserSession?.writeText("python3 laser.py")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
         print(receivedText)
-        if receivedText ==  "True"
-        {
+        if receivedText == "True" {
             serverWS.laserSession?.writeText("stop")
             serverWS.rpiSession?.writeText("start 100")
         }
     }, dataCode: { session, receivedData in
         print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "rpiLaser", textCode: { session, receivedText in
-    serverWS.laserSession = session
-    print(receivedText)
-    serverWS.laserSession?.writeText("python3 laser.py")
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroTyphoon", textCode: { session, receivedText in
-    print(receivedText)
-    if let iPhoneSession = serverWS.iPhoneSession {
-        print("iPhoneSession connecté")
-        iPhoneSession.writeText(" I have received: \(receivedText)")
-    }
-    else {
-        print("iPhoneSession Non connecté")
-    }
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "testRobot", textCode: { session, receivedText in
-    if let rpiSess = serverWS.rpiSession {
-        rpiSess.writeText("python3 drive.py")
-    } else {
-        print("RPI Non connecté")
-    }
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "spheroTyphoonHello", textCode: { session, receivedText in
+    }),
     
-    print("Message received: \(receivedText)")
-    if let spheroTyphoonSession = serverWS.rpiSession {
-        spheroTyphoonSession.writeText("python3 \(receivedText).py")
-        print("Mouvement du robot fini")
-    } else {
-        print("RPI Non connecté")
-    }
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "moveRobot", textCode: { session, receivedText in
-    if let rpiSess = serverWS.rpiSession {
-        print("Mouvement du robot \(receivedText)")
-        rpiSess.writeText("python3 \(receivedText).py")
-        print("Mouvement du robot fini")
-    } else {
-        print("RPI Non connecté")
-    }
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "say", textCode: { session, receivedText in
-    cmd.say(textToSay: receivedText)
-}, dataCode: { session, receivedData in
-    print(receivedData)
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "imagePrompting", textCode: { session, receivedText in
-    if let jsonData = receivedText.data(using: .utf8),
-       let imagePrompting = try? JSONDecoder().decode(ImagePrompting.self, from: jsonData) {
-        let dataImageArray = imagePrompting.toDataArray()
-        let tmpImagesPath = TmpFileManager.instance.saveImageDataArray(dataImageArray: dataImageArray)
-        
-        if (tmpImagesPath.count == 1) {
-            cmd.imagePrompting(imagePath: tmpImagesPath[0], prompt: imagePrompting.prompt)
+    RouteInfos(routeName: "moveRobot", textCode: { session, receivedText in
+        if let rpiSess = serverWS.rpiSession {
+            print("Mouvement du robot : \(receivedText)")
+            rpiSess.writeText("python3 \(receivedText).py")
         } else {
-            print("You are sending too much images.")
+            print("RPI non connecté")
         }
-    }
-}, dataCode: { session, receivedData in
-}))
-
-serverWS.setupWithRoutesInfos(routeInfos: RouteInfos(routeName: "imagePromptingToText", textCode: { session, receivedText in
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
     
-    cancellable?.cancel()
-    cancellable = cmd.$output.sink { newValue in
-        session.writeText(newValue)
-    }
+    RouteInfos(routeName: "say", textCode: { session, receivedText in
+        cmd.say(textToSay: receivedText)
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
     
-    if let jsonData = receivedText.data(using: .utf8),
-       let imagePrompting = try? JSONDecoder().decode(ImagePrompting.self, from: jsonData) {
-        let dataImageArray = imagePrompting.toDataArray()
-        let tmpImagesPath = TmpFileManager.instance.saveImageDataArray(dataImageArray: dataImageArray)
-        
-        if (tmpImagesPath.count == 1) {
-            cmd.imagePrompting(imagePath: tmpImagesPath[0], prompt: imagePrompting.prompt)
-        } else {
-            print("You are sending too much images.")
+    RouteInfos(routeName: "imagePrompting", textCode: { session, receivedText in
+        if let jsonData = receivedText.data(using: .utf8),
+           let imagePrompting = try? JSONDecoder().decode(ImagePrompting.self, from: jsonData) {
+            let dataImageArray = imagePrompting.toDataArray()
+            let tmpImagesPath = TmpFileManager.instance.saveImageDataArray(dataImageArray: dataImageArray)
+            if tmpImagesPath.count == 1 {
+                cmd.imagePrompting(imagePath: tmpImagesPath[0], prompt: imagePrompting.prompt)
+            } else {
+                print("You are sending too many images.")
+            }
         }
-    }
-}, dataCode: { session, receivedData in
-}))
+    }, dataCode: { session, receivedData in
+    })
+]
 
+// Configuration des routes sur le serveur
+for route in routes {
+    serverWS.setupWithRoutesInfos(routeInfos: route)
+}
+
+// Démarrage du serveur WebSocket
 serverWS.start()
-
 RunLoop.main.run()
+
