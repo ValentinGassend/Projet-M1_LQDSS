@@ -6,33 +6,8 @@ from machine import Pin
 
 
 
-
-
-from machine import Pin, 
-class RFID :
-    def __init__(self,rdr):
-        self.rdr = rdr  # SCK, MOSI, MISO, RST, SDA
-        self.asked=False
-    
-    def read(self):
-        (stat, tag_type) = self.rdr.request(self.rdr.REQIDL)
-        if stat == self.rdr.OK:
-            self.asked=False
-            (stat, raw_uid) = self.rdr.anticoll()
-            if stat == self.rdr.OK:
-                print("\nBadge détecté !")
-                return True    
-            else:
-                return False
-        return False
-        
-try:
-    import uselect as select
-except ImportError:
-    import select
-
 # Configuration WiFi
-WIFI_SSID = "Cudy-F810"
+WIFI_SSID = "Cudy-F810" 
 WIFI_PASSWORD = "13022495"
 WEBSOCKET_URL = "ws://192.168.10.146:8080/rpiConnect"  # Remplacez par l'URL de votre serveur
 
