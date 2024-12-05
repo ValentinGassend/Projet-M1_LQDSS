@@ -7,34 +7,11 @@
 
 import SwiftUI
 struct Device: Identifiable, Codable {
-    var id: String { device }
+    var id: String { macAddress }
     var device: String
     var macAddress: String
     var isConnected: Bool
-
-    // Custom decoding to handle missing "isConnected" field
-    enum CodingKeys: String, CodingKey {
-        case device
-        case macAddress
-        case isConnected
-    }
-
-    init(device: String, macAddress: String, isConnected: Bool?) {
-        self.device = device
-        self.macAddress = macAddress
-        self.isConnected = isConnected ?? false 
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.device = try container.decode(String.self, forKey: .device)
-        self.macAddress = try container.decode(String.self, forKey: .macAddress)
-        
-        // Handle missing "isConnected"
-        self.isConnected = try container.decodeIfPresent(Bool.self, forKey: .isConnected) ?? false
-    }
 }
-
 
 struct DashboardView: View {
     @ObservedObject var wsClient = WebSocketClient.instance
@@ -58,6 +35,7 @@ struct DashboardView: View {
                                 .foregroundColor(.gray)
                         }
                         Spacer()
+                        Text(String(device.isConnected))
                         Text(device.isConnected ? "Online" : "Offline")
                             .foregroundColor(device.isConnected ? .green : .red)
                     }

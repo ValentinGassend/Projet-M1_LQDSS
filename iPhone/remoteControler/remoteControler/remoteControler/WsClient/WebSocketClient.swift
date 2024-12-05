@@ -14,12 +14,11 @@ class WebSocketClient:ObservableObject {
     private var webSocketTask: URLSessionWebSocketTask?
 
     var routes = [String:NWWebSocket]()
-    var ipAddress = "192.168.10.146:8080/" // router
-//    var ipAddress = "192.168.1.15:8080/"
+    var ipAddress = "192.168.10.146:8080/"
     
     @Published var messageReceive:String = ""
     @Published var connectedDevices: [Device] = []
-    
+
     func connectForIdentification(route: IdentificationRoute) {
         // Construire l'URL pour la route
         if let socketURL = URL(string: "ws://\(ipAddress)\(route.rawValue)Connect") {
@@ -31,15 +30,15 @@ class WebSocketClient:ObservableObject {
             // Envoyer le message de bienvenue pour la route
             sendWelcomeMessage(for: route)
             createMessageRoute(for: route)
-            createPingRoute(for: route)
-            
             if route == .remoteControllerConnect {
+                
                 let dashboardRouteKey = "\(route.rawValue)Dashboard"
                 if let socketURL = URL(string: "ws://\(ipAddress)\(dashboardRouteKey)") {
                     let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
                     socket.delegate = self
                     socket.connect()
                     routes[dashboardRouteKey] = socket
+                    
                     print("Message route created for \(dashboardRouteKey)")
                 }
             }
@@ -61,43 +60,26 @@ class WebSocketClient:ObservableObject {
         }
     }
     
-    
     private func updateConnectedDevices(from message: String) {
         if let jsonData = message.data(using: .utf8) {
             do {
-                // Decode the incoming devices
                 let newDevices = try JSONDecoder().decode([Device].self, from: jsonData)
-                
-                // Merge with existing devices
                 DispatchQueue.main.async {
+                    // Fusionner les nouveaux appareils avec les existants
                     for newDevice in newDevices {
-                        if let index = self.connectedDevices.firstIndex(where: { $0.device == newDevice.device }) {
-                            self.connectedDevices[index] = newDevice // Update if device already exists
+                        if let index = self.connectedDevices.firstIndex(where: { $0.macAddress == newDevice.macAddress }) {
+                            self.connectedDevices[index] = newDevice
                         } else {
-                            self.connectedDevices.append(newDevice) // Add new device
+                            self.connectedDevices.append(newDevice)
                         }
                     }
                     print("Updated connected devices: \(self.connectedDevices)")
                 }
             } catch {
-                print("Error decoding JSON: \(error)")
+                print("Erreur lors du décodage JSON : \(error)")
             }
         } else {
-            print("Error: Received message is not a valid JSON format")
-        }
-    }
-
-
-
-    private func createPingRoute(for route: IdentificationRoute) {
-        // Construire l'URL pour la route de message
-        let pingRouteKey = "\(route.rawValue)Ping"
-        if let socketURL = URL(string: "ws://\(ipAddress)\(pingRouteKey)") {
-            let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
-            socket.delegate = self
-            socket.connect()
-            routes[pingRouteKey] = socket
-            print("Ping route created for \(pingRouteKey)")
+            print("Erreur: Le message reçu n'est pas un format JSON valide")
         }
     }
 
@@ -108,10 +90,6 @@ class WebSocketClient:ObservableObject {
             let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
             socket.delegate = self
             socket.connect()
-            socket.send(string: messageRouteKey)
-            // récupère le message
-            socket.listen()
-            print(messageRouteKey + self.messageReceive)
             routes[messageRouteKey] = socket
             
             print("Message route created for \(messageRouteKey)")
@@ -206,9 +184,9 @@ extension WebSocketClient: WebSocketConnectionDelegate {
         
         DispatchQueue.main.async {
             self.messageReceive = string // Mettez à jour le message reçu ici
-//            self.updateConnectedDevices(from: string) // Mettez à jour la liste des appareils
+            self.updateConnectedDevices(from: string) // Mettez à jour la liste des appareils
         }
-//        print(messageReceive)
+        print(messageReceive)
     }
 
     
