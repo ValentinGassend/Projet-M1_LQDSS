@@ -1,7 +1,6 @@
 import SwiftUI
 import Foundation
 
-
 struct SpheroRotationDetectorView: View {
     enum Classes: Hashable {
         case turn
@@ -31,6 +30,7 @@ struct SpheroRotationDetectorView: View {
     @State private var detectionStartTime: TimeInterval?
     @State private var accumulatedRotation: Double = 0.0 // Rotation accumulée en radians
     @State private var clockwiseTurns: Int = 0 // Nombre de tours horaires
+    @State private var consecutiveSamples: Int = 0 // Nombre d'échantillons consécutifs dépassant le seuil
     
     // Dossiers de sauvegarde
     private let turnFolderName = "one_turn"
@@ -48,18 +48,19 @@ struct SpheroRotationDetectorView: View {
 
     @State private var showSaveChoiceAlert = false // Show the alert for save choice
     @State private var isTurnChosen = false // Track if "turn" is chosen
+
     // Exemple de méthode qui nécessite la conversion des types
     private func addTurnData(data: [Float], isTurn: Bool) {
-            // Convertir [Float] en [Double]
-            let doubleData = data.map { Double($0) }
-            
-            // Ajouter les données dans le dictionnaire
-            let key: Classes = isTurn ? .turn : .bin
-            if movementData[key] == nil {
-                movementData[key] = []
-            }
-            movementData[key]?.append(doubleData)  // Ajouter les données converties dans le tableau approprié
+        // Convertir [Float] en [Double]
+        let doubleData = data.map { Double($0) }
+        
+        // Ajouter les données dans le dictionnaire
+        let key: Classes = isTurn ? .turn : .bin
+        if movementData[key] == nil {
+            movementData[key] = []
         }
+        movementData[key]?.append(doubleData)  // Ajouter les données converties dans le tableau approprié
+    }
 
     init(isSpheroConnected: Binding<Bool>) {
         self._isSpheroConnected = isSpheroConnected
@@ -67,47 +68,46 @@ struct SpheroRotationDetectorView: View {
     }
     
     // Méthode de lecture des données gyroscopiques
-    private func startRecording() {
-        guard isSpheroConnected else {
-            print("Sphero not connected!")
-            return
-        }
-        
-        isRecording = true
-        gyroData.removeAll()
-        detectionStartTime = nil
-        isRotationDetected = false
-        rotationDirection = "None"
-        accumulatedRotation = 0.0
-        clockwiseTurns = 0
-        
-        SharedToyBox.instance.bolt?.sensorControl.enable(sensors: [.gyro]) // Activation des capteurs
-        SharedToyBox.instance.bolt?.sensorControl.interval = 100 // Intervalle d'échantillonnage (ms)
-        
-        SharedToyBox.instance.bolt?.sensorControl.onDataReady = { data in
-            DispatchQueue.main.async {
-                if self.isRecording, let gyro = data.gyro?.rotationRate {
-                    let currentTime = Date().timeIntervalSince1970
-                    let zRotation = Double(gyro.z ?? 0) // Lecture de la rotation Z
-                    let timeDifference = currentTime - (self.gyroData.last?.time ?? currentTime)
-                    let deltaAngle = zRotation * timeDifference // Calculer l'angle tourné (en radians)
+        private func startRecording() {
+            guard isSpheroConnected else {
+                print("Sphero not connected!")
+                return
+            }
+            
+            gyroData.removeAll()
+            detectionStartTime = nil
+            isRotationDetected = false
+            rotationDirection = "None"
+            accumulatedRotation = 0.0
+            clockwiseTurns = 0
+            consecutiveSamples = 0 // Réinitialisation du compteur
+            
+            SharedToyBox.instance.bolt?.sensorControl.enable(sensors: [.gyro]) // Activation des capteurs
+            SharedToyBox.instance.bolt?.sensorControl.interval = 100 // Intervalle d'échantillonnage (ms)
+            
+            SharedToyBox.instance.bolt?.sensorControl.onDataReady = { data in
+                DispatchQueue.main.async {
+                    if let gyro = data.gyro?.rotationRate {
+                        let currentTime = Date().timeIntervalSince1970
+                        let zRotation = Double(gyro.z ?? 0) // Lecture de la rotation Z
+                        let timeDifference = currentTime - (self.gyroData.last?.time ?? currentTime)
+                        let deltaAngle = zRotation * timeDifference // Calculer l'angle tourné (en radians)
 
-                    // Ajout des données
-                    self.gyroData.append(GyroData(time: currentTime, zRotation: zRotation))
-                    self.checkRotationDetection(zRotation: zRotation, currentTime: currentTime)
-                    
-                    // Mise à jour de la rotation accumulée
-                    self.updateRotationCount(zRotation: zRotation, deltaAngle: deltaAngle)
-                    
-                    // Déterminer le sens de rotation
-                    self.rotationDirection = zRotation > 0 ? "Counter-Clockwise" : (zRotation < 0 ? "Clockwise" : "None")
-                    
-                    // Logs des données
-                    print("Time: \(currentTime), Z-Rotation: \(zRotation), Accumulated Rotation: \(self.accumulatedRotation), Clockwise Turns: \(self.clockwiseTurns)")
+                        // Ajout des données
+                        if self.isRecording {
+                            self.gyroData.append(GyroData(time: currentTime, zRotation: zRotation))
+                            self.updateRotationCount(zRotation: zRotation, deltaAngle: deltaAngle)
+                            self.rotationDirection = zRotation > 0 ? "Counter-Clockwise" : (zRotation < 0 ? "Clockwise" : "None")
+                        }
+
+                        self.checkRotationDetection(zRotation: zRotation, currentTime: currentTime)
+                        
+                        // Logs des données
+                        print("Time: \(currentTime), Z-Rotation: \(zRotation), Accumulated Rotation: \(self.accumulatedRotation), Clockwise Turns: \(self.clockwiseTurns)")
+                    }
                 }
             }
         }
-    }
     
     // Arrêt de l'enregistrement
     private func stopRecording() {
@@ -118,7 +118,6 @@ struct SpheroRotationDetectorView: View {
         // Demander à l'utilisateur où enregistrer le fichier
         classifyRotationData()
         showSaveChoiceAlert = true
-
     }
     
     // Mise à jour de la rotation accumulée et des tours horaires
@@ -167,20 +166,21 @@ struct SpheroRotationDetectorView: View {
     
     // Vérifier si les critères de rotation sont remplis
     private func checkRotationDetection(zRotation: Double, currentTime: TimeInterval) {
-        if abs(zRotation) > rotationThreshold {
-            if detectionStartTime == nil {
-                detectionStartTime = currentTime
+            if abs(zRotation) > 0.0 {  // Si la rotation Z n'est pas nulle
+                if !isRecording {  // Démarre l'enregistrement immédiatement
+                    startRecording()
+                }
+
+                consecutiveSamples += 1 // Incrémenter le compteur si la rotation dépasse le seuil
+                detectionStartTime = currentTime // Reset du temps de détection
+            } else {
+                consecutiveSamples = 0 // Réinitialiser le compteur si la rotation est en dessous du seuil
+                if isRecording && (currentTime - (detectionStartTime ?? currentTime)) > detectionDuration {
+                    stopRecording()  // Arrêter l'enregistrement si la rotation est en-dessous du seuil pendant un certain temps
+                }
             }
-            
-            if let startTime = detectionStartTime, currentTime - startTime >= detectionDuration {
-                isRotationDetected = true
-            }
-        } else {
-            detectionStartTime = nil
-            isRotationDetected = false
-            rotationDirection = "None"
         }
-    }
+
     
     // Fonction pour classifier les données et les enregistrer
     private func classifyRotationData() {
@@ -192,7 +192,6 @@ struct SpheroRotationDetectorView: View {
 
         // Prediction via le réseau de neurones
         do {
-            
             let prediction = try neuralNet?.update(inputs: normalizedData)
             
             // Si le réseau de neurones prédit que c'est un "turn"
@@ -201,14 +200,28 @@ struct SpheroRotationDetectorView: View {
             // Ajouter les données au bon dossier
             addTurnData(data: normalizedData, isTurn: isTurn)
             
-            
             print("Data classified as: \(isTurn ? "Turn" : "Trash")")
         } catch {
             print("Error predicting rotation data: \(error)")
         }
     }
+    private func handleGyroData(zRotation: Double) {
+        if !isRecording {
+            // Si l'enregistrement n'est pas encore démarré, le démarrer dès qu'un mouvement est détecté
+            isRecording = true
+            gyroData.removeAll()  // Réinitialisation des données
+            detectionStartTime = Date().timeIntervalSince1970
+        }
 
-    
+        // Si l'enregistrement est en cours, ajoute les données
+        if isRecording {
+            let currentTime = Date().timeIntervalSince1970
+            gyroData.append(GyroData(time: currentTime, zRotation: zRotation))
+            print("Data recorded: Time: \(currentTime), Z-Rotation: \(zRotation)")
+        }
+    }
+
+
     // Normalisation des données d'entrée
     private func normalize(_ data: [Double]) -> [Float] {
         let min = data.min() ?? 0.0
@@ -224,6 +237,7 @@ struct SpheroRotationDetectorView: View {
             
             HStack {
                 Button("Start Recording") {
+                    isRecording = true
                     startRecording()
                 }
                 .disabled(isRecording || !isSpheroConnected)
@@ -267,8 +281,32 @@ struct SpheroRotationDetectorView: View {
         }
         .padding()
         .onAppear {
-            SharedToyBox.instance.bolt?.setStabilization(state: .off)
+            if isSpheroConnected {
+                SharedToyBox.instance.bolt?.setStabilization(state: .off)
+                // Commence à surveiller les mouvements gyroscopiques
+                SharedToyBox.instance.bolt?.sensorControl.enable(sensors: [.gyro])
+                SharedToyBox.instance.bolt?.sensorControl.interval = 100  // Intervalle d'échantillonnage (ms)
+                
+                // On configure la callback pour détecter les mouvements
+                SharedToyBox.instance.bolt?.sensorControl.onDataReady = { data in
+                    // Vérifie s'il y a des données du gyroscope
+                    if let gyro = data.gyro?.rotationRate {
+                        let zRotation = Double(gyro.z ?? 0)
+                        
+                        // Si c'est la première donnée détectée, commence l'enregistrement
+                        if !self.isRecording && abs(zRotation) > 0.0 {
+                            self.startRecording()
+                        }
+                        
+                        // Continue à surveiller et enregistrer les données dès que l'enregistrement est lancé
+                        if self.isRecording {
+                            self.handleGyroData(zRotation: zRotation)
+                        }
+                    }
+                }
+            }
         }
+
         .alert(isPresented: $showSaveChoiceAlert) {
             Alert(
                 title: Text("Save Gyro Data"),
