@@ -183,6 +183,7 @@ struct ContentView: View {
                 }
                 Button {
                     wsClient.connectForIdentification(route: .remoteControllerConnect)
+                    wsClient.sentToRoute(route: .remoteControllerConnect, msg: "remoteControllerMessage")
                 } label: {
                     Text("ConnectToRemoteController")
                 }

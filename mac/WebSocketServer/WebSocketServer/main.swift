@@ -13,28 +13,12 @@ import Swifter
 var serverWS = WebSockerServer()
 var cmd = TerminalCommandExecutor()
 var cancellable: AnyCancellable? = nil
+var pingTimer: Timer?
 
 // Liste des routes avec leur logique associée
-let routes: [RouteInfos] = [
-    RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
-        serverWS.remoteControllerSession = session
-        print("Remote controller connecté")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.remoteControllerSession = nil
-        print("Remote controller déconnecté")
-    }),
-    
-    RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
-        print(receivedText)
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
+let otherRoutes: [RouteInfos] = [
     RouteInfos(routeName: "remoteControllerDashboard", textCode: { session, receivedText in
         // Envoie l'état actuel des appareils connectés au client
-        serverWS.remoteControllerSession = session
         if receivedText == "getDevices" {
             // Mise à jour dynamique des états des appareils
             serverWS.deviceStates["rpiLaser"]?.isConnected = (serverWS.laserSession != nil)
@@ -65,39 +49,6 @@ let routes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    
-    RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
-        serverWS.rpiSession = session
-        print("RPI connecté : \(receivedText)")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.rpiSession = nil
-        print("rpiSession déconnecté")
-    }),
-    
-    RouteInfos(routeName: "rvrTornadoConnect", textCode: { session, receivedText in
-        serverWS.rvrTornadoSession = session
-        print("RVR Tornado connecté")
-        serverWS.rvrTornadoSession?.writeText("start 100")
-        serverWS.rvrTornadoSession?.writeText("stop")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.rvrTornadoSession = nil
-        print("rvrTornado déconnecté")
-    }),
-    
-    RouteInfos(routeName: "iPhoneConnect", textCode: { session, receivedText in
-        serverWS.iPhoneSession = session
-        print("iPhone connecté")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.iPhoneSession = nil
-        print("iPhone déconnecté")
-    }),
-    
     RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
         print(receivedText)
         if let iPhoneSession = serverWS.iPhoneSession {
@@ -114,27 +65,6 @@ let routes: [RouteInfos] = [
             }
         } else {
             print("iPhoneSession non connecté")
-        }
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
-        serverWS.laserSession = session
-        print("Laser connecté")
-        serverWS.laserSession?.writeText("python3 laser.py")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.laserSession = nil
-        print("Rpi lasser déconnecté")
-    }),
-    
-    RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
-        print(receivedText)
-        if receivedText == "True" {
-            serverWS.laserSession?.writeText("stop")
-            serverWS.rpiSession?.writeText("start 100")
         }
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -171,9 +101,191 @@ let routes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
     })
 ]
+func createConnectRoute(routeName: String,
+                        sessionProvider: @escaping () -> WebSocketSession?,
+                        sessionSetter: @escaping (WebSocketSession?) -> Void) -> RouteInfos {
+    return RouteInfos(routeName: routeName, textCode: { session, receivedText in
+        // Lorsque la session est connectée, on l'associe à l'appareil
+        sessionSetter(session)
+        print("\(routeName) connecté : \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print("Données reçues sur \(routeName) : \(receivedData)")
+    }, disconnectedCode: { session in
+        // Si la session se déconnecte, on la désassocie
+        sessionSetter(nil)
+        print("\(routeName) déconnecté")
+    })
+}
 
-// Configuration des routes sur le serveur
-for route in routes {
+func createPingRoute(routeName: String,
+                     sessionProvider: @escaping () -> WebSocketSession?,
+                     sessionSetter: @escaping (WebSocketSession?) -> Void,
+                     expectedResponse: String) -> RouteInfos {
+    var pingTimer: Timer?
+    return RouteInfos(routeName: routeName, textCode: { session, receivedText in
+        if let currentSession = sessionProvider() {
+            // Démarre ou redémarre le Timer pour envoyer des pings toutes les secondes
+            if pingTimer == nil {
+                pingTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                    currentSession.writeText("ping")
+                    print("Ping envoyé pour la route \(routeName)")
+                    
+                    // Gère un timeout pour la réponse
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        if sessionProvider() != nil {
+                            print("Pas de réponse reçue pour \(routeName), session déclarée comme nil")
+                            sessionSetter(nil)
+                            pingTimer?.invalidate()
+                            pingTimer = nil
+                        }
+                    }
+                }
+            }
+            
+            // Vérification de la réponse attendue
+            if receivedText == expectedResponse {
+                print("Réponse attendue reçue pour \(routeName): \(receivedText)")
+                // La réponse est reçue, la session reste active
+            }
+        } else {
+            print("Session non connectée pour \(routeName)")
+        }
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }, disconnectedCode: { session in
+        print("\(routeName) déconnecté")
+        sessionSetter(nil)
+        pingTimer?.invalidate()
+        pingTimer = nil
+    })
+}
+
+
+func createMessageRoute(routeName: String,
+                        sessionProvider: @escaping () -> WebSocketSession?,
+                        sessionSetter: @escaping (WebSocketSession?) -> Void,
+                        textHandler: @escaping (WebSocketSession, String) -> Void,
+                        dataHandler: @escaping (WebSocketSession, Data) -> Void) -> RouteInfos {
+    return RouteInfos(routeName: routeName, textCode: { session, receivedText in
+        if let currentSession = sessionProvider() {
+            // Action personnalisée à réaliser lorsque du texte est reçu
+            textHandler(currentSession, receivedText)
+            
+            print("Message texte reçu sur \(routeName): \(receivedText)")
+        }
+    }, dataCode: { session, receivedData in
+        if let currentSession = sessionProvider() {
+            // Action personnalisée à réaliser lorsque des données sont reçues
+            dataHandler(currentSession, receivedData)
+            print("Données reçues sur \(routeName): \(receivedData)")
+        }
+    })
+}
+
+
+let connectionRoutes: [RouteInfos] = [
+    createConnectRoute(
+        routeName: "remoteControllerConnect",
+        sessionProvider: { serverWS.remoteControllerSession },
+        sessionSetter: { serverWS.remoteControllerSession = $0 }
+    
+    ),
+    createConnectRoute(
+        routeName: "rpiConnect",
+        sessionProvider: { serverWS.rpiSession },
+        sessionSetter: { serverWS.rpiSession = $0 }
+    ),
+    createConnectRoute(
+        routeName: "rvrTornadoConnect",
+        sessionProvider: { serverWS.rvrTornadoSession },
+        sessionSetter: { serverWS.rvrTornadoSession = $0 }
+    ),
+    createConnectRoute(
+        routeName: "rpiLaserConnect",
+        sessionProvider: { serverWS.laserSession },
+        sessionSetter: { serverWS.laserSession = $0 }
+    )
+]
+
+
+let messageRoutes: [RouteInfos] = [
+    createMessageRoute(
+        routeName: "remoteControllerMessage",
+        sessionProvider: { serverWS.remoteControllerSession },
+        sessionSetter: { serverWS.remoteControllerSession = $0 },
+        textHandler: { session, receivedText in
+            // Traitement du texte reçu
+            print(receivedText)
+            if let remoteControllerSession = serverWS.remoteControllerSession {
+                if receivedText == "remoteControllerMessage" {
+                    serverWS.remoteControllerSession?.writeText("test")
+                    print("message envoyé \("test")")
+
+//                    print("Message texte reçu : \(receivedText)")
+                }
+                
+            }
+        },
+        dataHandler: { session, receivedData in
+            // Traitement des données reçues
+            print("Données reçues : \(receivedData)")
+        }
+    ),
+    createMessageRoute(
+        routeName: "rpiLaserMessage",
+        sessionProvider: { serverWS.laserSession },
+        sessionSetter: { serverWS.laserSession = $0 },
+        textHandler: { session, receivedText in
+            // Exemple de logique pour traiter le texte reçu
+            print("Texte reçu sur rpiLaserMessage: \(receivedText)")
+            if receivedText == "True" {
+                serverWS.laserSession?.writeText("stop")
+                serverWS.rpiSession?.writeText("start 100")
+            }
+        },
+        dataHandler: { session, receivedData in
+            // Exemple de logique pour traiter les données reçues
+            print("Données reçues sur rpiLaserMessage: \(receivedData)")
+        }
+    )
+]
+
+let pingRoutes: [RouteInfos] = [
+    createPingRoute(
+        routeName: "remoteControllerPing",
+        sessionProvider: { serverWS.remoteControllerSession },
+        sessionSetter: { serverWS.remoteControllerSession = $0 },
+        expectedResponse: "remoteController"
+    ),
+    createPingRoute(
+        routeName: "rpiPing",
+        sessionProvider: { serverWS.rpiSession },
+        sessionSetter: { serverWS.rpiSession = $0 },
+        expectedResponse: "rpi"
+    ),
+    createPingRoute(
+        routeName: "rvrTornadoPing",
+        sessionProvider: { serverWS.rvrTornadoSession },
+        sessionSetter: { serverWS.rvrTornadoSession = $0 },
+        expectedResponse: "rvrTornado"
+    ),
+    createPingRoute(
+        routeName: "iPhonePing",
+        sessionProvider: { serverWS.iPhoneSession },
+        sessionSetter: { serverWS.iPhoneSession = $0 },
+        expectedResponse: "iPhone"
+    ),
+    createPingRoute(
+        routeName: "rpiLaserPing",
+        sessionProvider: { serverWS.laserSession },
+        sessionSetter: { serverWS.laserSession = $0 },
+        expectedResponse: "rpiLaser"
+    )
+]
+
+let allRoutes = connectionRoutes + pingRoutes + messageRoutes + otherRoutes
+
+for route in allRoutes {
     serverWS.setupWithRoutesInfos(routeInfos: route)
 }
 
