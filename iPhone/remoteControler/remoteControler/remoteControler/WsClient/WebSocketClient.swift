@@ -9,9 +9,14 @@ import SwiftUI
 import Network
 import NWWebSocket
 
+protocol WebSocketMessageHandler: AnyObject {
+    func handleMessage(_ message: String)
+}
+
 class WebSocketClient:ObservableObject {
     static let instance = WebSocketClient()
     private var webSocketTask: URLSessionWebSocketTask?
+    private var messageHandlers: [String: WebSocketMessageHandler] = [:]
 
     var routes = [String:NWWebSocket]()
     var ipAddress = "192.168.10.146:8080/"
@@ -38,7 +43,7 @@ class WebSocketClient:ObservableObject {
                     socket.delegate = self
                     socket.connect()
                     routes[dashboardRouteKey] = socket
-                    
+                    socket.send(string: "getDevices")
                     print("Message route created for \(dashboardRouteKey)")
                 }
             }
@@ -67,7 +72,7 @@ class WebSocketClient:ObservableObject {
                 DispatchQueue.main.async {
                     // Fusionner les nouveaux appareils avec les existants
                     for newDevice in newDevices {
-                        if let index = self.connectedDevices.firstIndex(where: { $0.macAddress == newDevice.macAddress }) {
+                        if let index = self.connectedDevices.firstIndex(where: { $0.device == newDevice.device }) {
                             self.connectedDevices[index] = newDevice
                         } else {
                             self.connectedDevices.append(newDevice)
@@ -146,6 +151,53 @@ class WebSocketClient:ObservableObject {
 }
 
 extension WebSocketClient: WebSocketConnectionDelegate {
+    func processReceivedMessage(
+            connection: NWWebSocket, // Change from WebSocketConnection
+            string: String
+        ) {
+            print("Receive String Message \(string)")
+                
+            DispatchQueue.main.async {
+                self.messageReceive = string
+                    
+                // Find the route for this connection
+                if let route = self.routes.first(where: { $0.value === connection })?.key {
+                    self.routeMessage(string, for: route)
+                }
+            }
+        }
+        
+        func webSocketDidReceiveMessage(
+            connection: WebSocketConnection,
+            string: String
+        ) {
+            print("Receive String Message \(string)")
+                
+            DispatchQueue.main.async {
+                self.messageReceive = string
+                    
+                if let connection = connection as? NWWebSocket {
+                    if let route = self.routes.first(where: { $0.value === connection })?.key {
+                        self.routeMessage(string, for: route)
+                    }
+                }
+                
+            }
+        }
+
+    private func routeMessage(_ message: String, for route: String) {
+        print("Route Message \(message) on route \(route)")
+        if route == "remoteControllerDashboard" {
+            if let handler = messageHandlers[route] {
+                handler.handleMessage(message)
+            }
+            
+            // If the route is a device connection route, try to update connected devices
+            if message.contains("device") || message.contains("Device") {
+                updateConnectedDevices(from: message)
+            }
+        }
+    }
     
     func webSocketDidConnect(connection: WebSocketConnection) {
         // Respond to a WebSocket connection event
@@ -178,17 +230,6 @@ extension WebSocketClient: WebSocketConnectionDelegate {
         print("Receive pong")
     }
     
-    func webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
-        // Lorsque vous recevez un message, mettez à jour la variable messageReceive
-        print("Receive String Message \(string)")
-        
-        DispatchQueue.main.async {
-            self.messageReceive = string // Mettez à jour le message reçu ici
-            self.updateConnectedDevices(from: string) // Mettez à jour la liste des appareils
-        }
-        print(messageReceive)
-    }
-
     
     func webSocketDidReceiveMessage(connection: WebSocketConnection, data: Data) {
         // Respond to a WebSocket connection receiving a binary `Data` message

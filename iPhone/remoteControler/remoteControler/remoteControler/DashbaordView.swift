@@ -7,9 +7,8 @@
 
 import SwiftUI
 struct Device: Identifiable, Codable {
-    var id: String { macAddress }
+    var id: String { device }
     var device: String
-    var macAddress: String
     var isConnected: Bool
 }
 
@@ -30,12 +29,8 @@ struct DashboardView: View {
                         VStack(alignment: .leading) {
                             Text(device.device)
                                 .font(.headline)
-                            Text("MAC: \(device.macAddress)")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
                         }
                         Spacer()
-                        Text(String(device.isConnected))
                         Text(device.isConnected ? "Online" : "Offline")
                             .foregroundColor(device.isConnected ? .green : .red)
                     }

@@ -31,6 +31,16 @@ struct SpheroConnectionSheetView: View {
             .foregroundColor(.white)
             .cornerRadius(8)
 
+
+            // Button to connect to Default Sphero
+            Button("Connect to test crank Sphero") {
+                connectSphero(named: "SB-5D1C", spheroId: "crank")
+            }
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+
             // Button to connect to Bottled Sphero
             Button("Connect to Bottled Sphero") {
                 connectSphero(named: "SB-313C", spheroId: "bottled")
