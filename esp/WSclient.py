@@ -2,7 +2,7 @@ import network
 import time
 import gc
 from machine import Pin
-from WebSocketClient import WebSocketClient
+from libs.WebSocketClient import WebSocketClient
 
 class WSclient:
     def __init__(self, ssid, password, websocket_url):
