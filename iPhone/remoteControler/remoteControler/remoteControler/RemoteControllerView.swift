@@ -21,7 +21,13 @@ struct RemoteControllerView: View {
                     .font(.title2)
                     .fontWeight(.bold)
                     .padding(.bottom)
-                
+                NavigationLink(destination: SpheroRotationDetectorView(isSpheroConnected: $isSpheroConnected))  {
+                    Text("Go to SpheroRotationDetectorView")
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
                 Button(action: {
 //                    start/increase speed rotation on rvr
                     wsClient.sentToRoute(route: .remoteControllerConnect, msg: "increase speed rotation on rvr")
