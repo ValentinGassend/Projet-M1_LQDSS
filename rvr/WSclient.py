@@ -1,15 +1,16 @@
-
 import websocket
 import subprocess
 import os 
 import time
 import threading
 
-
 DetectedObject = False
+turn_right_process = None  # Global variable to track the turn-right process
 
 
 def on_message(ws, message):
+    global turn_right_process  # Access the global variable
+
     print("Message reçu:", message)
 
     if message.startswith("start"):
@@ -17,152 +18,89 @@ def on_message(ws, message):
         try:
             speed = int(message.split()[1])
             if 0 <= speed <= 255:
-                result = subprocess.run(['python3', 'turn-right.py', str(speed)], capture_output=True, text=True)
-                if result.returncode == 0:
-                    print(f"Script 'turn-right.py' exécuté avec succès : {result.stdout}")
-                else:
-                    print(f"Erreur lors de l'exécution de 'turn-right.py' : {result.stderr}")
-
+                # Lancer le script 'turn-right.py' et enregistrer le processus
+                if turn_right_process is not None:
+                    print("Un processus 'turn-right.py' est déjà en cours. Arrêt en cours...")
+                    turn_right_process.terminate()
+                    turn_right_process = None
+                
+                turn_right_process = subprocess.Popen(
+                    ['python3', 'turn-right.py', str(speed)],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                print(f"'turn-right.py' lancé avec la vitesse {speed}.")
             else:
                 print("Erreur: La vitesse doit être entre 0 et 255.")
         except (ValueError, IndexError):
             print("Erreur: Commande invalide. Utilisez 'start <vitesse>'.")
 
     elif message == "stop":
+        # Arrêter le script 'turn-right.py' s'il est en cours
+        if turn_right_process is not None:
+            print("Arrêt du processus 'turn-right.py'.")
+            turn_right_process.terminate()
+            turn_right_process = None
+        else:
+            print("Aucun processus 'turn-right.py' n'est en cours.")
+
+        # Lancer le script 'stop.py'
+        threading.Thread(target=run_stop_script).start()
+
+    else:
+        print("Commande inconnue. Utilisez 'start <vitesse>' ou 'stop'.")
+
+
+def run_stop_script():
+    try:
         result = subprocess.run(['python3', 'stop.py'], capture_output=True, text=True)
         if result.returncode == 0:
             print(f"Script 'stop.py' exécuté avec succès : {result.stdout}")
         else:
             print(f"Erreur lors de l'exécution de 'stop.py' : {result.stderr}")
+    except Exception as e:
+        print(f"Erreur lors de l'exécution du script 'stop.py': {e}")
 
-
-    else:
-        print("Commande inconnue. Utilisez 'start <vitesse>' ou 'stop'.")
-
-   
-   
 
 def on_error(ws, error):
     print("Erreur:", error)
 
+
 def on_close(ws, close_status_code, close_msg):
     print("Connexion fermée")
+
 
 def on_open(ws):
     print("Connexion ouverte")
     ws.send("Bonjour, serveur !")
-    # send_data_toRoute("rpiLaser","toRoute data")
 
-def launch_laser():
-    global DetectedObject  # Indique que nous modifions la variable globale
-
-     # Lancer le processus avec Popen
-    process = subprocess.Popen(
-        "python3 laser.py",
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-    
-    # Lire les sorties en temps réel
-    try:
-        while True:
-            output = process.stdout.readline().strip()
-            if output:
-                print(f"Sortie de laser.py : {output}")
-
-                # Changer l'état uniquement si nécessaire
-                if output == "Laser aligné.":
-                    if not DetectedObject:  # Transition de False à True
-                        DetectedObject = True
-                        print("DEBUG: DetectedObject est maintenant True")
-                        send_data_toRoute(ws_rpiLaserMessage, repr(DetectedObject))
-                else:
-                    if DetectedObject:  # Transition de True à False
-                        DetectedObject = False
-                        print("DEBUG: DetectedObject est maintenant False")
-
-            if output == "" and process.poll() is not None:
-                break  # Le processus est terminé
-    except Exception as e:
-        print(f"Erreur dans launch_laser : {e}")
-    finally:
-        process.terminate()
-        print("laser.py terminé.")
-
-def send_data_toRoute(ws, data):
-    try:
-        ws.send(data)
-        print(f"Données envoyées au serveur : {data}")
-    except Exception as e:
-        print(f"Erreur lors de l'envoi des données : {e}")
-
-def send_data_continuously(data):
-    while True:
-        try:
-            # Exemple de données à envoyer
-            ws.send(data)
-            print(f"Données envoyées : {data}")
-            time.sleep(1)  # Envoi toutes les secondes
-        except Exception as e:
-            print(f"Erreur lors de l'envoi des données : {e}")
-            break
-
-# def send_data(data):
-#     ws_rpiLaser.send(data)
-#     print(f"Données envoyées : {data}")
 
 def run_websocket(ws):
     """Exécute une instance WebSocket."""
     ws.run_forever()
 
 
+# WebSocket pour la connexion principale
 ws = websocket.WebSocketApp(
-    "ws://172.28.55.70:8080/rpiConnect",
+    "ws://192.168.10.146:8080/tornado_rpiConnect",
     on_open=on_open,
     on_message=on_message,
     on_error=on_error,
     on_close=on_close
 )
 
-# ws_rpiLaserConnect = websocket.WebSocketApp(
-#     "ws://172.28.55.70:8080/rpiLaserConnect",
-#     on_open=on_open,
-#     on_message=on_message,
-#     on_error=on_error,
-#     on_close=on_close
-# )
-# ws_rpiLaserMessage = websocket.WebSocketApp(
-#     "ws://172.28.55.70:8080/rpiLaserMessage",
-#     on_open=on_open,
-#     on_message=on_message,
-#     on_error=on_error,
-#     on_close=on_close
-# )
-
-
+# Créer un thread pour exécuter le WebSocket
 thread_connect = threading.Thread(target=run_websocket, args=(ws,))
-# thread_laser_connect = threading.Thread(target=run_websocket, args=(ws_rpiLaserConnect,))
-# thread_laser_message = threading.Thread(target=run_websocket, args=(ws_rpiLaserMessage,))
 thread_connect.daemon = True
-# thread_laser_connect.daemon = True
-
 thread_connect.start()
-# thread_laser_connect.start()
-# thread_laser_message.start()
+
 try:
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
     print("Interruption par l'utilisateur.")
-# time.sleep(10)
-
-# send_data("data laser")
-# send_data_toRoute(ws_rpiLaser,"data laser")  
-# while True:
-#     if DetectedObject:
-#         print("DEBUG: Envoi de DetectedObject au serveur (True)")
-#         send_data_toRoute(ws_rpiLaser,"DetectedObject")  
-#     time.sleep(5)
-   
+    # Terminer le processus en cours si nécessaire
+    if turn_right_process is not None:
+        turn_right_process.terminate()
+        print("Processus 'turn-right.py' arrêté.")

@@ -4,17 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="feat: remote Controller improvement">
-      <change afterPath="$PROJECT_DIR$/esp/crystal/WSclient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/crystal/WSclient_.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/maze/WSclient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/tornado/WSclient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/typhoon/WSclient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/WSclient.py" afterDir="false" />
+    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="wip: auto ping server">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rvr/WSclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/rvr/WSclient.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +84,7 @@
       <workItem from="1733322846884" duration="698000" />
       <workItem from="1733395918265" duration="186000" />
       <workItem from="1733463662109" duration="1227000" />
-      <workItem from="1734034428446" duration="4491000" />
+      <workItem from="1734034428446" duration="7166000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />
@@ -108,7 +102,23 @@
       <option name="project" value="LOCAL" />
       <updated>1734034606971</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="feat: esp identification">
+      <option name="closed" value="true" />
+      <created>1734043241117</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1734043241117</updated>
+    </task>
+    <task id="LOCAL-00004" summary="wip: auto ping server">
+      <option name="closed" value="true" />
+      <created>1734043258439</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1734043258439</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -127,7 +137,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: remote Controller improvement" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: remote Controller improvement" />
+    <MESSAGE value="feat: esp identification" />
+    <MESSAGE value="wip: auto ping server" />
+    <option name="LAST_COMMIT_MESSAGE" value="wip: auto ping server" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

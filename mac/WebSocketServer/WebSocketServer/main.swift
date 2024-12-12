@@ -300,8 +300,19 @@ let newRoutes: [RouteInfos] = [
     
     RouteInfos(routeName: "tornado_rpiConnect", textCode: { session, receivedText in
         print("tornado_rpi connecté")
+        serverWS.tornadoRpiSession = session
+        // 100, 150, 200, 250
+        serverWS.tornadoRpiSession?.writeText("start 100")
+        // attend 5s et envoie stop
+        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
+            print("send stop")
+            serverWS.tornadoRpiSession?.writeText("stop")
+        }
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.tornadoRpiSession?.writeText("stop")
+        serverWS.tornadoRpiSession = nil
     }),
     RouteInfos(routeName: "tornado_rpiMessage", textCode: { session, receivedText in
         print("tornado_rpi message: \(receivedText)")
