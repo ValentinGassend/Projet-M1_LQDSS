@@ -15,7 +15,7 @@ var cmd = TerminalCommandExecutor()
 var cancellable: AnyCancellable? = nil
 
 // Liste des routes avec leur logique associée
-let routes: [RouteInfos] = [
+var routes: [RouteInfos] = [
     RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
         serverWS.remoteControllerSession = session
         print("Remote controller connecté")
@@ -171,6 +171,189 @@ let routes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
     })
 ]
+// Nouvelles routes générées
+// Pour chaque route, trois fonctions seront ajoutées : Connect, Message et Ping
+
+let newRoutes: [RouteInfos] = [
+    // Routes pour typhoon
+    RouteInfos(routeName: "typhoon_espConnect", textCode: { session, receivedText in
+        print("typhoon_esp connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "typhoon_espMessage", textCode: { session, receivedText in
+        print("typhoon_esp message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "typhoon_espPing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("typhoon_esp ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "typhoon_iphoneConnect", textCode: { session, receivedText in
+        print("typhoon_iphone connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "typhoon_iphoneMessage", textCode: { session, receivedText in
+        print("typhoon_iphone message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("typhoon_iphone ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    // Routes pour volcano
+    RouteInfos(routeName: "volcano_espConnect", textCode: { session, receivedText in
+        print("volcano_esp connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_espMessage", textCode: { session, receivedText in
+        print("volcano_esp message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_espPing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("volcano_esp ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "volcano_rpiConnect", textCode: { session, receivedText in
+        print("volcano_rpi connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_rpiMessage", textCode: { session, receivedText in
+        print("volcano_rpi message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_rpiPing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("volcano_rpi ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    // Routes pour maze
+    RouteInfos(routeName: "maze_espConnect", textCode: { session, receivedText in
+        print("maze_esp connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "maze_espMessage", textCode: { session, receivedText in
+        print("maze_esp message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "maze_espPing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("maze_esp ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "maze_iphoneConnect", textCode: { session, receivedText in
+        print("maze_iphone connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "maze_iphoneMessage", textCode: { session, receivedText in
+        print("maze_iphone message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "maze_iphonePing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("maze_iphone ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    // Routes pour tornado
+    RouteInfos(routeName: "tornado_espConnect", textCode: { session, receivedText in
+        print("tornado_esp connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "tornado_espMessage", textCode: { session, receivedText in
+        print("tornado_esp message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "tornado_espPing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("tornado_esp ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "tornado_rpiConnect", textCode: { session, receivedText in
+        print("tornado_rpi connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "tornado_rpiMessage", textCode: { session, receivedText in
+        print("tornado_rpi message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "tornado_rpiPing", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("tornado_rpi ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    // Routes pour crystal
+    RouteInfos(routeName: "crystal_esp1Connect", textCode: { session, receivedText in
+        print("crystal_esp1 connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "crystal_esp1Message", textCode: { session, receivedText in
+        print("crystal_esp1 message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "crystal_esp1Ping", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("crystal_esp1 ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    
+    RouteInfos(routeName: "crystal_esp2Connect", textCode: { session, receivedText in
+        print("crystal_esp2 connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "crystal_esp2Message", textCode: { session, receivedText in
+        print("crystal_esp2 message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "crystal_esp2Ping", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("crystal_esp2 ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    })
+]
+
+
+// add new routes in routes
+routes.append(contentsOf: newRoutes)
 
 // Configuration des routes sur le serveur
 for route in routes {

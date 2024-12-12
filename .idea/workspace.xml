@@ -4,16 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="fix: rfid files name">
-      <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/MatrixLedView.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/Projet-M1_LQDSS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Projet-M1_LQDSS.iml" afterDir="false" />
+    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="feat: remote Controller improvement">
+      <change afterPath="$PROJECT_DIR$/esp/crystal/WSclient.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/esp/crystal/WSclient_.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/esp/maze/WSclient.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/esp/tornado/WSclient.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/esp/typhoon/WSclient.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/esp/volcano/WSclient.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/QuadrupleRelay.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/QuadrupleRelay.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/SpheroRotationView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/SpheroRotationView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,12 +33,12 @@
     &quot;assignee&quot;: &quot;AxelG001&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/ValentinGassend/Projet-M1_LQDSS.git&quot;,
-    &quot;accountId&quot;: &quot;674034c0-54b3-4894-be52-2b88c6ec054d&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/ValentinGassend/Projet-M1_LQDSS.git",
+    "accountId": "3e4c98c8-cd51-4ef1-89f4-654ff52758e5"
   }
-}</component>
+}]]></component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="C:\php-8.2.24\php.exe" />
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
@@ -52,7 +53,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "remoteControl",
-    "last_opened_file_path": "C:/Users/fredg/Desktop/RPI/Projet-M1_LQDSS",
+    "last_opened_file_path": "/Users/valentin/ProjetDrone/Projet-M1_LQDSS/esp/crystal",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -61,6 +62,15 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/esp/crystal" />
+      <recent name="$PROJECT_DIR$/esp/maze" />
+      <recent name="$PROJECT_DIR$/esp/volcano" />
+      <recent name="$PROJECT_DIR$/esp/typhoon" />
+      <recent name="$PROJECT_DIR$/esp/air" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -80,7 +90,25 @@
       <workItem from="1733322846884" duration="698000" />
       <workItem from="1733395918265" duration="186000" />
       <workItem from="1733463662109" duration="1227000" />
+      <workItem from="1734034428446" duration="4491000" />
     </task>
+    <task id="LOCAL-00001" summary="feat: remote Controller improvement">
+      <option name="closed" value="true" />
+      <created>1734034538570</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1734034538570</updated>
+    </task>
+    <task id="LOCAL-00002" summary="feat: remote Controller improvement">
+      <option name="closed" value="true" />
+      <created>1734034606971</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1734034606971</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -96,6 +124,10 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: remote Controller improvement" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: remote Controller improvement" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
