@@ -4,7 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="fix: rfid files name" />
+    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="fix: rfid files name">
+      <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/MatrixLedView.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Projet-M1_LQDSS.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Projet-M1_LQDSS.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/QuadrupleRelay.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/QuadrupleRelay.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/SpheroRotationView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/SpheroRotationView.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -41,7 +51,7 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "typhoon/esp",
+    "git-widget-placeholder": "remoteControl",
     "last_opened_file_path": "C:/Users/fredg/Desktop/RPI/Projet-M1_LQDSS",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -69,6 +79,7 @@
       <updated>1733322845840</updated>
       <workItem from="1733322846884" duration="698000" />
       <workItem from="1733395918265" duration="186000" />
+      <workItem from="1733463662109" duration="1227000" />
     </task>
     <servers />
   </component>
