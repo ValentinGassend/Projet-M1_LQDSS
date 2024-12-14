@@ -2,11 +2,11 @@ import SwiftUI
 
 // Vue pour gérer la connexion aux Sphero
 struct SpheroConnectionSheetView: View {
-    @Binding var isSpheroConnected: Bool // Binding pour indiquer l'état de la connexion
-    @Binding var isDefaultSpheroConnected: Bool
-    @Binding var isTyphoonSpheroConnected: Bool
-    @Binding var connectionStatus: String // Binding pour afficher le statut de connexion
-    @Binding var connectedSpheroNames: [String] // Binding pour stocker le nom de la Sphero connectée
+    @Binding var isSpheroConnected: Bool
+    @Binding var connectionStatus: String
+    @Binding var connectedSpheroNames: [String]
+
+    var spheroNamesToConnect: [String] = ["SB-313C", "SB-F682"]
 
     var body: some View {
         VStack {
@@ -22,82 +22,60 @@ struct SpheroConnectionSheetView: View {
                     .padding()
             }
 
-            // Button to connect to Default Sphero
-            Button("Connect to Default Sphero") {
-                connectSphero(named: "SB-8630", spheroId: "default")
+            // Bouton pour connecter toutes les Sphero
+            Button("Connect to All Sphero") {
+                connectToAllSphero()
             }
             .padding()
             .background(Color.blue)
             .foregroundColor(.white)
             .cornerRadius(8)
 
+            // Afficher les Sphero connectées
+            Text("Connected Sphero:")
+                .font(.headline)
+                .padding(.top)
+            ForEach(connectedSpheroNames, id: \.self) { name in
+                Text(name)
+                    .padding()
+                    .background(Color.green.opacity(0.2))
+                    .cornerRadius(8)
+            }
 
-            // Button to connect to Default Sphero
-            Button("Connect to test crank Sphero") {
-                connectSphero(named: "SB-5D1C", spheroId: "crank")
+            // Bouton de déconnexion
+            Button("Disconnect All") {
+                disconnectAllSphero()
             }
             .padding()
-            .background(Color.blue)
+            .background(Color.red)
             .foregroundColor(.white)
             .cornerRadius(8)
-
-            // Button to connect to Bottled Sphero
-            Button("Connect to Bottled Sphero") {
-                connectSphero(named: "SB-313C", spheroId: "bottled")
-            }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(8)
-            
-            // Disconnect Button
-                Button("Disconnect") {
-                    disconnectSphero()
-                }
-                .padding()
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(8)
 
             Spacer()
         }
         .padding()
     }
 
-    // Fonction pour se connecter à une Sphero spécifique
-    private func connectSphero(named name: String, spheroId: String? = nil) {
-        connectionStatus = "Connecting to \(name)..."
-        DispatchQueue.main.async {
-            SharedToyBox.instance.searchForBoltsNamed([name]) { err in
-                if err == nil {
-                    print("Connected to \(name)")
-                    isSpheroConnected = true
-                    isDefaultSpheroConnected = true
-                    connectionStatus = "Connected to \(name)"
-                    if let surname = spheroId {
-                        connectedSpheroNames.append(surname)
-                    }
-                } else {
-                    print("Failed to connect to \(name)")
-                    isSpheroConnected = false
-                    isTyphoonSpheroConnected = true
-                    connectionStatus = "Failed to connect to \(name)"
-
-                }
+    // Fonction pour connecter toutes les Sphero
+    private func connectToAllSphero() {
+        connectionStatus = "Connecting to all Sphero..."
+        SharedToyBox.instance.searchForBoltsNamed(spheroNamesToConnect) { error in
+            if error == nil {
+                isSpheroConnected = true
+                connectionStatus = "Connected to all Sphero"
+                connectedSpheroNames = SharedToyBox.instance.bolts.map { $0.peripheral?.name ?? "Unknown Sphero" }
+            } else {
+                isSpheroConnected = false
+                connectionStatus = "Failed to connect to all Sphero"
             }
         }
     }
 
-    // Fonction pour se déconnecter de la Sphero
-    private func disconnectSphero() {
-            connectionStatus = "Disconnecting..."
-            DispatchQueue.main.async {
-                SharedToyBox.instance.disconnectAllToys() // Call the new method to disconnect all toys
-                isSpheroConnected = false
-                isDefaultSpheroConnected = false
-                isTyphoonSpheroConnected = false
-                connectionStatus = "Disconnected"
-                connectedSpheroNames.removeAll()
-            }
-        }
+    private func disconnectAllSphero() {
+        connectionStatus = "Disconnecting all Sphero..."
+        SharedToyBox.instance.disconnectAllToys()
+        isSpheroConnected = false
+        connectionStatus = "All Sphero disconnected"
+        connectedSpheroNames.removeAll()
+    }
 }
