@@ -137,6 +137,6 @@ if __name__ == "__main__":
     # Définissez la base de l'URL comme "tornado_esp"
     # serveur_ip = "192.168.10.146"
     # serveur_port = "8080"
-    device_name = "volcano_esp1"
+    device_name = "volcano_esp2"
     client = WSclient("Cudy-F810", "13022495", device_name)
     client.main()

@@ -211,19 +211,35 @@ let newRoutes: [RouteInfos] = [
     }),
     
     // Routes pour volcano
-    RouteInfos(routeName: "volcano_espConnect", textCode: { session, receivedText in
-        print("volcano_esp connecté")
+    RouteInfos(routeName: "volcano_esp1Connect", textCode: { session, receivedText in
+        print("volcano_esp1 connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    RouteInfos(routeName: "volcano_espMessage", textCode: { session, receivedText in
-        print("volcano_esp message: \(receivedText)")
+    RouteInfos(routeName: "volcano_esp1Message", textCode: { session, receivedText in
+        print("volcano_esp1 message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    RouteInfos(routeName: "volcano_espPing", textCode: { session, receivedText in
+    RouteInfos(routeName: "volcano_esp1Ping", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism
-        print("volcano_esp ping reçu: \(receivedText)")
+        print("volcano_esp1 ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_esp2Connect", textCode: { session, receivedText in
+        print("volcano_esp2 connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_esp2Message", textCode: { session, receivedText in
+        print("volcano_esp2 message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_esp2Ping", textCode: { session, receivedText in
+        // Active device session maintained by ping mechanism
+        print("volcano_esp2 ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
