@@ -5,8 +5,10 @@ struct SpheroConnectionSheetView: View {
     @Binding var isSpheroConnected: Bool
     @Binding var connectionStatus: String
     @Binding var connectedSpheroNames: [String]
+    @Binding var spheroMazeInfo: [String: BoltToy]  // Binding pour remonter l'info de la Sphero Maze
 
-    var spheroNamesToConnect: [String] = ["SB-313C", "SB-F682"]
+
+    var spheroNamesToConnect: [String] = ["SB-313C"]
 
     var body: some View {
         VStack {
@@ -42,6 +44,17 @@ struct SpheroConnectionSheetView: View {
                     .cornerRadius(8)
             }
 
+            
+            if let mazeSphero = spheroMazeInfo["SB-313C"] {
+                            Text("Sphero Maze Info:")
+                                .font(.headline)
+                                .padding(.top)
+                            Text("Name: \(mazeSphero.peripheral?.name ?? "Unknown")")
+                                .padding()
+                                .background(Color.yellow.opacity(0.2))
+                                .cornerRadius(8)
+                        }
+
             // Bouton de déconnexion
             Button("Disconnect All") {
                 disconnectAllSphero()
@@ -64,6 +77,13 @@ struct SpheroConnectionSheetView: View {
                 isSpheroConnected = true
                 connectionStatus = "Connected to all Sphero"
                 connectedSpheroNames = SharedToyBox.instance.bolts.map { $0.peripheral?.name ?? "Unknown Sphero" }
+                
+                // Identifier et stocker la Sphero Maze dans le dictionnaire
+                                if let mazeSphero = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == "SB-313C" }) {
+                                    spheroMazeInfo["SB-313C"] = mazeSphero
+                                } else {
+                                    spheroMazeInfo["SB-313C"] = nil
+                                }
             } else {
                 isSpheroConnected = false
                 connectionStatus = "Failed to connect to all Sphero"
@@ -77,5 +97,7 @@ struct SpheroConnectionSheetView: View {
         isSpheroConnected = false
         connectionStatus = "All Sphero disconnected"
         connectedSpheroNames.removeAll()
+        spheroMazeInfo.removeAll()  // Reset du dictionnaire de la Sphero Maze
+
     }
 }

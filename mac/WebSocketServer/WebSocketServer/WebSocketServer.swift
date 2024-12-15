@@ -16,7 +16,8 @@ class WebSockerServer {
     
     private let pingInterval: TimeInterval = 3.0
     private let pingTimeout: TimeInterval = 6.0
-    
+    private let sessionQueue = DispatchQueue(label: "WebSocketServer.SessionQueue")
+
     static let instance = WebSockerServer()
     let server = HttpServer()
     var deviceStates: [String: (macAddress: String, isConnected: Bool)] = [
@@ -46,8 +47,8 @@ class WebSockerServer {
     var volcanoEspSession: WebSocketSession?
     var volcanoRpiSession: WebSocketSession?
     
-    var electricityEspSession: WebSocketSession?
-    var electricityIphoneSession: WebSocketSession?
+    var mazeEspSession: WebSocketSession?
+    var mazeIphoneSession: WebSocketSession?
     
     var tornadoEspSession: WebSocketSession?
     var tornadoRpiSession: WebSocketSession?
@@ -67,10 +68,11 @@ class WebSockerServer {
             text: { session, text in
                 
                 if text == "pong" {
-                    self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
-                    self.pingableSessions[routeInfos.routeName]?.isConnected = true
-                    //                    print("Received pong from route: \(routeInfos.routeName)")
-                }
+                                    self.sessionQueue.async {
+                                        self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
+                                        self.pingableSessions[routeInfos.routeName]?.isConnected = true
+                                    }
+                                } 
                 else if routeInfos.routeName.contains("Connect"){
                     print("Received \(text) from route: \(routeInfos.routeName)")
                 } else if routeInfos.routeName.contains("Message") {
@@ -113,10 +115,11 @@ class WebSockerServer {
                 if (routeInfos.routeName.contains("Connect")){
                     session.writeText("Hello from \(routeInfos.routeName)!")
                 }
-                if (routeInfos.routeName.contains("Ping")){
-                    self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
-                    print("Route with 'Ping' suffix is connected")
-                }
+                if routeInfos.routeName.hasSuffix("Ping") {
+                                    self.sessionQueue.async {
+                                        self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
+                                    }
+                                }
             },
             disconnected: { session in
                 print("Client disconnected from route: /\(routeInfos.routeName)")
@@ -146,10 +149,10 @@ class WebSockerServer {
         case "volcano_rpiConnect": self.volcanoRpiSession = session
         case "volcano_rpiDisconnect": self.volcanoRpiSession = nil
             
-        case "electricity_espConnect": self.electricityEspSession = session
-        case "electricity_espDisconnect": self.electricityEspSession = nil
-        case "electricity_iphoneConnect": self.electricityIphoneSession = session
-        case "electricity_iphoneDisconnect": self.electricityIphoneSession = nil
+        case "maze_espConnect": self.mazeEspSession = session
+        case "maze_espDisconnect": self.mazeEspSession = nil
+        case "maze_iphoneConnect": self.mazeIphoneSession = session
+        case "maze_iphoneDisconnect": self.mazeIphoneSession = nil
             
         case "tornado_espConnect": self.tornadoEspSession = session
         case "tornado_espDisconnect": self.tornadoEspSession = nil
@@ -166,27 +169,31 @@ class WebSockerServer {
     }
     
     private func startPingRoutine() {
-        Timer.scheduledTimer(withTimeInterval: pingInterval, repeats: true) { _ in
-            for pingableSession in self.pingableSessions {
-                pingableSession.value.session.writeText("ping")
-                
-                if Date().timeIntervalSince(pingableSession.value.lastPingTime) > self.pingTimeout {
-                    // Si aucun pong reçu dans le délai, marquer comme non connecté
-                    pingableSession.value.session.socket.close()
+            Timer.scheduledTimer(withTimeInterval: pingInterval, repeats: true) { _ in
+                self.sessionQueue.async {
+                    for (route, sessionInfo) in self.pingableSessions {
+                        if Date().timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {
+                            sessionInfo.session.socket.close()
+                            self.pingableSessions[route] = nil
+                        } else {
+                            sessionInfo.session.writeText("ping")
+                        }
+                    }
                 }
             }
         }
-    }
     
     private func updateLastPingTime(for route: String, session: WebSocketSession) {
-        // Update the last ping time for this route
-        pingableSessions[route]?.lastPingTime = Date()
-    }
+            self.sessionQueue.async {
+                self.pingableSessions[route]?.lastPingTime = Date()
+            }
+        }
     
     private func cleanupPingSession(for route: String) {
-        // Invalidate the specific ping timer and remove the route's data
-        pingableSessions[route] = nil
-    }
+            self.sessionQueue.async {
+                self.pingableSessions[route] = nil
+            }
+        }
     
     func start() {
         do {
@@ -206,8 +213,8 @@ extension WebSockerServer {
             "typhoon_iphone": typhoonIphoneSession,
             "volcano_esp": volcanoEspSession,
             "volcano_rpi": volcanoRpiSession,
-            "electricity_esp": electricityEspSession,
-            "electricity_iphone": electricityIphoneSession,
+            "maze_esp": mazeEspSession,
+            "maze_iphone": mazeIphoneSession,
             "tornado_esp": tornadoEspSession,
             "tornado_rpi": tornadoRpiSession,
             "crystal_esp1": crystalEsp1Session,

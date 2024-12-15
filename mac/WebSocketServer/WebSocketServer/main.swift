@@ -286,6 +286,7 @@ let newRoutes: [RouteInfos] = [
     
     RouteInfos(routeName: "maze_iphoneConnect", textCode: { session, receivedText in
         print("maze_iphone connecté")
+        serverWS.mazeIphoneSession = session
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -293,6 +294,8 @@ let newRoutes: [RouteInfos] = [
         print("maze_iphone message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },parsedMessageCode: { session, parsedMessage in
+        serverWS.sendMessage(from: parsedMessage.routeOrigin, to: parsedMessage.routeTargets, component: parsedMessage.component, data: parsedMessage.data)
     }),
     RouteInfos(routeName: "maze_iphonePing", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism

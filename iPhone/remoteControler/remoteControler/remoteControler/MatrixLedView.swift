@@ -1,60 +1,59 @@
 import SwiftUI
 
 struct MatrixLedView: View {
-    @Binding var isSpheroConnected: Bool
+    @Binding var showMazeIcon: Bool
+    @Binding var spheroMazeInfo: [String: BoltToy]  // Ajouter ce binding pour récupérer les informations sur la Sphero Maze
     @State private var matrix: [[Bool]] = Array(
         repeating: Array(repeating: false, count: 8),
         count: 8
     )
 
     private func clearMatrix() {
-        matrix = Array(repeating: Array(repeating: false, count: 8), count: 8)
-    }
+            matrix = Array(repeating: Array(repeating: false, count: 8), count: 8)
+        }
 
     private func clearSpheroMatrix() {
-        guard isSpheroConnected else {
-            print("Sphero is not connected")
-            return
-        }
+            guard let mazeSphero = spheroMazeInfo["SB-313C"] else {
+                print("Sphero maze is not connected or info unavailable")
+                return
+            }
 
-        print("Clearing Sphero matrix...")
-        for x in 0..<8 {
-            for y in 0..<8 {
-                SharedToyBox.instance.bolts
-                    .map {
-                        $0.drawMatrix(pixel: Pixel(x: x, y: y), color: .black)
-                    }
+            print("Clearing Sphero maze matrix...")
+            mazeSphero.drawMatrix(pixel: Pixel(x: 0, y: 0), color: .black) // Example of clearing the matrix on the mazeSphero
+            // Pour chaque pixel, vous effacez la matrice uniquement sur la mazeSphero
+            for x in 0..<8 {
+                for y in 0..<8 {
+                    mazeSphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .black)
+                }
             }
         }
-    }
+
 
     private func sendDrawingToSphero() {
-        guard isSpheroConnected else {
-            print("Sphero is not connected")
-            // Print the matrix state before sending
-            
-            return
-        }
-
-        clearSpheroMatrix()
-
-        print("Sending drawing...")
-        for x in 0..<matrix.count {
-            for y in 0..<matrix[x].count where matrix[x][y] {
-                SharedToyBox.instance.bolts
-                    .map {
-                        $0.drawMatrix(pixel: Pixel(x: x, y: y), color: .yellow)
-                    }
+        print(spheroMazeInfo)
+            guard let mazeSphero = spheroMazeInfo["SB-313C"] else {
+                print("Sphero maze is not connected or info unavailable")
+                return
             }
+
+            clearSpheroMatrix()
+
+            print("Sending drawing to maze Sphero...")
+            // Envoi de la matrice dessinée à la mazeSphero spécifique
+            for x in 0..<matrix.count {
+                for y in 0..<matrix[x].count where matrix[x][y] {
+                    mazeSphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .yellow)
+                }
+            }
+
+            print("Current Matrix State:")
+            for row in matrix {
+                print(
+                    row.map { $0 ? 1 : 0
+                    })
+            }
+            print("Drawing sent to maze Sphero!")
         }
-        print("Current Matrix State:")
-        for row in matrix {
-            print(
-                row.map { $0 ? 1 : 0
-                })
-        }
-        print("Drawing sent to Sphero!")
-    }
 
     private func loadArrowPreset() {
         let arrowPreset = [
@@ -160,16 +159,17 @@ struct MatrixLedView: View {
                     sendDrawingToSphero()
                 }
                 .padding()
-                .background(isSpheroConnected ? Color.orange : Color.gray)
+                .background(!spheroMazeInfo.isEmpty ? Color.orange : Color.gray)
                 .foregroundColor(.white)
                 .cornerRadius(10)
-                .disabled(!isSpheroConnected)
+                .disabled(spheroMazeInfo.isEmpty)
             }
             .padding()
             HStack {
                 Button("stabiliser") {
-                    SharedToyBox.instance.bolt?.setStabilization(state: .on)
-
+                        if let mazeSphero = spheroMazeInfo["SB-313C"] {
+                            mazeSphero.setStabilization(state: .on)
+                        }
                 }
                 .padding()
                 .background(Color.green)
@@ -177,8 +177,9 @@ struct MatrixLedView: View {
                 .cornerRadius(10)
 
                 Button("déstabiliser") {
-                    SharedToyBox.instance.bolt?.setStabilization(state: .off)
-
+                    if let mazeSphero = spheroMazeInfo["SB-313C"] {
+                        mazeSphero.setStabilization(state: .off)
+                    }
                 }
                 .padding()
                 .background(Color.red)
@@ -188,6 +189,14 @@ struct MatrixLedView: View {
                 
             }
             .padding()
+        }.onChange(of: showMazeIcon) { newValue in
+            if newValue {
+                loadLightningPreset()
+                sendDrawingToSphero()
+            }
+        }
+        .onAppear() {
+            print(spheroMazeInfo)
         }
     }
 }
