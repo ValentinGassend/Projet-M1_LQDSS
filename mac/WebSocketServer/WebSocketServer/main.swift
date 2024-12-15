@@ -182,13 +182,15 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "typhoon_espMessage", textCode: { session, receivedText in
-        print("typhoon_esp message: \(receivedText)")
+        print("typhoon_espMessage message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    }, parsedMessageCode: { session, parsedMessage in
+        print(parsedMessage.toString())
     }),
     RouteInfos(routeName: "typhoon_espPing", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism
-        print("typhoon_esp ping reçu: \(receivedText)")
+//        print("typhoon_esp ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -202,10 +204,12 @@ let newRoutes: [RouteInfos] = [
         print("typhoon_iphone message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
+    },parsedMessageCode: { session, parsedMessage in
+        print(parsedMessage.toString())
     }),
     RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism
-        print("typhoon_iphone ping reçu: \(receivedText)")
+//        print("typhoon_iphone ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),

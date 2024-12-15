@@ -7,6 +7,7 @@ struct RouteInfos {
     var routeName: String
     var textCode: (WebSocketSession, String) -> ()
     var dataCode: (WebSocketSession, Data) -> ()
+    var parsedMessageCode: ((WebSocketSession, ParsedMessage) -> ())? = nil
     var connectedCode: ((WebSocketSession) -> ())? = nil
     var disconnectedCode: ((WebSocketSession) -> ())? = nil
 }
@@ -60,15 +61,27 @@ class WebSockerServer {
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
-                print("Text received: \(text) from route: /\(routeInfos.routeName)")
                 
                 if text == "pong" {
                     self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
                     self.pingableSessions[routeInfos.routeName]?.isConnected = true
-                    print("Received pong from route: \(routeInfos.routeName)")
-                  } else {
-                      routeInfos.textCode(session, text)
-                  }
+//                    print("Received pong from route: \(routeInfos.routeName)")
+                }
+                else if routeInfos.routeName.contains("Connect"){
+                    print("Received \(text) from route: \(routeInfos.routeName)")
+                } else if routeInfos.routeName.contains("Message") {
+                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+                    if let parsedMessage = self.parseMessage(text){
+                        if let parsedMessageCode = routeInfos.parsedMessageCode {
+                            parsedMessageCode(session, parsedMessage)
+                        } else {
+                            print("Invalid message format received: \(text)")
+                        }
+                    }
+                } else {
+                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+                    routeInfos.textCode(session, text)
+                }
                 
                 
                 // Update last ping time for routes ending with 'Ping'
@@ -77,10 +90,10 @@ class WebSockerServer {
                 }
                 
                 // Call the original text handler
-                routeInfos.textCode(session, text)
+//                routeInfos.textCode(session, text)
                 
                 // Update device group session (handle routes for connecting and disconnecting devices)
-                self.handleDeviceConnections(routeInfos, session)
+//                self.handleDeviceConnections(routeInfos, session)
                 
                 
             },
@@ -112,7 +125,8 @@ class WebSockerServer {
             }
         )
     }
-
+    
+    
     
     // Handle device connections/disconnections (this logic remains unchanged)
     private func handleDeviceConnections(_ routeInfos: RouteInfos, _ session: WebSocketSession) {
@@ -184,4 +198,42 @@ extension WebSockerServer {
     func onDisconnectedHandle(_ handle: WebSocketSession) {
         // deconnecte la session
     }
+    func parseMessage(_ message: String) -> ParsedMessage? {
+        let components = message.components(separatedBy: "=>")
+        guard components.count == 3 else {
+            print("Invalid message format: \(message)")
+            return nil
+        }
+        
+        // Extraction des cibles et des données
+        let routeTargetsRaw = components[1]
+            .trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+            .components(separatedBy: ",")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+        
+        let componentData = components[2].components(separatedBy: "#")
+        guard componentData.count == 2 else {
+            print("Invalid component format in message: \(message)")
+            return nil
+        }
+        
+        return ParsedMessage(
+            routeOrigin: components[0],
+            routeTargets: routeTargetsRaw,
+            component: componentData[0],
+            data: componentData[1]
+        )
+    }
 }
+
+
+struct ParsedMessage {
+    let routeOrigin: String
+    let routeTargets: [String]
+    let component: String
+    let data: String
+    func toString() -> String {
+        "==== Parsed Message ====\norigin: \(routeOrigin)\ntargets: \(routeTargets.joined(separator: ","))\ncomponent: \(component)\ndata: \(data)\n========================"
+    }
+}
+
