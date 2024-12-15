@@ -98,6 +98,7 @@ struct RemoteControllerView: View {
                 "typhoon_esp=>[typhoon_iphone]=>relay2#true",
                 "typhoon_esp=>[typhoon_iphone]=>relay3#true",
                 "typhoon_esp=>[typhoon_iphone]=>relay4#true",
+                "typhoon_iphone=>[typhoon_iphone]=>sphero1#true",
                 "typhoon_iphone=>[typhoon_esp]=>sphero1#true",
                 "typhoon_iphone=>[typhoon_esp]=>sphero1#false",
                 "typhoon_iphone=>[typhoon_esp]=>sphero1#completed",

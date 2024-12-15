@@ -41,7 +41,7 @@ class WebSockerServer {
     
     // New device group sessions
     var typhoonEspSession: WebSocketSession?
-    var typhoonIphoneSession: WebSocketSession?
+    @State var typhoonIphoneSession: WebSocketSession?
     
     var volcanoEspSession: WebSocketSession?
     var volcanoRpiSession: WebSocketSession?
@@ -55,8 +55,12 @@ class WebSockerServer {
     var crystalEsp1Session: WebSocketSession?
     var crystalEsp2Session: WebSocketSession?
     
+    var messageSession: [WebSocketSession?] = []
+    
     // Dictionary to store ping-related sessions
     var pingableSessions: [String: (session: WebSocketSession, isConnected: Bool, lastPingTime: Date)] = [:]
+    // Dictionary to store message-related sessions
+    var messageSessions: [String: (session: WebSocketSession, isConnected: Bool)] = [:]
     
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
@@ -65,11 +69,12 @@ class WebSockerServer {
                 if text == "pong" {
                     self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
                     self.pingableSessions[routeInfos.routeName]?.isConnected = true
-//                    print("Received pong from route: \(routeInfos.routeName)")
+                    //                    print("Received pong from route: \(routeInfos.routeName)")
                 }
                 else if routeInfos.routeName.contains("Connect"){
                     print("Received \(text) from route: \(routeInfos.routeName)")
                 } else if routeInfos.routeName.contains("Message") {
+                    self.messageSessions[routeInfos.routeName.replacing("Message", with: "")] = (session, true)
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
                     if let parsedMessage = self.parseMessage(text){
                         if let parsedMessageCode = routeInfos.parsedMessageCode {
@@ -90,10 +95,10 @@ class WebSockerServer {
                 }
                 
                 // Call the original text handler
-//                routeInfos.textCode(session, text)
+                //                routeInfos.textCode(session, text)
                 
                 // Update device group session (handle routes for connecting and disconnecting devices)
-//                self.handleDeviceConnections(routeInfos, session)
+                //                self.handleDeviceConnections(routeInfos, session)
                 
                 
             },
@@ -106,10 +111,10 @@ class WebSockerServer {
                 print("Client connected to route: /\(routeInfos.routeName)")
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
-                session.writeText("Hello from \(routeInfos.routeName)!")
+                    session.writeText("Hello from \(routeInfos.routeName)!")
                 }
                 if (routeInfos.routeName.contains("Ping")){
-                self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
+                    self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
                     print("Route with 'Ping' suffix is connected")
                 }
             },
@@ -135,27 +140,27 @@ class WebSockerServer {
         case "typhoon_espDisconnect": self.typhoonEspSession = nil
         case "typhoon_iphoneConnect": self.typhoonIphoneSession = session
         case "typhoon_iphoneDisconnect": self.typhoonIphoneSession = nil
-        
+            
         case "volcano_espConnect": self.volcanoEspSession = session
         case "volcano_espDisconnect": self.volcanoEspSession = nil
         case "volcano_rpiConnect": self.volcanoRpiSession = session
         case "volcano_rpiDisconnect": self.volcanoRpiSession = nil
-        
+            
         case "electricity_espConnect": self.electricityEspSession = session
         case "electricity_espDisconnect": self.electricityEspSession = nil
         case "electricity_iphoneConnect": self.electricityIphoneSession = session
         case "electricity_iphoneDisconnect": self.electricityIphoneSession = nil
-        
+            
         case "tornado_espConnect": self.tornadoEspSession = session
         case "tornado_espDisconnect": self.tornadoEspSession = nil
         case "tornado_rpiConnect": self.tornadoRpiSession = session
         case "tornado_rpiDisconnect": self.tornadoRpiSession = nil
-        
+            
         case "crystal_esp1Connect": self.crystalEsp1Session = session
         case "crystal_esp1Disconnect": self.crystalEsp1Session = nil
         case "crystal_esp2Connect": self.crystalEsp2Session = session
         case "crystal_esp2Disconnect": self.crystalEsp2Session = nil
-        
+            
         default: break
         }
     }
@@ -177,7 +182,7 @@ class WebSockerServer {
         // Update the last ping time for this route
         pingableSessions[route]?.lastPingTime = Date()
     }
-
+    
     private func cleanupPingSession(for route: String) {
         // Invalidate the specific ping timer and remove the route's data
         pingableSessions[route] = nil
@@ -195,6 +200,43 @@ class WebSockerServer {
 }
 
 extension WebSockerServer {
+    private var sessionMapping: [String: WebSocketSession?] {
+        return [
+            "typhoon_esp": typhoonEspSession,
+            "typhoon_iphone": typhoonIphoneSession,
+            "volcano_esp": volcanoEspSession,
+            "volcano_rpi": volcanoRpiSession,
+            "electricity_esp": electricityEspSession,
+            "electricity_iphone": electricityIphoneSession,
+            "tornado_esp": tornadoEspSession,
+            "tornado_rpi": tornadoRpiSession,
+            "crystal_esp1": crystalEsp1Session,
+            "crystal_esp2": crystalEsp2Session
+        ]
+    }
+    private func sessions(for targets: [String]) -> [WebSocketSession] {
+        targets.compactMap { target in
+            print("Fetching session for target: \(target)")
+            if let messageSession = messageSessions[target]?.session {
+                return messageSession
+            }
+            return nil
+        }
+    }
+    func sendMessage(from: String, to: [String], component: String, data: String) {
+        let message = "\(from)=>[\(to.joined(separator: ","))]=>\(component)#\(data)"
+        print("Envoi du message : \(message) vers les routes : \(to)")
+        
+        // Récupérer les sessions des cibles
+        let targetSessions = sessions(for: to) // `to` contient "typhoon_iphone", etc.
+        
+        for session in targetSessions {
+            print("Envoi de \(message) à la session : \(session)")
+            session.writeText(message)
+        }
+    }
+    
+    
     func onDisconnectedHandle(_ handle: WebSocketSession) {
         // deconnecte la session
     }

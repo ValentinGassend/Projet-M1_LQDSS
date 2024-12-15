@@ -212,13 +212,12 @@
 //                }
             }
         func processReceivedMessage(connection: NWWebSocket, string: String) {
-            print("Receive String Message \(string) on \(connection)")
+//            print("Receive String Message \(string) on \(connection)")
             DispatchQueue.main.async {
                 self.messageReceive = string
 
                 // Identify the route associated with this connection
                 if let route = self.routes.first(where: { $0.value === connection })?.key {
-                    print("Message received on route: \(route)")
                         
                     // Handle specific route behaviors
                     if route.hasSuffix("Ping") {
@@ -229,8 +228,10 @@
                         connection.send(string: "hello")
                         print("Responded with 'hello' on \(route)")
                     } else if route.hasSuffix("Message") {
+                        print("Message received on route Message: \(route)")
                         self.routeMessage(string, for: route)
                     } else {
+                        print("Message received : \(string), on route: \(route)")
                         print("Unhandled route type for \(route)")
                     }
                 }
@@ -247,7 +248,7 @@
                     // Renvoyer la valeur de la route d'identification
 //                    identificationSocket.send(string: identificationRouteKey)
                     identificationSocket.send(string: "pong")
-                    print("Responded to ping on \(route) with \(identificationRouteKey)")
+//                    print("Responded to ping on \(route) with \(identificationRouteKey)")
                 } else {
                     print("Error: Identification route \(identificationRouteKey) not found for ping response")
                 }
@@ -256,7 +257,7 @@
                 connection: WebSocketConnection,
                 string: String
             ) {
-                print("Receive String Message \(string)")
+//                print("Receive String Message \(string)")
                     DispatchQueue.main.async {
                         self.messageReceive = string
                             

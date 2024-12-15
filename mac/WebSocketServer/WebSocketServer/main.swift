@@ -197,6 +197,7 @@ let newRoutes: [RouteInfos] = [
     
     RouteInfos(routeName: "typhoon_iphoneConnect", textCode: { session, receivedText in
         print("typhoon_iphone connecté")
+        serverWS.typhoonIphoneSession = session
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -205,7 +206,7 @@ let newRoutes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
         print(receivedData)
     },parsedMessageCode: { session, parsedMessage in
-        print(parsedMessage.toString())
+        serverWS.sendMessage(from: parsedMessage.routeOrigin, to: parsedMessage.routeTargets, component: parsedMessage.component, data: parsedMessage.data)
     }),
     RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism
