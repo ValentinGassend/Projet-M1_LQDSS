@@ -67,7 +67,6 @@ class WebSockerServer {
                     self.pingableSessions[routeInfos.routeName]?.isConnected = true
                     print("Received pong from route: \(routeInfos.routeName)")
                   } else {
-                      // Traitez d'autres messages normalement
                       routeInfos.textCode(session, text)
                   }
                 
@@ -93,11 +92,11 @@ class WebSockerServer {
             connected: { session in
                 print("Client connected to route: /\(routeInfos.routeName)")
                 routeInfos.connectedCode?(session)
+                if (routeInfos.routeName.contains("Connect")){
                 session.writeText("Hello from \(routeInfos.routeName)!")
-                
+                }
+                if (routeInfos.routeName.contains("Ping")){
                 self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
-                // Set up periodic ping for routes ending with 'Ping'
-                if routeInfos.routeName.contains("Ping") {
                     print("Route with 'Ping' suffix is connected")
                 }
             },
