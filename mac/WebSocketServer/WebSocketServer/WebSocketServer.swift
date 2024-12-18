@@ -44,7 +44,8 @@ class WebSockerServer {
     var typhoonEspSession: WebSocketSession?
     @State var typhoonIphoneSession: WebSocketSession?
     
-    var volcanoEspSession: WebSocketSession?
+    var volcanoEsp1Session: WebSocketSession?
+    var volcanoEsp2Session: WebSocketSession?
     var volcanoRpiSession: WebSocketSession?
     
     var mazeEspSession: WebSocketSession?

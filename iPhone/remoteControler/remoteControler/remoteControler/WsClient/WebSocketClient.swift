@@ -19,7 +19,7 @@ class WebSocketClient:ObservableObject {
     private var messageHandlers: [String: WebSocketMessageHandler] = [:]
     
     var routes = [String:NWWebSocket]()
-    var ipAddress = "192.168.10.146:8080/"
+    var ipAddress = "192.168.10.147:8080/"
     
     @Published var messageReceive:String = ""
     @Published var isRFIDDetectedForMaze:Bool = false
