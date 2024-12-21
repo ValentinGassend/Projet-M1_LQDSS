@@ -17,15 +17,27 @@ class WebSockerServer {
     private let pingInterval: TimeInterval = 3.0
     private let pingTimeout: TimeInterval = 6.0
     private let sessionQueue = DispatchQueue(label: "WebSocketServer.SessionQueue")
-
+    
     static let instance = WebSockerServer()
     let server = HttpServer()
-    var deviceStates: [String: (macAddress: String, isConnected: Bool)] = [
-        "rpiLaser": ("AA:BB:CC:DD:EE:01", false),
-        "iPhone": ("AA:BB:CC:DD:EE:03", false),
-        "rvrTornado": ("AA:BB:CC:DD:EE:04", false),
-        "remoteController": ("AA:BB:CC:DD:EE:04", false),
+    var deviceStates: [String: (type: String, isConnected: Bool)] = [
+        "rpiLaser": ("original", false),
+        "iPhone": ("original", false),
+        "rvrTornado": ("original", false),
+        "remoteController": ("original", false),
+        "typhoon_esp": ("typhoon", false),
+        "typhoon_iphone": ("typhoon", false),
+        "volcano_esp1": ("volcano", false),
+        "volcano_esp2": ("volcano", false),
+        "volcano_rpi": ("volcano", false),
+        "maze_esp": ("maze", false),
+        "maze_iphone": ("maze", false),
+        "tornado_esp": ("tornado", false),
+        "tornado_rpi": ("tornado", false),
+        "crystal_esp1": ("crystal", false),
+        "crystal_esp2": ("crystal", false)
     ]
+
     
     // Original sessions
     var rpiSession: WebSocketSession?
@@ -41,18 +53,18 @@ class WebSockerServer {
     var spheroStickIsConnected: Bool = false
     
     // New device group sessions
-    var typhoonEspSession: WebSocketSession?
+    @State var typhoonEspSession: WebSocketSession?
     @State var typhoonIphoneSession: WebSocketSession?
     
-    var volcanoEsp1Session: WebSocketSession?
-    var volcanoEsp2Session: WebSocketSession?
-    var volcanoRpiSession: WebSocketSession?
+    @State var volcanoEsp1Session: WebSocketSession?
+    @State var volcanoEsp2Session: WebSocketSession?
+    @State var volcanoRpiSession: WebSocketSession?
     
-    var mazeEspSession: WebSocketSession?
-    var mazeIphoneSession: WebSocketSession?
+    @State var mazeEspSession: WebSocketSession?
+    @State var mazeIphoneSession: WebSocketSession?
     
-    var tornadoEspSession: WebSocketSession?
-    var tornadoRpiSession: WebSocketSession?
+    @State var tornadoEspSession: WebSocketSession?
+    @State var tornadoRpiSession: WebSocketSession?
     
     var crystalEsp1Session: WebSocketSession?
     var crystalEsp2Session: WebSocketSession?
@@ -69,13 +81,15 @@ class WebSockerServer {
             text: { session, text in
                 
                 if text == "pong" {
-                                    self.sessionQueue.async {
-                                        self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
-                                        self.pingableSessions[routeInfos.routeName]?.isConnected = true
-                                    }
-                                } 
+                    self.sessionQueue.async {
+                        self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
+                        self.pingableSessions[routeInfos.routeName]?.isConnected = true
+                    }
+                }
                 else if routeInfos.routeName.contains("Connect"){
                     print("Received \(text) from route: \(routeInfos.routeName)")
+                    
+                    self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true, session: session)
                 } else if routeInfos.routeName.contains("Message") {
                     self.messageSessions[routeInfos.routeName.replacing("Message", with: "")] = (session, true)
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
@@ -117,19 +131,22 @@ class WebSockerServer {
                     session.writeText("Hello from \(routeInfos.routeName)!")
                 }
                 if routeInfos.routeName.hasSuffix("Ping") {
-                                    self.sessionQueue.async {
-                                        self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
-                                    }
-                                }
+                    self.sessionQueue.async {
+                        self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
+                    }
+                }
             },
             disconnected: { session in
                 print("Client disconnected from route: /\(routeInfos.routeName)")
                 routeInfos.disconnectedCode?(session)
-                self.pingableSessions[routeInfos.routeName]?.isConnected = false
-                // Clean up ping-related data when disconnected
-                if routeInfos.routeName.contains("Ping") {
-                    print("Route with 'Ping' suffix is disconnected")
-                    self.cleanupPingSession(for: routeInfos.routeName)
+                if let pingableSession = self.pingableSessions[routeInfos.routeName] {
+                    if pingableSession.isConnected {
+                        if routeInfos.routeName.contains("Ping") {
+                            
+                            self.cleanupPingSession(for: routeInfos.routeName)
+                            print("Route with 'Ping' suffix is disconnected")
+                        }
+                    }
                 }
             }
         )
@@ -145,8 +162,10 @@ class WebSockerServer {
         case "typhoon_iphoneConnect": self.typhoonIphoneSession = session
         case "typhoon_iphoneDisconnect": self.typhoonIphoneSession = nil
             
-        case "volcano_espConnect": self.volcanoEspSession = session
-        case "volcano_espDisconnect": self.volcanoEspSession = nil
+        case "volcano_esp1Connect": self.volcanoEsp1Session = session
+        case "volcano_esp1Disconnect": self.volcanoEsp1Session = nil
+        case "volcano_esp2Connect": self.volcanoEsp2Session = session
+        case "volcano_esp2Disconnect": self.volcanoEsp2Session = nil
         case "volcano_rpiConnect": self.volcanoRpiSession = session
         case "volcano_rpiDisconnect": self.volcanoRpiSession = nil
             
@@ -170,31 +189,31 @@ class WebSockerServer {
     }
     
     private func startPingRoutine() {
-            Timer.scheduledTimer(withTimeInterval: pingInterval, repeats: true) { _ in
-                self.sessionQueue.async {
-                    for (route, sessionInfo) in self.pingableSessions {
-                        if Date().timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {
-                            sessionInfo.session.socket.close()
-                            self.pingableSessions[route] = nil
-                        } else {
-                            sessionInfo.session.writeText("ping")
-                        }
+        Timer.scheduledTimer(withTimeInterval: pingInterval, repeats: true) { _ in
+            self.sessionQueue.async {
+                for (route, sessionInfo) in self.pingableSessions {
+                    if Date().timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {
+                        sessionInfo.session.socket.close()
+                        self.pingableSessions[route] = nil
+                    } else {
+                        sessionInfo.session.writeText("ping")
                     }
                 }
             }
         }
+    }
     
     private func updateLastPingTime(for route: String, session: WebSocketSession) {
-            self.sessionQueue.async {
-                self.pingableSessions[route]?.lastPingTime = Date()
-            }
+        self.sessionQueue.async {
+            self.pingableSessions[route]?.lastPingTime = Date()
         }
+    }
     
     private func cleanupPingSession(for route: String) {
-            self.sessionQueue.async {
-                self.pingableSessions[route] = nil
-            }
+        self.sessionQueue.async {
+            self.pingableSessions[route] = nil
         }
+    }
     
     func start() {
         do {
@@ -212,7 +231,8 @@ extension WebSockerServer {
         return [
             "typhoon_esp": typhoonEspSession,
             "typhoon_iphone": typhoonIphoneSession,
-            "volcano_esp": volcanoEspSession,
+            "volcano_esp1": volcanoEsp1Session,
+            "volcano_esp2": volcanoEsp2Session,
             "volcano_rpi": volcanoRpiSession,
             "maze_esp": mazeEspSession,
             "maze_iphone": mazeIphoneSession,
@@ -222,6 +242,12 @@ extension WebSockerServer {
             "crystal_esp2": crystalEsp2Session
         ]
     }
+    func normalizeDeviceName(routeName: String) -> String {
+        if routeName.hasSuffix("Connect") {
+            return String(routeName.dropLast("Connect".count))
+        }
+        return routeName
+    }
     private func sessions(for targets: [String]) -> [WebSocketSession] {
         targets.compactMap { target in
             print("Fetching session for target: \(target)")
@@ -229,6 +255,18 @@ extension WebSockerServer {
                 return messageSession
             }
             return nil
+        }
+    }
+    func updateDeviceState(routeName: String, isConnected: Bool, session: WebSocketSession?) {
+        let deviceName = normalizeDeviceName(routeName: routeName)
+        sessionQueue.async {
+            if var state = self.deviceStates[deviceName] {
+                state.isConnected = isConnected
+                self.deviceStates[deviceName] = state
+                print("Updated state for \(deviceName): isConnected = \(isConnected)")
+            } else {
+                print("Device \(deviceName) not found in deviceStates")
+            }
         }
     }
     func sendMessage(from: String, to: [String], component: String, data: String) {
@@ -287,3 +325,12 @@ struct ParsedMessage {
     }
 }
 
+struct DeviceResponse: Codable {
+    let type: String
+    let isConnected: Bool
+    let id: String?  // Optionnel car uniquement présent pour les Sphero
+    
+    enum CodingKeys: String, CodingKey {
+        case type, isConnected, id
+    }
+}

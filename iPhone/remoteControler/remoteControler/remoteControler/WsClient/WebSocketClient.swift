@@ -19,7 +19,7 @@ class WebSocketClient:ObservableObject {
     private var messageHandlers: [String: WebSocketMessageHandler] = [:]
     
     var routes = [String:NWWebSocket]()
-    var ipAddress = "192.168.10.147:8080/"
+    var ipAddress = "192.168.10.146:8080/"
     
     @Published var messageReceive:String = ""
     @Published var isRFIDDetectedForMaze:Bool = false
@@ -225,11 +225,13 @@ extension WebSocketClient: WebSocketConnectionDelegate {
         DispatchQueue.main.async {
             self.messageReceive = string
             
-            // Identify the route associated with this connection
             if let route = self.routes.first(where: { $0.value === connection })?.key {
-                
+                if route.hasSuffix("Dashboard") {
+                    print("Message received on dashboard route: \(string)")
+                    self.updateDevicesFromJson(string)
+                }
                 // Handle specific route behaviors
-                if route.hasSuffix("Ping") {
+                else if route.hasSuffix("Ping") {
                     if string == "ping" {
                         self.respondToPing(for: route)
                     }
@@ -320,6 +322,30 @@ extension WebSocketClient: WebSocketConnectionDelegate {
             }
         }
     }
+    func updateDevicesFromJson(_ jsonString: String) {
+        guard let jsonData = jsonString.data(using: .utf8) else {
+            print("Error: Cannot convert string to data")
+            return
+        }
+        
+        do {
+            // Décoder le JSON en dictionnaire [String: DeviceResponse]
+            let decoder = JSONDecoder()
+            let deviceDict = try decoder.decode([String: DeviceResponse].self, from: jsonData)
+            
+            DispatchQueue.main.async {
+                // Convertir le dictionnaire en array de Device
+                self.connectedDevices = deviceDict.map { (key, value) in
+                    Device(
+                        device: key,
+                        isConnected: value.isConnected
+                    )
+                }
+            }
+        } catch {
+            print("Error decoding JSON: \(error)")
+        }
+    }
     
     // Exemple de traitement pour Relay
     private func handleSpheroMessage(_ message: ParsedMessage, target: String) {
@@ -373,4 +399,13 @@ struct ParsedMessage {
     let routeTargets: [String]
     let component: String
     let data: String
+}
+struct DeviceResponse: Codable {
+    let type: String
+    let isConnected: Bool
+    let id: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case type, isConnected, id
+    }
 }

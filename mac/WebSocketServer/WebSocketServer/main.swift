@@ -33,27 +33,15 @@ var routes: [RouteInfos] = [
     }),
     
     RouteInfos(routeName: "remoteControllerDashboard", textCode: { session, receivedText in
-        // Envoie l'état actuel des appareils connectés au client
         serverWS.remoteControllerSession = session
         if receivedText == "getDevices" {
-            // Mise à jour dynamique des états des appareils
-            serverWS.deviceStates["rpiLaser"]?.isConnected = (serverWS.laserSession != nil)
-            serverWS.deviceStates["iPhone"]?.isConnected = (serverWS.iPhoneSession != nil)
-            serverWS.deviceStates["remoteController"]?.isConnected = (serverWS.remoteControllerSession != nil)
-            serverWS.deviceStates["rvrTornado"]?.isConnected = (serverWS.rvrTornadoSession != nil)
-            
-            // Générer le JSON pour le retour
-            let devicesJSON = serverWS.deviceStates.map { key, value in
-                [
-                    "device": key,
-                    "macAddress": value.macAddress,
-                    "isConnected": value.isConnected
-                ]
+            // Créer un dictionnaire de toutes les sessions disponibles
+            let allDevices = serverWS.deviceStates.mapValues { state in
+                ["type": state.type, "isConnected": state.isConnected]
             }
-            
             // Convertir en JSON et envoyer
             do {
-                let jsonData = try JSONSerialization.data(withJSONObject: devicesJSON, options: .prettyPrinted)
+                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
                 if let jsonString = String(data: jsonData, encoding: .utf8) {
                     session.writeText(jsonString)
                     print("Envoyé à la requête 'getDevices': \(jsonString)")
@@ -194,7 +182,7 @@ let newRoutes: [RouteInfos] = [
     }),
     RouteInfos(routeName: "typhoon_espPing", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism
-//        print("typhoon_esp ping reçu: \(receivedText)")
+        //        print("typhoon_esp ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -217,7 +205,7 @@ let newRoutes: [RouteInfos] = [
     }),
     RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
         // Active device session maintained by ping mechanism
-//        print("typhoon_iphone ping reçu: \(receivedText)")
+        //        print("typhoon_iphone ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -225,7 +213,7 @@ let newRoutes: [RouteInfos] = [
     // Routes pour volcano
     RouteInfos(routeName: "volcano_esp1Connect", textCode: { session, receivedText in
         serverWS.volcanoEsp1Session = session
-
+        
         print("volcano_esp1 connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -246,7 +234,7 @@ let newRoutes: [RouteInfos] = [
     }),
     RouteInfos(routeName: "volcano_esp2Connect", textCode: { session, receivedText in
         serverWS.volcanoEsp2Session = session
-
+        
         print("volcano_esp2 connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -268,7 +256,7 @@ let newRoutes: [RouteInfos] = [
     
     RouteInfos(routeName: "volcano_rpiConnect", textCode: { session, receivedText in
         serverWS.volcanoRpiSession = session
-
+        
         print("volcano_rpi connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -291,7 +279,7 @@ let newRoutes: [RouteInfos] = [
     // Routes pour maze
     RouteInfos(routeName: "maze_espConnect", textCode: { session, receivedText in
         serverWS.mazeEspSession = session
-
+        
         print("maze_esp connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -337,7 +325,7 @@ let newRoutes: [RouteInfos] = [
     // Routes pour tornado
     RouteInfos(routeName: "tornado_espConnect", textCode: { session, receivedText in
         serverWS.tornadoEspSession = session
-
+        
         print("tornado_esp connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -361,12 +349,12 @@ let newRoutes: [RouteInfos] = [
         print("tornado_rpi connecté")
         serverWS.tornadoRpiSession = session
         // 100, 150, 200, 250
-//        serverWS.tornadoRpiSession?.writeText("start 100")
+        //        serverWS.tornadoRpiSession?.writeText("start 100")
         // attend 5s et envoie stop
-//        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
-//            print("send stop")
-//            serverWS.tornadoRpiSession?.writeText("stop")
-//        }
+        //        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(5)) {
+        //            print("send stop")
+        //            serverWS.tornadoRpiSession?.writeText("stop")
+        //        }
     }, dataCode: { session, receivedData in
         print(receivedData)
     },disconnectedCode: { session in
@@ -388,7 +376,7 @@ let newRoutes: [RouteInfos] = [
     // Routes pour crystal
     RouteInfos(routeName: "crystal_esp1Connect", textCode: { session, receivedText in
         serverWS.crystalEsp1Session = session
-
+        
         print("crystal_esp1 connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
@@ -410,7 +398,7 @@ let newRoutes: [RouteInfos] = [
     
     RouteInfos(routeName: "crystal_esp2Connect", textCode: { session, receivedText in
         serverWS.crystalEsp2Session = session
-
+        
         print("crystal_esp2 connecté")
     }, dataCode: { session, receivedData in
         print(receivedData)
