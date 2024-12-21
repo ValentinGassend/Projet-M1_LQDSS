@@ -90,7 +90,7 @@ struct DashboardView: View {
         }.onAppear {
             wsClient.connectForIdentification(route: .remoteControllerConnect)
             wsClient.connectForIdentification(route: .mazeIphoneConnect)
-//            wsClient.connectForIdentification(route: .typhoonIphoneConnect)
+            wsClient.connectForIdentification(route: .typhoonIphoneConnect)
         }
     }
     

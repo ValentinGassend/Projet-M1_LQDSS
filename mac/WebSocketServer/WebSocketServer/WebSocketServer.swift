@@ -89,7 +89,7 @@ class WebSockerServer {
                 else if routeInfos.routeName.contains("Connect"){
                     print("Received \(text) from route: \(routeInfos.routeName)")
                     
-                    self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true, session: session)
+                    
                 } else if routeInfos.routeName.contains("Message") {
                     self.messageSessions[routeInfos.routeName.replacing("Message", with: "")] = (session, true)
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
@@ -129,6 +129,8 @@ class WebSockerServer {
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
                     session.writeText("Hello from \(routeInfos.routeName)!")
+                    
+                    self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true, session: session)
                 }
                 if routeInfos.routeName.hasSuffix("Ping") {
                     self.sessionQueue.async {
@@ -139,9 +141,15 @@ class WebSockerServer {
             disconnected: { session in
                 print("Client disconnected from route: /\(routeInfos.routeName)")
                 routeInfos.disconnectedCode?(session)
+                self.updateDeviceState(routeName: routeInfos.routeName, isConnected: false, session: session)
+            
                 if let pingableSession = self.pingableSessions[routeInfos.routeName] {
                     if pingableSession.isConnected {
-                        if routeInfos.routeName.contains("Ping") {
+                        
+                        if (routeInfos.routeName.contains("Connect")){
+                            print("Client disconnected from route: /\(routeInfos.routeName)")
+                            }
+                        else if routeInfos.routeName.contains("Ping") {
                             
                             self.cleanupPingSession(for: routeInfos.routeName)
                             print("Route with 'Ping' suffix is disconnected")
@@ -245,6 +253,12 @@ extension WebSockerServer {
     func normalizeDeviceName(routeName: String) -> String {
         if routeName.hasSuffix("Connect") {
             return String(routeName.dropLast("Connect".count))
+        } else if routeName.hasSuffix("Message") {
+            return String(routeName.dropLast("Message".count))
+
+        } else if routeName.hasSuffix("Ping") {
+            return String(routeName.dropLast("Ping".count))
+
         }
         return routeName
     }
