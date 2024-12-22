@@ -91,6 +91,10 @@ struct DashboardView: View {
             wsClient.connectForIdentification(route: .remoteControllerConnect)
             wsClient.connectForIdentification(route: .mazeIphoneConnect)
             wsClient.connectForIdentification(route: .typhoonIphoneConnect)
+        }.onDisappear {
+            wsClient.disconnect(route: "remoteControllerConnect")
+            wsClient.disconnect(route: "mazeIphoneConnect")
+            wsClient.disconnect(route: "typhoonIphoneConnect")
         }
     }
     

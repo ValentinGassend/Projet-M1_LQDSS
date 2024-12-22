@@ -37,7 +37,7 @@ class WebSockerServer {
         "crystal_esp1": ("crystal", false),
         "crystal_esp2": ("crystal", false)
     ]
-
+    
     
     // Original sessions
     var rpiSession: WebSocketSession?
@@ -72,18 +72,24 @@ class WebSockerServer {
     var messageSession: [WebSocketSession?] = []
     
     // Dictionary to store ping-related sessions
-    var pingableSessions: [String: (session: WebSocketSession, isConnected: Bool, lastPingTime: Date)] = [:]
+    var pingableSessions: [String: PingSessionInfo] = [:]
     // Dictionary to store message-related sessions
     var messageSessions: [String: (session: WebSocketSession, isConnected: Bool)] = [:]
     
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
-                
+                print("Text received: \(text) from route: /\(routeInfos.routeName)")
                 if text == "pong" {
+                    print("Received pong from route: \(routeInfos.routeName)")
                     self.sessionQueue.async {
-                        self.pingableSessions[routeInfos.routeName]?.lastPingTime = Date()
-                        self.pingableSessions[routeInfos.routeName]?.isConnected = true
+                        if var sessionInfo = self.pingableSessions[routeInfos.routeName] {
+                            sessionInfo.lastPingTime = Date()
+                            sessionInfo.isConnected = true
+                            sessionInfo.consecutiveFailures = 0  // Reset failures on successful pong
+                            self.pingableSessions[routeInfos.routeName] = sessionInfo
+                            
+                        }
                     }
                 }
                 else if routeInfos.routeName.contains("Connect"){
@@ -91,7 +97,6 @@ class WebSockerServer {
                     
                     
                 } else if routeInfos.routeName.contains("Message") {
-                    self.messageSessions[routeInfos.routeName.replacing("Message", with: "")] = (session, true)
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
                     if let parsedMessage = self.parseMessage(text){
                         if let parsedMessageCode = routeInfos.parsedMessageCode {
@@ -108,6 +113,7 @@ class WebSockerServer {
                 
                 // Update last ping time for routes ending with 'Ping'
                 if routeInfos.routeName.hasSuffix("Ping") {
+                    print("Updating last ping time for route: \(routeInfos.routeName)")
                     self.updateLastPingTime(for: routeInfos.routeName, session: session)
                 }
                 
@@ -128,27 +134,42 @@ class WebSockerServer {
                 print("Client connected to route: /\(routeInfos.routeName)")
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
+                    
+                    self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true)
+                    print("sending hello message to \(routeInfos.routeName)")
                     session.writeText("Hello from \(routeInfos.routeName)!")
                     
-                    self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true, session: session)
                 }
                 if routeInfos.routeName.hasSuffix("Ping") {
+                    
                     self.sessionQueue.async {
-                        self.pingableSessions[routeInfos.routeName] = (session: session, isConnected: true, lastPingTime: Date())
+                        self.pingableSessions[routeInfos.routeName] = PingSessionInfo(
+                            session: session,
+                            isConnected: true,
+                            lastPingTime: Date()
+                        )
+                    }
+                }
+                else if routeInfos.routeName.contains("Message") {
+                    print("Message session connected: \(routeInfos.routeName)")
+                    self.sessionQueue.async {
+                        let deviceName = self.normalizeDeviceName(routeName: routeInfos.routeName)
+                        self.messageSessions[deviceName] = (session, true)
+                        print("Registered message session for \(deviceName): \(session)")
                     }
                 }
             },
             disconnected: { session in
                 print("Client disconnected from route: /\(routeInfos.routeName)")
                 routeInfos.disconnectedCode?(session)
-                self.updateDeviceState(routeName: routeInfos.routeName, isConnected: false, session: session)
-            
+                self.updateDeviceState(routeName: routeInfos.routeName, isConnected: false)
+                
                 if let pingableSession = self.pingableSessions[routeInfos.routeName] {
                     if pingableSession.isConnected {
                         
                         if (routeInfos.routeName.contains("Connect")){
                             print("Client disconnected from route: /\(routeInfos.routeName)")
-                            }
+                        }
                         else if routeInfos.routeName.contains("Ping") {
                             
                             self.cleanupPingSession(for: routeInfos.routeName)
@@ -200,16 +221,30 @@ class WebSockerServer {
         Timer.scheduledTimer(withTimeInterval: pingInterval, repeats: true) { _ in
             self.sessionQueue.async {
                 for (route, sessionInfo) in self.pingableSessions {
+                    // Envoyer d'abord le ping
+                    sessionInfo.session.writeText("ping")
+                    print("Ping sent to \(route)")
+                    
+                    // Ensuite vérifier si le dernier pong a été reçu dans les temps
                     if Date().timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {
-                        sessionInfo.session.socket.close()
-                        self.pingableSessions[route] = nil
-                    } else {
-                        sessionInfo.session.writeText("ping")
+                        var updatedInfo = sessionInfo
+                        updatedInfo.consecutiveFailures += 1
+                        self.pingableSessions[route] = updatedInfo
+                        
+                        if updatedInfo.consecutiveFailures >= PingSessionInfo.maxFailures {
+                            print("Device \(route) failed to respond to ping \(PingSessionInfo.maxFailures) times. Disconnecting...")
+                            sessionInfo.session.socket.close()
+                            self.pingableSessions[route] = nil
+                            let nameRoute = self.normalizeDeviceName(routeName: route)
+                            self.updateDeviceState(routeName: route, isConnected: false)
+                            self.updateDeviceState(routeName: nameRoute, isConnected: false)
+                        }
                     }
                 }
             }
         }
     }
+    
     
     private func updateLastPingTime(for route: String, session: WebSocketSession) {
         self.sessionQueue.async {
@@ -255,23 +290,24 @@ extension WebSockerServer {
             return String(routeName.dropLast("Connect".count))
         } else if routeName.hasSuffix("Message") {
             return String(routeName.dropLast("Message".count))
-
+            
         } else if routeName.hasSuffix("Ping") {
             return String(routeName.dropLast("Ping".count))
-
+            
         }
         return routeName
     }
     private func sessions(for targets: [String]) -> [WebSocketSession] {
         targets.compactMap { target in
             print("Fetching session for target: \(target)")
+            print("message session : \(messageSessions)")
             if let messageSession = messageSessions[target]?.session {
                 return messageSession
             }
             return nil
         }
     }
-    func updateDeviceState(routeName: String, isConnected: Bool, session: WebSocketSession?) {
+    func updateDeviceState(routeName: String, isConnected: Bool) {
         let deviceName = normalizeDeviceName(routeName: routeName)
         sessionQueue.async {
             if var state = self.deviceStates[deviceName] {
@@ -288,8 +324,8 @@ extension WebSockerServer {
         print("Envoi du message : \(message) vers les routes : \(to)")
         
         // Récupérer les sessions des cibles
-        let targetSessions = sessions(for: to) // `to` contient "typhoon_iphone", etc.
-        
+        let targetSessions = sessions(for: to)
+        print("Sessions des cibles : \(targetSessions)")
         for session in targetSessions {
             print("Envoi de \(message) à la session : \(session)")
             session.writeText(message)
@@ -328,6 +364,14 @@ extension WebSockerServer {
     }
 }
 
+
+struct PingSessionInfo {
+    var session: WebSocketSession
+    var isConnected: Bool
+    var lastPingTime: Date
+    var consecutiveFailures: Int = 0
+    static let maxFailures = 3
+}
 
 struct ParsedMessage {
     let routeOrigin: String
