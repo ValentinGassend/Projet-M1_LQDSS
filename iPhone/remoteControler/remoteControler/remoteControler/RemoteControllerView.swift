@@ -96,6 +96,11 @@ struct RemoteControllerView: View {
             wsClient.connectForIdentification(route: IdentificationRoute.typhoonIphoneConnect)
             wsClient.connectForIdentification(route: IdentificationRoute.mazeIphoneConnect)
         }
+        
+        .onDisappear() {
+            wsClient.disconnect(route: "mazeIphoneConnect")
+            wsClient.disconnect(route: "typhoonIphoneConnect")
+        }
         .onChange(of: wsClient.isRFIDDetectedForMaze) { newValue in
             showMazeIcon = newValue
             
