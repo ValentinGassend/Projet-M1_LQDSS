@@ -4,14 +4,17 @@ import gc
 from machine import Pin
 from libs.WebSocketClient import WebSocketClient
 
+
 class WSclient:
-    def __init__(self, ssid, password, websocket_url):
+    def __init__(self, ssid, password, device_name, server_ip="192.168.10.146", server_port="8080"):
         self.WIFI_SSID = ssid
         self.WIFI_PASSWORD = password
-        self.WEBSOCKET_URL = websocket_url
+        self.BASE_URL = server_ip + ":" + server_port + "/" +  device_name  # La base de l'URL (par exemple, "tornado_esp")
         self.led = Pin(19, Pin.OUT)
         self.wlan = None
-        self.ws = None
+        self.ws_clients = []  # Liste des clients WebSocket
+        # Dictionary to map routes to their WebSocket clients
+        self.route_ws_map = {}
 
     def connect_wifi(self):
         self.wlan = network.WLAN(network.STA_IF)
@@ -36,6 +39,52 @@ class WSclient:
             print('WiFi connection failed')
             return False
 
+    def connect_websockets(self):
+        # Génération automatique des 3 URLs à partir de la base URL
+        websocket_urls = [
+            f"ws://{self.BASE_URL}Connect",
+            f"ws://{self.BASE_URL}Message",
+            f"ws://{self.BASE_URL}Ping"
+        ]
+
+        # Création d'une instance WebSocketClient pour chaque URL
+        for url in websocket_urls:
+            ws = WebSocketClient(url)
+            if ws.connect():
+                print(f"Connected to WebSocket server: {url}")
+                self.ws_clients.append(ws)
+
+                # Déterminer la route à partir de l'URL et la mapper
+                if "Connect" in url:
+                    self.route_ws_map['connect'] = ws
+                elif "Message" in url:
+                    self.route_ws_map['message'] = ws
+                elif "Ping" in url:
+                    self.route_ws_map['ping'] = ws
+            else:
+                print(f"Failed to connect to WebSocket server: {url}")
+
+    def process_message(self, ws, message):
+        """Traiter les messages en fonction de leur route"""
+        if ws == self.route_ws_map.get('message') and message.lower() == "allumer":
+            print("================")
+            print(f"Received message: {message} from {ws.url}")
+            print("================")
+
+        if ws == self.route_ws_map.get('connect'):
+            print("================")
+            print(f"Received message: {message} from {ws.url}")
+            print("================")
+            ws.send('hey')
+
+        if ws == self.route_ws_map.get('ping') and message.lower() == "ping":
+            print("================")
+            print(f"Received ping from {ws.url}")
+            print("================")
+            ping_ws = self.route_ws_map.get('ping')
+            if ping_ws:
+                ws.send("pong")
+
     def main(self):
         gc.collect()
 
@@ -43,68 +92,43 @@ class WSclient:
             print("Cannot continue without WiFi connection")
             return
 
-        self.ws = WebSocketClient(self.WEBSOCKET_URL)
+        self.connect_websockets()
         last_message_time = time.time()
         last_check_time = time.time()
 
         try:
-            if self.ws.connect():
-                print("Connected to WebSocket server")
-                self.ws.socket.setblocking(False)
+            while True:
+                # Lire les messages sur toutes les routes
+                for ws in self.ws_clients:
+                    try:
+                        # Utilisation de `ws.socket.setblocking(False)` pour ne pas bloquer
+                        ws.socket.setblocking(False)
+                        data = ws.socket.recv(1)  # Récupérer jusqu'à 1024 octets
+                        if data:
+                            ws.socket.setblocking(True)
+                            message = ws.receive(first_byte=data)
+                            ws.socket.setblocking(False)
+                            if message:
+                                print(f"Message received from {ws.url}: {message}")
+                                self.process_message(ws, message)
+                    except OSError as e:
+                        if e.args[0] != 11:  # Erreur EAGAIN
+                            print(f"Error on WebSocket {ws.url}: {e}")
+                            ws.close()
+                            self.ws_clients.remove(ws)
+                            continue
 
-                while True:
-                    current_time = time.time()
+                # Délai pour limiter l'utilisation du CPU
+                time.sleep(0.001)
 
-                    # Check for messages every 100ms
-                    if current_time - last_check_time >= 0.1:
-                        try:
-                            # Attempt to read socket
-                            data = self.ws.socket.recv(1)
-                            if data:
-                                # Set socket to blocking mode to read full message
-                                self.ws.socket.setblocking(True)
-                                message = self.ws.receive(first_byte=data)
-                                self.ws.socket.setblocking(False)
-
-                                if message:
-                                    print("Message received")
-                                    if message.lower() == "allumer":
-                                        print("================")
-                                        print(f"Received message: {message}")
-                                        print("================")
-                                        self.led.value(1)
-                                        time.sleep(5)
-                                        self.led.value(0)
-
-                        except OSError as e:
-                            if e.args[0] != 11:  # If not EAGAIN
-                                raise
-
-                        last_check_time = current_time
-
-                    # Send periodic message every 5 seconds
-                    if current_time - last_message_time >= 5:
-                        message = f"{current_time}"
-                        if self.ws.send(message):
-                            print(f"Message sent: {message}")
-                            last_message_time = current_time
-                        else:
-                            print("Message sending error")
-                            raise Exception("Sending error")
-
-                    # Small delay to prevent CPU overload
-                    time.sleep(0.001)
 
         except KeyboardInterrupt:
             print("User requested stop")
         except Exception as e:
             print(f"Error: {e}")
         finally:
-            if self.ws:
-                self.ws.close()
-                print("WebSocket connection closed")
+            for ws in self.ws_clients:
+                ws.close()
+                print(f"WebSocket connection to {ws.url} closed")
 
-# Usage
-if __name__ == "__main__":
-    client = WSclient("Cudy-F810", "13022495", "ws://192.168.10.146:8080/rpiConnect")
-    client.main()
+

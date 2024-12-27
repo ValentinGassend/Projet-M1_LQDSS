@@ -8,7 +8,7 @@ struct SpheroConnectionSheetView: View {
     @Binding var spheroMazeInfo: [String: BoltToy]  // Binding pour remonter l'info de la Sphero Maze
 
 
-    var spheroNamesToConnect: [String] = ["SB-313C"]
+    var spheroNamesToConnect: [String] = ["SB-313C", "SB-0994", "SB-92B2", "SB-F682"]
 
     var body: some View {
         VStack {

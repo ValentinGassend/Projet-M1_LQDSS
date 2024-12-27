@@ -64,6 +64,27 @@ class WSclient:
             else:
                 print(f"Failed to connect to WebSocket server: {url}")
 
+    def process_message(self, ws, message):
+        """Traiter les messages en fonction de leur route"""
+        if ws == self.route_ws_map.get('message') and message.lower() == "allumer":
+            print("================")
+            print(f"Received message: {message} from {ws.url}")
+            print("================")
+
+        if ws == self.route_ws_map.get('connect'):
+            print("================")
+            print(f"Received message: {message} from {ws.url}")
+            print("================")
+            ws.send('hey')
+
+        if ws == self.route_ws_map.get('ping') and message.lower() == "ping":
+            print("================")
+            print(f"Received ping from {ws.url}")
+            print("================")
+            ping_ws = self.route_ws_map.get('ping')
+            if ping_ws:
+                ws.send("pong")
+
     def main(self):
         gc.collect()
 
@@ -77,50 +98,29 @@ class WSclient:
 
         try:
             while True:
-                current_time = time.time()
-
-                # Vérifier les messages pour chaque WebSocket client
+                # Lire les messages sur toutes les routes
                 for ws in self.ws_clients:
                     try:
-                        if current_time - last_check_time >= 0.1:
-                            # Tentative de réception de message
-                            data = ws.socket.recv(1)
-                            if data:
-                                ws.socket.setblocking(True)
-                                message = ws.receive(first_byte=data)
-                                ws.socket.setblocking(False)
-
-                                if message:
-                                    print(f"Message received from {ws.url}: {message}")
-
-                                    # Vérifier quelle route a reçu le message
-                                    if ws == self.route_ws_map.get('message') and message.lower() == "allumer":
-                                        print("================")
-                                        print(f"Received message: {message} from {ws.url}")
-                                        print("================")
-                                        self.led.value(1)
-                                        time.sleep(5)
-                                        self.led.value(0)
-
-                                    # Si la route ping reçoit "ping", envoyer un message pong
-                                    if ws == self.route_ws_map.get('ping') and message.lower() == "ping":
-                                        print("================")
-                                        print(f"Received ping from {ws.url}")
-                                        print("================")
-                                        # Envoyer un message ping à la route ping
-                                        ping_ws = self.route_ws_map.get('ping')
-                                        if ping_ws:
-                                            ping_message = device_name
-                                            if ping_ws.send(ping_message):
-                                                print(f"Ping message sent to {ping_ws.url}: {ping_message}")
-                                            else:
-                                                print(f"Failed to send ping message to {ping_ws.url}")
-
+                        # Utilisation de `ws.socket.setblocking(False)` pour ne pas bloquer
+                        ws.socket.setblocking(False)
+                        data = ws.socket.recv(1)  # Récupérer jusqu'à 1024 octets
+                        if data:
+                            ws.socket.setblocking(True)
+                            message = ws.receive(first_byte=data)
+                            ws.socket.setblocking(False)
+                            if message:
+                                print(f"Message received from {ws.url}: {message}")
+                                self.process_message(ws, message)
                     except OSError as e:
-                        if e.args[0] != 11:  # EAGAIN error
-                            raise
-                # Petit délai pour éviter une surcharge CPU
+                        if e.args[0] != 11:  # Erreur EAGAIN
+                            print(f"Error on WebSocket {ws.url}: {e}")
+                            ws.close()
+                            self.ws_clients.remove(ws)
+                            continue
+
+                # Délai pour limiter l'utilisation du CPU
                 time.sleep(0.001)
+
 
         except KeyboardInterrupt:
             print("User requested stop")
@@ -132,11 +132,3 @@ class WSclient:
                 print(f"WebSocket connection to {ws.url} closed")
 
 
-# Utilisation
-if __name__ == "__main__":
-    # Définissez la base de l'URL comme "tornado_esp"
-    # serveur_ip = "192.168.10.146"
-    # serveur_port = "8080"
-    device_name = "maze_esp"
-    client = WSclient("Cudy-F810", "13022495", device_name)
-    client.main()

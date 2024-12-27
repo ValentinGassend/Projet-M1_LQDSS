@@ -70,9 +70,6 @@ class WSclient:
             print("================")
             print(f"Received message: {message} from {ws.url}")
             print("================")
-            self.led.value(1)
-            time.sleep(5)
-            self.led.value(0)
 
         if ws == self.route_ws_map.get('connect'):
             print("================")

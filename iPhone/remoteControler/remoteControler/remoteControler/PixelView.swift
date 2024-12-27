@@ -8,15 +8,18 @@
 import SwiftUI
 
 struct PixelView: View {
-    @Binding var isOn: Bool
-
+    @Binding var pixel: ColoredPixel
+    @Binding var selectedColor: Color
+    
     var body: some View {
         Rectangle()
-            .fill(isOn ? Color.yellow : Color.black)
-            .frame(width: 20, height: 20)
-            .border(Color.gray)
+            .fill(pixel.isOn ? pixel.color : Color.gray.opacity(0.3))
+            .frame(width: 30, height: 30)
             .onTapGesture {
-                isOn.toggle()
+                pixel.isOn.toggle()
+                if pixel.isOn {
+                    pixel.color = selectedColor
+                }
             }
     }
 }

@@ -64,6 +64,3 @@ def sequential_relay_control():
         for relay in reversed(relays):
             relay.off()
             sleep(2)  # Wait 2 seconds after turning each relay off
-
-# Run the sequential control
-sequential_relay_control()

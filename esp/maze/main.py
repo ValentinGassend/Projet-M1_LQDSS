@@ -2,64 +2,34 @@ from machine import Pin
 import utime
 from WSclient import WSclient
 from libs.WebSocketClient import WebSocketClient
-from QuadrupleRelay import RelayController
 from DoubleRfid import RFIDController
+from Button import ButtonController
 
 class ESP32Controller:
     def __init__(self):
         # RFID Controller
         self.rfid = RFIDController()
 
-        # Relays initialization
-        self.relays = [
-            RelayController(32),
-            RelayController(33),
-            RelayController(25),
-            RelayController(26)
-        ]
-
         # WebSocket client
-        self.ws_client = WSclient("Cudy-F810", "13022495", "typhoon_esp")
+        self.ws_client = WSclient("Cudy-F810", "13022495", "maze_esp")
+
+        # Button Controller
+        self.button_controller = ButtonController()
+
+        # Add buttons
+        self.button_controller.add_button(23, "btn1")
+        self.button_controller.add_button(27, "btn2")
+        self.button_controller.add_button(14, "btn3")
 
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#{card_id}#true"
+        msg = f"maze_esp=>[maze_iphone]=>rfid#true"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
-        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#{card_id}#false"
+        msg = f"maze_esp=>[maze_iphone]=>rfid#false"
         self.ws_client.route_ws_map.get("message", None).send(msg)
-
-    def handle_sphero_message(self, sphero_num, state):
-        """Handle sphero-related relay control messages."""
-        try:
-            relay_num = int(sphero_num[-1]) - 1  # Extract relay number from sphero identifier
-            if 0 <= relay_num < len(self.relays):
-                if state.lower() == "true":
-                    self.relays[relay_num].on()
-                elif state.lower() == "false":
-                    self.relays[relay_num].off()
-                elif state.lower() == "completed":
-                    self.relays[relay_num].on()  # Turn relay on and leave it on
-        except Exception as e:
-            print(f"Erreur traitement message sphero: {e}")
-
-    def handle_relay_message(self, message):
-        """Handle incoming relay control messages"""
-        try:
-            # Extraire la dernière partie utile du message après le second `=>`
-            if "=>" in message:
-                parts = message.split("=>")
-                if len(parts) > 2:
-                    payload = parts[-1]  # On prend la partie après le dernier `=>`
-                    if "#" in payload:
-                        sphero_cmd, state = payload.split("#")
-                        if sphero_cmd.startswith("sphero"):
-                            print("start with sphero")
-                            self.handle_sphero_message(sphero_cmd, state)
-        except Exception as e:
-            print(f"Erreur traitement message relais: {e}")
 
     def handle_websocket_messages(self):
         """Process WebSocket messages"""
@@ -71,8 +41,6 @@ class ESP32Controller:
                     message = ws.receive(first_byte=data)
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
-                        if ws_route == "message":
-                            self.handle_relay_message(message)
                         self.ws_client.process_message(ws, message)
             except OSError as e:
                 if e.args[0] != 11:  # Ignore EAGAIN errors
@@ -97,6 +65,9 @@ class ESP32Controller:
                     callback_entrance=self.handle_entrance_tag,
                     callback_exit=self.handle_exit_tag
                 )
+
+                # Surveillance des boutons
+                self.button_controller.run()
 
                 utime.sleep_ms(100)
 

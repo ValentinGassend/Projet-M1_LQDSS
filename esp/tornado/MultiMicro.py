@@ -181,26 +181,3 @@ class SoundMonitor:
             
             # Pause entre deux mesures
             utime.sleep(0.1)
-
-# Exemple d'utilisation
-def main():
-    # Créer un moniteur sonore
-    sound_monitor = SoundMonitor(
-        wifi_ssid="Cudy-F810", 
-        wifi_password="13022495", 
-        websocket_url="ws://192.168.10.146:8080/rpiConnect"
-    )
-    
-    # Ajouter des microphones
-    sound_monitor.add_microphone(pin_number=34, sound_threshold=300)  # Premier micro
-    sound_monitor.add_microphone(pin_number=35, sound_threshold=250)  # Deuxième micro
-    sound_monitor.add_microphone(pin_number=36, sound_threshold=250)  # troisième micro
-    sound_monitor.add_microphone(pin_number=32, sound_threshold=250)  # troisième micro
-    # On peut facilement ajouter d'autres microphones avec .add_microphone()
-    
-    # Démarrer la surveillance
-    sound_monitor.run()
-
-# Démarrage du programme principal
-if __name__ == '__main__':
-    main()

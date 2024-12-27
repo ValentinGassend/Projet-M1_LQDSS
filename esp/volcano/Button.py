@@ -1,7 +1,5 @@
 import machine
 import utime
-from WSclient import WSclient
-from WebSocketClient import WebSocketClient
 
 class Button:
     """
@@ -65,89 +63,14 @@ class Button:
         self.last_state = reading
         return False
 
-class WebSocketManager:
-    """
-    Manages WebSocket connection and message sending
-    """
-    def __init__(self, wifi_ssid, wifi_password, websocket_url):
-        """
-        Initialize WebSocket connection
-        
-        Args:
-            wifi_ssid (str): WiFi network name
-            wifi_password (str): WiFi password
-            websocket_url (str): WebSocket server URL
-        """
-        self.ws_client = WSclient(wifi_ssid, wifi_password, websocket_url)
-        self.ws = None
-        self.connected = False
-
-    def connect(self):
-        """
-        Establish WiFi and WebSocket connections
-        
-        Returns:
-            bool: Connection status
-        """
-        try:
-            # Connect to WiFi
-            if self.ws_client.connect_wifi():
-                # Establish WebSocket connection
-                self.ws = WebSocketClient(self.ws_client.WEBSOCKET_URL)
-                if self.ws.connect():
-                    print("WebSocket connection established")
-                    self.connected = True
-                    return True
-            
-            print("Failed to establish connection")
-            self.connected = False
-            return False
-        
-        except Exception as e:
-            print(f"Connection error: {e}")
-            self.connected = False
-            return False
-
-    def send_message(self, message):
-        """
-        Send a message via WebSocket
-        
-        Args:
-            message (dict): Message to send
-        """
-        if not self.connected:
-            # Try to reconnect if not connected
-            self.connect()
-        
-        if self.connected and self.ws:
-            try:
-                # Convert message to string and send
-                self.ws.send(str(message))
-                print(f"Sent message: {message}")
-            except Exception as e:
-                print(f"WebSocket send error: {e}")
-                self.connected = False
-
 class ButtonController:
     """
-    Manages multiple buttons and their WebSocket messaging
+    Manages multiple buttons
     """
-    def __init__(self, wifi_ssid, wifi_password, websocket_url):
+    def __init__(self):
         """
-        Initialize button controller with WebSocket support
-        
-        Args:
-            wifi_ssid (str): WiFi network name
-            wifi_password (str): WiFi password
-            websocket_url (str): WebSocket server URL
+        Initialize button controller
         """
-        # Create WebSocket manager
-        self.websocket_manager = WebSocketManager(
-            wifi_ssid, 
-            wifi_password, 
-            websocket_url
-        )
-        
         # Dictionary to store buttons
         self.buttons = {}
 
@@ -166,61 +89,25 @@ class ButtonController:
         self.buttons[button_name] = button
         return button
 
-    def run(self):
+    def run(self, callback_press=None, callback_release=None):
         """
-        Main loop to monitor buttons and send WebSocket messages
-        """
-        # Establish initial connection
-        self.websocket_manager.connect()
+        Main loop to monitor buttons
         
+        Args:
+            callback_press (function): Callback function for button press
+            callback_release (function): Callback function for button release
+        """
         print("Button monitoring started...")
         
         while True:
-            try:
-                # Check each button
-                for name, button in self.buttons.items():
-                    if button.update():
-                        # Button state changed
-                        if button.pressed:
-                            # Prepare and send WebSocket message for button press
-                            message = {
-                                "type": "button_press",
-                                "button": name
-                            }
-                            self.websocket_manager.send_message(message)
-                        
-                        if button.released:
-                            # Prepare and send WebSocket message for button release
-                            message = {
-                                "type": "button_release",
-                                "button": name
-                            }
-                            self.websocket_manager.send_message(message)
-                
-                # Small delay to prevent excessive CPU usage
-                utime.sleep_ms(10)
+            for name, button in self.buttons.items():
+                if button.update():
+                    # Button state changed
+                    if button.pressed and callback_press:
+                        callback_press(name)
+                    
+                    if button.released and callback_release:
+                        callback_release(name)
             
-            except Exception as e:
-                print(f"Error in main loop: {e}")
-                # Attempt to reconnect
-                self.websocket_manager.connect()
-
-def main():
-    # Create button controller with WiFi and WebSocket details
-    controller = ButtonController(
-        wifi_ssid="Cudy-F810",      # Replace with your WiFi SSID
-        wifi_password="13022495",   # Replace with your WiFi password
-        websocket_url="ws://192.168.10.146:8080/rpiConnect"  # Replace with your WebSocket server URL
-    )
-
-    # Add buttons
-    controller.add_button(23, "red_button")
-    controller.add_button(27, "blue_button")
-    controller.add_button(14, "green_button")
-
-    # Start monitoring and sending messages
-    controller.run()
-
-# Run the main function
-if __name__ == '__main__':
-    main()
+            # Small delay to prevent excessive CPU usage
+            utime.sleep_ms(10)
