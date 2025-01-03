@@ -12,8 +12,9 @@ class ESP32Controller:
         self.ws_client = WSclient("Cudy-F810", "13022495", "maze_esp")
         # Button Controller
         self.button_controller = ButtonController()
-        
-        
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 1
+
         self.controller = ButtonController()
         self.controller.add_button(23, "btn1")
         self.controller.add_button(27, "btn2")
@@ -46,9 +47,13 @@ class ESP32Controller:
             
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        msg = f"maze_esp=>[maze_iphone]=>rfid#true"
-        print(f"Sending RFID entrance message: {msg}")
-        self.ws_client.route_ws_map.get("message", None).send(msg)
+        if card_id == "322763907":
+            msg = f"maze_esp=>[maze_iphone]=>rfid#true"
+            print(f"Sending RFID entrance message: {msg}")
+            self.ws_client.route_ws_map.get("message", None).send(msg)
+        else:
+            print(f"card {card_id} is wrong card")
+
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""

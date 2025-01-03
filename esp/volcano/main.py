@@ -17,6 +17,8 @@ class ESP32Controller:
             RelayController(33)
         ]
 
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 1
         # Initialize RFID states
         self.rfid_states = {
             "first": False,
@@ -48,9 +50,13 @@ class ESP32Controller:
             self.notify_relay_state(relay_num, str(state).lower())
 
     def handle_entrance_tag(self, card_id):
-        msg = f"volcano_esp1=>[volcano_esp2]=>rfid#fire"
-        print(f"Sending RFID entrance message: {msg}")
-        self.ws_client.route_ws_map.get("message", None).send(msg)
+        if card_id == "323235155":
+            msg = f"volcano_esp1=>[volcano_esp2]=>rfid#fire"
+            print(f"Sending RFID entrance message: {msg}")
+            self.ws_client.route_ws_map.get("message", None).send(msg)
+        else:
+            print(f"card {card_id} is wrong card")
+
 
     def handle_exit_tag(self, card_id):
         msg = f"volcano_esp1=>[volcano_esp2]=>rfid#first"

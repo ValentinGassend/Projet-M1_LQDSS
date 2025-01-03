@@ -12,6 +12,8 @@ class ESP32Controller:
         # WebSocket client
         self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_esp1")
 
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 1
     def handle_entrance_tag(self, card_id):
         msg = f"crystal_esp1=>[volcano_esp2]=>rfid#first"
         print(f"Sending RFID entrance message: {msg}")

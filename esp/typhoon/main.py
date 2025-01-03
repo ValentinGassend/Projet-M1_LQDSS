@@ -18,13 +18,20 @@ class ESP32Controller:
             RelayController(26)
         ]
 
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 1
         # WebSocket client
         self.ws_client = WSclient("Cudy-F810", "13022495", "typhoon_esp")
 
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#true"
-        self.ws_client.route_ws_map.get("message", None).send(msg)
+        if card_id == "327204323":
+            msg = f"typhoon_esp=>[typhon_iphone]=>rfid#true"
+            self.ws_client.route_ws_map.get("message", None).send(msg)
+        else:
+            print(f"card {card_id} is wrong card")
+
+
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
@@ -78,6 +85,31 @@ class ESP32Controller:
             except OSError as e:
                 if e.args[0] != 11:  # Ignore EAGAIN errors
                     print(f"Error on WebSocket route {ws_route}: {e}")
+                    self.handle_websocket_error(ws_route, e)
+
+    def attempt_reconnect(self):
+        """Attempt to reconnect WebSocket connections"""
+        current_time = utime.ticks_ms()
+        if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
+            print("Attempting to reconnect WebSocket...")
+            self.last_reconnect_attempt = current_time
+
+            # Reinitialize WiFi connection
+            if self.ws_client.connect_wifi():
+                print("WiFi reconnected successfully")
+                # Reinitialize WebSocket connections
+                self.ws_client.connect_websockets()
+                print("WebSocket reconnection attempt completed")
+            else:
+                print("WiFi reconnection failed")
+
+    def handle_websocket_error(self, ws_route, error):
+        """Handle WebSocket errors appropriately"""
+        if error.args[0] == 128:  # ENOTCONN
+            print(f"Connection lost on route {ws_route}, attempting reconnection...")
+            self.attempt_reconnect()
+        else:
+            print(f"Error on WebSocket route {ws_route}: {error}")
 
     def start(self):
         print("Démarrage du contrôleur...")

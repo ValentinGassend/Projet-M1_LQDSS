@@ -15,9 +15,15 @@ class ESP32Controller:
             Microphone(pin_number=32, sound_threshold=250)
         ]
 
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 1
     def handle_entrance_tag(self, card_id):
-        msg = f"tornado_esp=>[tornado_rpi]=>rfid#true"
-        self.ws_client.route_ws_map.get("message", None).send(msg)
+        if card_id == "152301587":
+            msg = f"tornado_esp=>[tornado_rpi]=>rfid#true"
+            self.ws_client.route_ws_map.get("message", None).send(msg)
+        else:
+            print(f"card {card_id} is wrong card")
+
 
     def handle_exit_tag(self, card_id):
         msg = f"tornado_esp=>[tornado_rpi]=>rfid#false"
@@ -71,6 +77,31 @@ class ESP32Controller:
             except OSError as e:
                 if e.args[0] != 11:
                     print(f"Error on WebSocket route {ws_route}: {e}")
+                    self.handle_websocket_error(ws_route, e)
+
+    def attempt_reconnect(self):
+        """Attempt to reconnect WebSocket connections"""
+        current_time = utime.ticks_ms()
+        if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
+            print("Attempting to reconnect WebSocket...")
+            self.last_reconnect_attempt = current_time
+
+            # Reinitialize WiFi connection
+            if self.ws_client.connect_wifi():
+                print("WiFi reconnected successfully")
+                # Reinitialize WebSocket connections
+                self.ws_client.connect_websockets()
+                print("WebSocket reconnection attempt completed")
+            else:
+                print("WiFi reconnection failed")
+
+    def handle_websocket_error(self, ws_route, error):
+        """Handle WebSocket errors appropriately"""
+        if error.args[0] == 128:  # ENOTCONN
+            print(f"Connection lost on route {ws_route}, attempting reconnection...")
+            self.attempt_reconnect()
+        else:
+            print(f"Error on WebSocket route {ws_route}: {error}")
 
     def start(self):
         print("Starting controller...")
