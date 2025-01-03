@@ -5,36 +5,33 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="fix: rvr">
-      <change afterPath="$PROJECT_DIR$/esp/crystal/DoubleRfid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/crystal/DoubleRfid_.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/crystal/libs/WebSocketClient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/crystal/libs/mfrc522.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/maze/Button.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/maze/DoubleRfid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/maze/libs/WebSocketClient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/maze/libs/mfrc522.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/tornado/DoubleRfid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/tornado/MultiMicro.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/tornado/libs/WebSocketClient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/tornado/libs/mfrc522.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/typhoon/DoubleRfid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/typhoon/QuadrupleRelay.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/typhoon/libs/WebSocketClient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/typhoon/libs/mfrc522.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/Button.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/DoubleRfid.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/DoubleRfid_.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/QuadrupleRelay.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/WSclient_.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/libs/WebSocketClient.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/esp/volcano/libs/mfrc522.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/crystal/boot.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/boot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/crystal/boot_.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/boot_.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/crystal/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/crystal/main_.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/main_.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/Button.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/Button.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/DoubleRfid.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/DoubleRfid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/boot.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/boot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/DoubleRfid.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/DoubleRfid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/MultiMicro.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/MultiMicro.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/WSclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/WSclient.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/boot.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/boot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/Button.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/Button.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/DoubleRfid.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/DoubleRfid.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/DoubleRfid_.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/DoubleRfid_.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/esp/volcano/WSclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/WSclient.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/SpheroManager/SpheroManager.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/WSclient_.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/WSclient_.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/boot.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/boot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/boot_.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/boot_.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/main_.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/main_.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/WsClient/WebSocketClient.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/WsClient/WebSocketClient.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,20 +65,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "remoteControl",
-    "last_opened_file_path": "/Users/valentin/ProjetDrone/Projet-M1_LQDSS/esp/volcano",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;remoteControl&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/valentin/ProjetDrone/Projet-M1_LQDSS/esp/volcano&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/esp/volcano" />
@@ -112,6 +109,7 @@
       <workItem from="1733463662109" duration="1227000" />
       <workItem from="1734034428446" duration="7909000" />
       <workItem from="1734169234965" duration="3108000" />
+      <workItem from="1735902368080" duration="14000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />
@@ -176,15 +174,5 @@
     <MESSAGE value="wip: auto ping server" />
     <MESSAGE value="fix: rvr" />
     <option name="LAST_COMMIT_MESSAGE" value="fix: rvr" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/esp/libs/WebSocketClient.py</url>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>

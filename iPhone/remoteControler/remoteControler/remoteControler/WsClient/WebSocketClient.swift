@@ -202,16 +202,12 @@ extension WebSocketClient: WebSocketConnectionDelegate {
         let targetString = targets.joined(separator: ",")
         let formattedMessage = "\(origin)=>[\(targetString)]=>\(component)#\(data)"
         let originMessage = origin+"Message"
-        if origin.contains("typhoon") {
+//        if origin.contains("typhoon") {
             
             self.sentToMessageRoute(route: IdentificationRoute.typhoonIphoneConnect, msg: formattedMessage)
             
-        }
-        if origin.contains("maze") {
-            
-            self.sentToMessageRoute(route: IdentificationRoute.mazeIphoneConnect, msg: formattedMessage)
-            
-        }
+//        }
+        
         //                // Envoyer le message à toutes les cibles via leurs sockets
         //                    if let route = routes[originMessage] {
         //                        route.send(string: formattedMessage)

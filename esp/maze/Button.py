@@ -21,47 +21,38 @@ class Button:
         else:
             self.pin = machine.Pin(pin_number, machine.Pin.IN)
         
-        # Button identification
         self.name = name
-        
-        # Debounce variables
         self.debounce_time = debounce_time
         self.last_state = self.pin.value()
         self.last_debounce_time = 0
-        
-        # State tracking
         self.current_state = self.last_state
-        self.pressed = False
-        self.released = False
+        self.state_changed = False
 
-    def update(self):
+    def check(self):
         """
-        Update button state with debounce logic
+        Check button state with debounce logic
         
         Returns:
-            bool: True if button state changed
+            bool or None: True if pressed, False if released, None if no change
         """
         reading = self.pin.value()
         current_time = utime.ticks_ms()
-
-        # Debounce logic
+        state_to_return = None
+        
+        # Si l'état a changé, mettre à jour le temps de debounce
         if reading != self.last_state:
             self.last_debounce_time = current_time
-
-        # Check if debounce time has passed
-        if (utime.ticks_diff(current_time, self.last_debounce_time) > self.debounce_time):
-            # State change detection
+        
+        # Vérifier si le temps de debounce est passé
+        if utime.ticks_diff(current_time, self.last_debounce_time) > self.debounce_time:
+            # Si l'état est différent de l'état courant
             if reading != self.current_state:
                 self.current_state = reading
+                # Renvoyer True pour appuyé (0 car pull-up), False pour relâché (1)
+                state_to_return = (self.current_state == 0)
                 
-                # Determine press/release
-                self.pressed = (self.current_state == 0)  # Assumes active low
-                self.released = (self.current_state == 1)
-                
-                return True
-
         self.last_state = reading
-        return False
+        return state_to_return
 
 class ButtonController:
     """
@@ -71,7 +62,6 @@ class ButtonController:
         """
         Initialize button controller
         """
-        # Dictionary to store buttons
         self.buttons = {}
 
     def add_button(self, pin_number, button_name):
@@ -89,25 +79,18 @@ class ButtonController:
         self.buttons[button_name] = button
         return button
 
-    def run(self, callback_press=None, callback_release=None):
+    def check_buttons(self, callback_press=None, callback_release=None):
         """
-        Main loop to monitor buttons
+        Check all buttons and trigger callbacks immediately
         
         Args:
             callback_press (function): Callback function for button press
             callback_release (function): Callback function for button release
         """
-        print("Button monitoring started...")
-        
-        while True:
-            for name, button in self.buttons.items():
-                if button.update():
-                    # Button state changed
-                    if button.pressed and callback_press:
-                        callback_press(name)
-                    
-                    if button.released and callback_release:
-                        callback_release(name)
-            
-            # Small delay to prevent excessive CPU usage
-            utime.sleep_ms(10)
+        for name, button in self.buttons.items():
+            state = button.check()
+            if state is not None:  # Si un changement d'état est détecté
+                if state and callback_press:  # True = Bouton appuyé
+                    callback_press(name)
+                elif not state and callback_release:  # False = Bouton relâché
+                    callback_release(name)

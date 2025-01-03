@@ -66,7 +66,7 @@ class WSclient:
 
     def process_message(self, ws, message):
         """Traiter les messages en fonction de leur route"""
-        if ws == self.route_ws_map.get('message') and message.lower() == "allumer":
+        if ws == self.route_ws_map.get('message'):
             print("================")
             print(f"Received message: {message} from {ws.url}")
             print("================")
@@ -78,9 +78,6 @@ class WSclient:
             ws.send('hey')
 
         if ws == self.route_ws_map.get('ping') and message.lower() == "ping":
-            print("================")
-            print(f"Received ping from {ws.url}")
-            print("================")
             ping_ws = self.route_ws_map.get('ping')
             if ping_ws:
                 ws.send("pong")
@@ -103,13 +100,12 @@ class WSclient:
                     try:
                         # Utilisation de `ws.socket.setblocking(False)` pour ne pas bloquer
                         ws.socket.setblocking(False)
-                        data = ws.socket.recv(1)  # Récupérer jusqu'à 1024 octets
+                        data = ws.socket.recv(1)
                         if data:
                             ws.socket.setblocking(True)
                             message = ws.receive(first_byte=data)
                             ws.socket.setblocking(False)
                             if message:
-                                print(f"Message received from {ws.url}: {message}")
                                 self.process_message(ws, message)
                     except OSError as e:
                         if e.args[0] != 11:  # Erreur EAGAIN
