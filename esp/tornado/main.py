@@ -57,6 +57,7 @@ class ESP32Controller:
             try:
                 ws.socket.setblocking(False)
                 data = ws.socket.recv(1)
+                ws.socket.setblocking(True)
                 if data:
                     message = ws.receive(first_byte=data)
                     if message:

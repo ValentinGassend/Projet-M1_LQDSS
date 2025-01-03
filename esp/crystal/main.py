@@ -13,12 +13,12 @@ class ESP32Controller:
         self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_esp1")
 
     def handle_entrance_tag(self, card_id):
-        msg = f"crystal_esp1=>[volcano_esp2]=>rfid#fire"
+        msg = f"crystal_esp1=>[volcano_esp2]=>rfid#first"
         print(f"Sending RFID entrance message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
-        msg = f"crystal_esp1=>[volcano_esp2]=>rfid#first"
+        msg = f"crystal_esp1=>[volcano_esp2]=>rfid#second"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
         

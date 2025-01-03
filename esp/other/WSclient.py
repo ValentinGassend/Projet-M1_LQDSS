@@ -84,7 +84,9 @@ class WSclient:
                     try:
                         if current_time - last_check_time >= 0.1:
                             # Tentative de réception de message
+                            ws.socket.setblocking(False)
                             data = ws.socket.recv(1)
+                            ws.socket.setblocking(True)
                             if data:
                                 ws.socket.setblocking(True)
                                 message = ws.receive(first_byte=data)

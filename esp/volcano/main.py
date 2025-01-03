@@ -6,6 +6,7 @@ from DoubleRfid import RFIDController
 from Button import ButtonController
 from QuadrupleRelay import RelayController
 
+
 class ESP32Controller:
     def __init__(self):
         self.rfid = RFIDController()
@@ -15,8 +16,24 @@ class ESP32Controller:
             RelayController(32),
             RelayController(33)
         ]
-        
+
+        # Initialize RFID states
+        self.rfid_states = {
+            "first": False,
+            "second": False,
+            "third": False
+        }
+
         self.button_controller.add_button(23, "btn")
+
+    def check_all_rfids_active(self):
+        """Check if all RFID states are True"""
+        return all(self.rfid_states.values())
+
+    def activate_all_relays(self):
+        """Activate all relays and send notifications"""
+        for i in range(len(self.relays)):
+            self.set_relay_state(i, True)
 
     def notify_relay_state(self, relay_num, state):
         msg = f"volcano_esp1=>[volcano_esp2]=>relay{relay_num + 1}#{state}"
@@ -29,7 +46,7 @@ class ESP32Controller:
             else:
                 self.relays[relay_num].off()
             self.notify_relay_state(relay_num, str(state).lower())
-        
+
     def handle_entrance_tag(self, card_id):
         msg = f"volcano_esp1=>[volcano_esp2]=>rfid#fire"
         print(f"Sending RFID entrance message: {msg}")
@@ -39,7 +56,26 @@ class ESP32Controller:
         msg = f"volcano_esp1=>[volcano_esp2]=>rfid#first"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
-        
+
+    def handle_rfid_message(self, message):
+        """Handle RFID state messages"""
+        try:
+            if "=>" in message and "#" in message:
+                payload = message.split("=>")[-1]
+                rfid_type, state = payload.split("#")
+
+                if rfid_type in ["first", "second", "third"]:
+                    self.rfid_states[rfid_type] = (state.lower() == "true")
+                    print(f"Updated RFID state {rfid_type}: {self.rfid_states[rfid_type]}")
+
+                    # Check if all RFIDs are active
+                    if self.check_all_rfids_active():
+                        print("All RFIDs active - activating relays")
+                        self.activate_all_relays()
+
+        except Exception as e:
+            print(f"Error processing RFID message: {e}")
+
     def handle_relay_message(self, message):
         try:
             if "=>" in message:
@@ -68,15 +104,14 @@ class ESP32Controller:
                     message = ws.receive(first_byte=data)
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
-                        
-                        # Check if message contains "ping"
+
                         if "ping" in message.lower():
-                            # Forward ping messages directly to process_message
                             self.ws_client.process_message(ws, message)
+                        elif "rfid#" in message:
+                            self.handle_rfid_message(message)
                         else:
-                            # Handle other messages with relay logic
                             self.handle_relay_message(message)
-                        
+
             except OSError as e:
                 if e.args[0] != 11:
                     print(f"Error on WebSocket route {ws_route}: {e}")
@@ -88,11 +123,9 @@ class ESP32Controller:
         if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
             print("Attempting to reconnect WebSocket...")
             self.last_reconnect_attempt = current_time
-            
-            # Reinitialize WiFi connection
+
             if self.ws_client.connect_wifi():
                 print("WiFi reconnected successfully")
-                # Reinitialize WebSocket connections
                 self.ws_client.connect_websockets()
                 print("WebSocket reconnection attempt completed")
             else:
@@ -105,7 +138,7 @@ class ESP32Controller:
             self.attempt_reconnect()
         else:
             print(f"Error on WebSocket route {ws_route}: {error}")
-            
+
     def start(self):
         print("Starting controller...")
         if not self.ws_client.connect_wifi():
@@ -130,6 +163,7 @@ class ESP32Controller:
                 utime.sleep(5)
                 self.__init__()
                 self.start()
+
 
 if __name__ == "__main__":
     controller = ESP32Controller()

@@ -23,12 +23,12 @@ class ESP32Controller:
 
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#{card_id}#true"
+        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#true"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
-        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#{card_id}#false"
+        msg = f"typhoon_esp=>[typhon_iphone]=>rfid#false"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_sphero_message(self, sphero_num, state):
@@ -67,6 +67,7 @@ class ESP32Controller:
             try:
                 ws.socket.setblocking(False)
                 data = ws.socket.recv(1)
+                ws.socket.setblocking(True)
                 if data:
                     message = ws.receive(first_byte=data)
                     if message:

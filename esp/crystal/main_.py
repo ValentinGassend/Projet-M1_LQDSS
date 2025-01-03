@@ -14,12 +14,12 @@ class ESP32Controller:
 
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        msg = f"crystal_esp2=>[crystal_esp2, crystal_esp]=>rfid#{card_id}#third"
+        msg = f"crystal_esp2=>[crystal_esp2, crystal_esp]=>rfid#third"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
-        msg = f"crystal_esp2=>[crystal_esp2, crystal_esp]=>rfid#{card_id}#fourth"
+        msg = f"crystal_esp2=>[crystal_esp2, crystal_esp]=>rfid#fourth"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_websocket_messages(self):

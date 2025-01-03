@@ -46,13 +46,13 @@ class ESP32Controller:
             
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        msg = f"maze_esp=>[maze_iphone]=>rfid#fire"
+        msg = f"maze_esp=>[maze_iphone]=>rfid#true"
         print(f"Sending RFID entrance message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
-        msg = f"maze_esp=>[maze_iphone]=>rfid#first"
+        msg = f"maze_esp=>[maze_iphone]=>rfid#false"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
@@ -74,6 +74,7 @@ class ESP32Controller:
             try:
                 ws.socket.setblocking(False)
                 data = ws.socket.recv(1)
+                ws.socket.setblocking(True)
                 if data:
                     message = ws.receive(first_byte=data)
                     if message:

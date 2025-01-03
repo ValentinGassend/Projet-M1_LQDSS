@@ -104,6 +104,7 @@ class WSclient:
                         # Utilisation de `ws.socket.setblocking(False)` pour ne pas bloquer
                         ws.socket.setblocking(False)
                         data = ws.socket.recv(1)  # Récupérer jusqu'à 1024 octets
+                        ws.socket.setblocking(True)
                         if data:
                             ws.socket.setblocking(True)
                             message = ws.receive(first_byte=data)
