@@ -86,44 +86,37 @@ class WebSockerServer {
                         if var sessionInfo = self.pingableSessions[routeInfos.routeName] {
                             sessionInfo.lastPingTime = Date()
                             sessionInfo.isConnected = true
-                            sessionInfo.consecutiveFailures = 0  // Reset failures on successful pong
+                            sessionInfo.consecutiveFailures = 0
                             self.pingableSessions[routeInfos.routeName] = sessionInfo
-                            
                         }
                     }
                 }
-                else if routeInfos.routeName.contains("Connect"){
-                    print("Received \(text) from route: \(routeInfos.routeName)")
-                    
-                    
-                } else if routeInfos.routeName.contains("Message") {
-                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
-                    if let parsedMessage = self.parseMessage(text){
+                else if routeInfos.routeName.contains("Message") {
+                    print("Processing message from route: \(routeInfos.routeName)")
+                    if let parsedMessage = self.parseMessage(text) {
                         if let parsedMessageCode = routeInfos.parsedMessageCode {
                             parsedMessageCode(session, parsedMessage)
-                        } else {
-                            print("Invalid message format received: \(text)")
                         }
+                        // Handle the message routing directly here as well
+                        self.sendMessage(
+                            from: parsedMessage.routeOrigin,
+                            to: parsedMessage.routeTargets,
+                            component: parsedMessage.component,
+                            data: parsedMessage.data
+                        )
+                    } else {
+                        print("Failed to parse message: \(text)")
                     }
-                } else {
-                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+                }
+                else {
+                    // Handle other route types
                     routeInfos.textCode(session, text)
                 }
                 
-                
-                // Update last ping time for routes ending with 'Ping'
+                // Update last ping time for Ping routes
                 if routeInfos.routeName.hasSuffix("Ping") {
-                    print("Updating last ping time for route: \(routeInfos.routeName)")
                     self.updateLastPingTime(for: routeInfos.routeName, session: session)
                 }
-                
-                // Call the original text handler
-                //                routeInfos.textCode(session, text)
-                
-                // Update device group session (handle routes for connecting and disconnecting devices)
-                //                self.handleDeviceConnections(routeInfos, session)
-                
-                
             },
             binary: { session, binary in
                 let data = Data(binary)
@@ -181,7 +174,13 @@ class WebSockerServer {
         )
     }
     
-    
+    private func registerMessageSession(routeName: String, session: WebSocketSession) {
+        let deviceName = normalizeDeviceName(routeName: routeName)
+        sessionQueue.async {
+            self.messageSessions[deviceName] = (session: session, isConnected: true)
+            print("Registered message session for \(deviceName)")
+        }
+    }
     
     // Handle device connections/disconnections (this logic remains unchanged)
     private func handleDeviceConnections(_ routeInfos: RouteInfos, _ session: WebSocketSession) {
@@ -320,14 +319,17 @@ extension WebSockerServer {
         }
     }
     func sendMessage(from: String, to: [String], component: String, data: String) {
-        let message = "\(from)=>[\(to.joined(separator: ","))]=>\(component)#\(data)"
-        print("Envoi du message : \(message) vers les routes : \(to)")
+        let message = "\(component)#\(data)"
+        print("Sending message: \(message) to routes: \(to)")
         
-        // Récupérer les sessions des cibles
         let targetSessions = sessions(for: to)
-        print("Sessions des cibles : \(targetSessions)")
+        if targetSessions.isEmpty {
+            print("Warning: No active sessions found for targets: \(to)")
+            return
+        }
+        
         for session in targetSessions {
-            print("Envoi de \(message) à la session : \(session)")
+            print("Sending to session: \(session)")
             session.writeText(message)
         }
     }
@@ -339,27 +341,30 @@ extension WebSockerServer {
     func parseMessage(_ message: String) -> ParsedMessage? {
         let components = message.components(separatedBy: "=>")
         guard components.count == 3 else {
-            print("Invalid message format: \(message)")
+            print("Invalid message format (wrong number of components): \(message)")
             return nil
         }
         
-        // Extraction des cibles et des données
-        let routeTargetsRaw = components[1]
+        let origin = components[0].trimmingCharacters(in: .whitespaces)
+        
+        let targetsString = components[1]
             .trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
+        let targets = targetsString
             .components(separatedBy: ",")
             .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
         
         let componentData = components[2].components(separatedBy: "#")
         guard componentData.count == 2 else {
-            print("Invalid component format in message: \(message)")
+            print("Invalid component/data format: \(components[2])")
             return nil
         }
         
         return ParsedMessage(
-            routeOrigin: components[0],
-            routeTargets: routeTargetsRaw,
-            component: componentData[0],
-            data: componentData[1]
+            routeOrigin: origin,
+            routeTargets: targets,
+            component: componentData[0].trimmingCharacters(in: .whitespaces),
+            data: componentData[1].trimmingCharacters(in: .whitespaces)
         )
     }
 }

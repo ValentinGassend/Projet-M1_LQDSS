@@ -39,7 +39,7 @@ class RFIDController:
                 print("ENTRANCE TAG DETECTED - CARD ID: " + str(card1))
                 if callback_entrance:
                     callback_entrance(card1)
-                self.blink_led()
+                
 
         # Check Reader 2 (Exit)
         self.reader2.init()
@@ -53,7 +53,7 @@ class RFIDController:
                 print("EXIT TAG DETECTED - CARD ID: " + str(card2))
                 if callback_exit:
                     callback_exit(card2)
-                self.blink_led()
+                
         
         # Update the previous states
         self.previous_tag_detected1 = current_tag_detected1
