@@ -6,16 +6,21 @@ from DoubleRfid import RFIDController
 
 class ESP32Controller:
     def __init__(self):
+        # RFID Controller
         self.rfid = RFIDController()
-        self.ws_client = WSclient("Cudy-F810", "13022495", "volcano_esp2")
 
+        # WebSocket client
+        self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_esp1")
+
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 1
     def handle_entrance_tag(self, card_id):
-        msg = f"volcano_esp1=>[volcano_esp2]=>rfid#fire"
+        msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1]=>rfid#first"
         print(f"Sending RFID entrance message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
-        msg = f"volcano_esp1=>[volcano_esp2]=>rfid#first"
+        msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1]=>rfid#second"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
         

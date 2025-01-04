@@ -59,7 +59,7 @@ class ESP32Controller:
 
 
     def handle_exit_tag(self, card_id):
-        msg = f"volcano_esp1=>[volcano_esp2]=>rfid#first"
+        msg = f"volcano_esp1=>[volcano_esp2,volcano_esp1]=>rfid#first"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 

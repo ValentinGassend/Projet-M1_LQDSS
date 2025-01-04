@@ -1,26 +1,19 @@
-from machine import Pin
 import utime
-from WSclient import WSclient
-from libs.WebSocketClient import WebSocketClient
-from DoubleRfid import RFIDController
+from volcano.esp1.WSclient import WSclient
+from volcano.esp1.DoubleRfid import RFIDController
 
 class ESP32Controller:
     def __init__(self):
-        # RFID Controller
         self.rfid = RFIDController()
+        self.ws_client = WSclient("Cudy-F810", "13022495", "volcano_esp2")
 
-        # WebSocket client
-        self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_esp1")
-
-        self.last_reconnect_attempt = 0
-        self.reconnect_interval = 1
     def handle_entrance_tag(self, card_id):
-        msg = f"crystal_esp1=>[volcano_esp2]=>rfid#first"
+        msg = f"volcano_esp2=>[volcano_esp1]=>rfid#second"
         print(f"Sending RFID entrance message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
-        msg = f"crystal_esp1=>[volcano_esp2]=>rfid#second"
+        msg = f"volcano_esp2=>[volcano_esp1]=>rfid#third"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
         
