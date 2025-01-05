@@ -154,13 +154,33 @@ struct RemoteControllerView: View {
     // Fonction pour générer les commandes de test
     private func generateCommands() -> [String] {
         return [
-            // Commandes existantes
-            "typhoon_esp=>[typhoon_iphone]=>rfid#true",
-            "typhoon_esp=>[typhoon_iphone]=>relay1#true",
-            "typhoon_esp=>[typhoon_iphone]=>relay2#true",
-            "typhoon_esp=>[typhoon_iphone]=>relay3#true",
-            "typhoon_esp=>[typhoon_iphone]=>relay4#true",
-            "typhoon_iphone=>[typhoon_iphone]=>sphero1#true",
+            // Messages du Volcan (volcano_esp1)
+            "volcano_esp1=>[volcano_esp1,volcano_esp2]=>rfid#volcano",
+            "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#first",
+            "volcano_esp1=>[volcano_esp2]=>relay1#true",
+            "volcano_esp1=>[volcano_esp2]=>relay1#false",
+            "volcano_esp1=>[volcano_esp2]=>relay2#true",
+            "volcano_esp1=>[volcano_esp2]=>relay2#false",
+            "volcano_esp1=>[volcano_esp2]=>relay1#true",
+            
+            // Messages du Volcan (volcano_esp2)
+            "volcano_esp2=>[volcano_esp1]=>rfid#second",
+            "volcano_esp2=>[volcano_esp1]=>rfid#third",
+            
+            // Messages du Typhon (typhon_esp)
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>rfid#typhoon",
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay1#true",
+            "typhon_esp=>[typhoon_iphone]=>relay1#false",
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay2#true",
+            "typhon_esp=>[typhoon_iphone]=>relay2#false",
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay3#true",
+            "typhon_esp=>[typhoon_iphone]=>relay3#false",
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay4#true",
+            "typhon_esp=>[typhoon_iphone]=>relay4#false",
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>rfid#typhoon",
+            "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>rfid#typhoon",
+            
+            // Messages de l'iPhone Typhon (typhoon_iphone)
             "typhoon_iphone=>[typhoon_esp]=>sphero1#true",
             "typhoon_iphone=>[typhoon_esp]=>sphero1#false",
             "typhoon_iphone=>[typhoon_esp]=>sphero1#completed",
@@ -173,41 +193,44 @@ struct RemoteControllerView: View {
             "typhoon_iphone=>[typhoon_esp]=>sphero4#true",
             "typhoon_iphone=>[typhoon_esp]=>sphero4#false",
             "typhoon_iphone=>[typhoon_esp]=>sphero4#completed",
-
-            // Commandes supplémentaires
-            "tornado_esp=>[tornado_rpi]=>rfid#true",
-            "tornado_esp=>[tornado_rpi]=>mic1#true",
+            
+            // Messages de la Tornade (tornado_esp)
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>rfid#tornado",
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic1#true",
             "tornado_esp=>[tornado_rpi]=>mic1#false",
-            "tornado_esp=>[tornado_rpi]=>mic2#true",
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic2#true",
             "tornado_esp=>[tornado_rpi]=>mic2#false",
-            "tornado_esp=>[tornado_rpi]=>mic3#true",
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic3#true",
             "tornado_esp=>[tornado_rpi]=>mic3#false",
-            "tornado_esp=>[tornado_rpi]=>mic4#true",
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic4#true",
             "tornado_esp=>[tornado_rpi]=>mic4#false",
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>rfid#tornado",
+            "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>rfid#tornado",
+            
+            // Messages du RPI Tornade (tornado_rpi)
             "tornado_rpi=>[tornado_esp]=>rvr#first",
             "tornado_rpi=>[tornado_esp]=>rvr#second",
             "tornado_rpi=>[tornado_esp]=>rvr#third",
             "tornado_rpi=>[tornado_esp]=>rvr#fourth",
-
-            "volcano_esp1=>[volcano_esp2]=>rfid#fire",
-            "volcano_esp1=>[volcano_esp2]=>rfid#first",
-            "volcano_esp1=>[volcano_esp2]=>relay1#true",
-            "volcano_esp1=>[volcano_esp2]=>relay2#true",
-            "volcano_esp1=>[volcano_esp2]=>btn#true",
-            "volcano_esp2=>[volcano_esp1]=>rfid#second",
-            "volcano_esp2=>[volcano_esp1]=>rfid#third",
-
-            "maze_iphone=>[maze_iphone]=>rfid#true",
-            "maze_esp=>[maze_iphone]=>rfid#true",
-            "maze_esp=>[maze_iphone]=>btn1#true",
+            
+            // Messages du Labyrinthe (maze_esp)
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze",
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn1#true",
             "maze_esp=>[maze_iphone]=>btn1#false",
-            "maze_esp=>[maze_iphone]=>btn2#true",
-            "maze_esp=>[maze_iphone]=>btn3#true",
-
-            "crystal_esp1=>[crystal_esp2, crystal_esp]=>rfid#first",
-            "crystal_esp1=>[crystal_esp2, crystal_esp]=>rfid#second",
-            "crystal_esp2=>[crystal_esp2, crystal_esp]=>rfid#third",
-            "crystal_esp2=>[crystal_esp2, crystal_esp]=>rfid#fourth"
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn2#true",
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn3#true",
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze",
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze",
+            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze",
+            
+            // Messages du Crystal (crystal_esp1)
+            "crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#volcano",
+            "crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#maze",
+            
+            // Messages du Crystal (crystal_esp2)
+            "crystal_esp2=>[crystal_esp2,crystal_esp1,AmbianceManager_rpi]=>crystal_start_animation",
+            "crystal_esp2=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#tornado",
+            "crystal_esp2=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#typhoon"
         ]
     }
 
