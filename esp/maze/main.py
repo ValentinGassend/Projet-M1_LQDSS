@@ -4,6 +4,7 @@ from WSclient import WSclient
 from DoubleRfid import RFIDController
 from Button import ButtonController
 
+
 class ESP32Controller:
     def __init__(self):
         # RFID Controller
@@ -12,6 +13,10 @@ class ESP32Controller:
         self.ws_client = WSclient("Cudy-F810", "13022495", "maze_esp")
         # Button Controller
         self.button_controller = ButtonController()
+
+        # Add activation state
+        self.is_activated = False
+
         self.last_reconnect_attempt = 0
         self.reconnect_interval = 1
 
@@ -19,7 +24,6 @@ class ESP32Controller:
         self.controller.add_button(23, "btn1")
         self.controller.add_button(27, "btn2")
         self.controller.add_button(14, "btn3")
-        # Add buttons
 
     def attempt_reconnect(self):
         """Attempt to reconnect WebSocket connections"""
@@ -27,11 +31,9 @@ class ESP32Controller:
         if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
             print("Attempting to reconnect WebSocket...")
             self.last_reconnect_attempt = current_time
-            
-            # Reinitialize WiFi connection
+
             if self.ws_client.connect_wifi():
                 print("WiFi reconnected successfully")
-                # Reinitialize WebSocket connections
                 self.ws_client.connect_websockets()
                 print("WebSocket reconnection attempt completed")
             else:
@@ -44,9 +46,12 @@ class ESP32Controller:
             self.attempt_reconnect()
         else:
             print(f"Error on WebSocket route {ws_route}: {error}")
-            
+
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
+        if not self.is_activated:
+            return
+
         if card_id == "322763907":
             msg = f"maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze"
             print(f"Sending RFID entrance message: {msg}")
@@ -54,21 +59,29 @@ class ESP32Controller:
         else:
             print(f"card {card_id} is wrong card")
 
-
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
+        if not self.is_activated:
+            return
+
         msg = f"maze_esp=>[maze_iphone]=>rfid#false"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_button_press(self, button_name):
         """Handle button press events"""
+        if not self.is_activated:
+            return
+
         msg = f"maze_esp=>[maze_iphone]=>{button_name}#true"
         print(f"Button {button_name} pressed, sending message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_button_release(self, button_name):
         """Handle button press events"""
+        if not self.is_activated:
+            return
+
         msg = f"maze_esp=>[maze_iphone]=>{button_name}#false"
         print(f"Button {button_name} pressed, sending message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
@@ -84,19 +97,21 @@ class ESP32Controller:
                     message = ws.receive(first_byte=data)
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
-                        
-                        # Check if message contains "ping"
+
+                        # Check for activation message
+                        if "rfid#maze" in message:
+                            print("Maze ESP activated!")
+                            self.is_activated = True
+
                         if "ping" in message.lower():
-                            # Forward ping messages directly to process_message
                             self.ws_client.process_message(ws, message)
                         else:
-                            # Handle other messages here if needed
                             print(f"Received message: {message}")
 
             except OSError as e:
                 if e.args[0] != 11:  # Ignore EAGAIN errors
                     self.handle_websocket_error(ws_route, e)
-                    
+
     def start(self):
         print("Starting controller...")
         if not self.ws_client.connect_wifi():
@@ -104,27 +119,30 @@ class ESP32Controller:
             return
 
         self.ws_client.connect_websockets()
+        print("Waiting for maze activation...")
 
         while True:
             try:
                 # Check WebSocket messages
                 self.handle_websocket_messages()
-                
+
                 # Check RFID readers
                 self.rfid.check_readers(
                     callback_entrance=self.handle_entrance_tag,
                     callback_exit=self.handle_exit_tag
                 )
-                
+
                 # Check buttons and handle presses
-                self.controller.check_buttons(callback_press=self.handle_button_press, callback_release=self.handle_button_release)
-                
+                self.controller.check_buttons(callback_press=self.handle_button_press,
+                                              callback_release=self.handle_button_release)
+
                 utime.sleep_ms(100)
             except Exception as e:
                 print(f"General error: {e}")
                 utime.sleep(5)
                 self.__init__()  # Reset controller
                 self.start()
+
 
 if __name__ == "__main__":
     controller = ESP32Controller()
