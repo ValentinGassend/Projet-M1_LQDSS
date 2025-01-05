@@ -79,9 +79,8 @@ class WebSockerServer {
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
-                print("Text received: \(text) from route: /\(routeInfos.routeName)")
                 if text == "pong" {
-                    print("Received pong from route: \(routeInfos.routeName)")
+                    // print("Received pong from route: \(routeInfos.routeName)")
                     self.sessionQueue.async {
                         if var sessionInfo = self.pingableSessions[routeInfos.routeName] {
                             sessionInfo.lastPingTime = Date()
@@ -92,6 +91,8 @@ class WebSockerServer {
                     }
                 }
                 else if routeInfos.routeName.contains("Message") {
+                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+
                     print("Processing message from route: \(routeInfos.routeName)")
                     if let parsedMessage = self.parseMessage(text) {
                         if let parsedMessageCode = routeInfos.parsedMessageCode {
@@ -109,6 +110,8 @@ class WebSockerServer {
                     }
                 }
                 else {
+                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+
                     // Handle other route types
                     routeInfos.textCode(session, text)
                 }
@@ -222,7 +225,7 @@ class WebSockerServer {
                 for (route, sessionInfo) in self.pingableSessions {
                     // Envoyer d'abord le ping
                     sessionInfo.session.writeText("ping")
-                    print("Ping sent to \(route)")
+                    // print("Ping sent to \(route)")
                     
                     // Ensuite vérifier si le dernier pong a été reçu dans les temps
                     if Date().timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {

@@ -181,8 +181,8 @@ let newRoutes: [RouteInfos] = [
         print(parsedMessage.toString())
     }),
     RouteInfos(routeName: "typhoon_espPing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        //        print("typhoon_esp ping reçu: \(receivedText)")
+        
+        //        print("typhoon_esp // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -204,8 +204,8 @@ let newRoutes: [RouteInfos] = [
         serverWS.sendMessage(from: parsedMessage.routeOrigin, to: parsedMessage.routeTargets, component: parsedMessage.component, data: parsedMessage.data)
     }),
     RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        //        print("typhoon_iphone ping reçu: \(receivedText)")
+        
+        //        print("typhoon_iphone // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -227,8 +227,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "volcano_esp1Ping", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("volcano_esp1 ping reçu: \(receivedText)")
+        
+        print("volcano_esp1 // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -248,8 +248,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "volcano_esp2Ping", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("volcano_esp2 ping reçu: \(receivedText)")
+        
+        print("volcano_esp2 // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -270,8 +270,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "volcano_rpiPing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("volcano_rpi ping reçu: \(receivedText)")
+        
+        print("volcano_rpi // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -293,8 +293,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "maze_espPing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("maze_esp ping reçu: \(receivedText)")
+        
+        print("maze_esp // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -316,8 +316,8 @@ let newRoutes: [RouteInfos] = [
         serverWS.sendMessage(from: parsedMessage.routeOrigin, to: parsedMessage.routeTargets, component: parsedMessage.component, data: parsedMessage.data)
     }),
     RouteInfos(routeName: "maze_iphonePing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("maze_iphone ping reçu: \(receivedText)")
+        
+        print("maze_iphone // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -339,8 +339,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "tornado_espPing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("tornado_esp ping reçu: \(receivedText)")
+        
+        print("tornado_esp // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -367,8 +367,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "tornado_rpiPing", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("tornado_rpi ping reçu: \(receivedText)")
+        
+        print("tornado_rpi // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -390,8 +390,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "crystal_esp1Ping", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("crystal_esp1 ping reçu: \(receivedText)")
+        
+        print("crystal_esp1 // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
@@ -412,8 +412,8 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     }),
     RouteInfos(routeName: "crystal_esp2Ping", textCode: { session, receivedText in
-        // Active device session maintained by ping mechanism
-        print("crystal_esp2 ping reçu: \(receivedText)")
+        
+        print("crystal_esp2 // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     })
