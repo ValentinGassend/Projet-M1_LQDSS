@@ -26,7 +26,7 @@ class ESP32Controller:
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
         if card_id == "327204323":
-            msg = f"typhon_esp=>[typhoon_iphone]=>rfid#true"
+            msg = f"typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>rfid#typhoon"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")

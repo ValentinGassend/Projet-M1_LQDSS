@@ -48,7 +48,7 @@ class ESP32Controller:
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
         if card_id == "322763907":
-            msg = f"maze_esp=>[maze_iphone]=>rfid#true"
+            msg = f"maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze"
             print(f"Sending RFID entrance message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
