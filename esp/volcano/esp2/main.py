@@ -2,21 +2,40 @@ import utime
 from volcano.esp1.WSclient import WSclient
 from volcano.esp1.DoubleRfid import RFIDController
 
+
 class ESP32Controller:
     def __init__(self):
         self.rfid = RFIDController()
         self.ws_client = WSclient("Cudy-F810", "13022495", "volcano_esp2")
+        self.rfid_detection_enabled = False  # État initial: détection désactivée
 
     def handle_entrance_tag(self, card_id):
+        if not self.rfid_detection_enabled:
+            print("Détection RFID désactivée - ignoré tag d'entrée")
+            return
+
         msg = f"volcano_esp2=>[volcano_esp1]=>rfid#second"
         print(f"Sending RFID entrance message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
+        if not self.rfid_detection_enabled:
+            print("Détection RFID désactivée - ignoré tag de sortie")
+            return
+
         msg = f"volcano_esp2=>[volcano_esp1]=>rfid#third"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
-        
+
+    def process_websocket_message(self, message):
+        """Traite les messages WebSocket reçus"""
+        if "rfid#volcano" in message:
+            print("Message volcano reçu - activation de la détection RFID")
+            self.rfid_detection_enabled = True
+        elif "rfid#first" in message and "volcano_crystal" in message:
+            print("Séquence terminée - désactivation de la détection RFID")
+            self.rfid_detection_enabled = False
+
     def handle_websocket_messages(self):
         for ws_route, ws in self.ws_client.route_ws_map.items():
             try:
@@ -27,12 +46,11 @@ class ESP32Controller:
                     message = ws.receive(first_byte=data)
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
-                        
-                        # Check if message contains "ping"
+                        self.process_websocket_message(message)
+
                         if "ping" in message.lower():
-                            # Forward ping messages directly to process_message
                             self.ws_client.process_message(ws, message)
-                        
+
             except OSError as e:
                 if e.args[0] != 11:
                     print(f"Error on WebSocket route {ws_route}: {e}")
@@ -44,11 +62,9 @@ class ESP32Controller:
         if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
             print("Attempting to reconnect WebSocket...")
             self.last_reconnect_attempt = current_time
-            
-            # Reinitialize WiFi connection
+
             if self.ws_client.connect_wifi():
                 print("WiFi reconnected successfully")
-                # Reinitialize WebSocket connections
                 self.ws_client.connect_websockets()
                 print("WebSocket reconnection attempt completed")
             else:
@@ -61,6 +77,7 @@ class ESP32Controller:
             self.attempt_reconnect()
         else:
             print(f"Error on WebSocket route {ws_route}: {error}")
+
     def start(self):
         print("Démarrage du contrôleur...")
 
@@ -84,6 +101,7 @@ class ESP32Controller:
                 utime.sleep(5)
                 self.__init__()
                 self.start()
+
 
 if __name__ == "__main__":
     controller = ESP32Controller()

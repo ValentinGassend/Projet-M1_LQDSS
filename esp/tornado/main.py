@@ -31,15 +31,12 @@ class ESP32Controller:
 
     def handle_mic_message(self, message):
         try:
-            if "=>" in message:
-                parts = message.split("=>")
-                if len(parts) > 2:
-                    payload = parts[-1]
-                    mic_cmd, state = payload.split("#")
-                    if mic_cmd.startswith("mic"):
-                        mic_num = int(mic_cmd[-1]) - 1
-                        if 0 <= mic_num < len(self.microphones):
-                            print(f"Processing microphone {mic_num + 1} state: {state}")
+            if "#" in message:
+                mic_cmd, state = message.split("#")
+                if mic_cmd.startswith("mic"):
+                    mic_num = int(mic_cmd[-1]) - 1
+                    if 0 <= mic_num < len(self.microphones):
+                        print(f"Processing microphone {mic_num + 1} state: {state}")
         except Exception as e:
             print(f"Error processing microphone message: {e}")
 

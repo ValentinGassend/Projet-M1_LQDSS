@@ -17,6 +17,9 @@ class ESP32Controller:
             RelayController(25),
             RelayController(26)
         ]
+        # Désactiver tous les relais à l'initialisation
+        for relay in self.relays:
+            relay.on()  # on() désactive le relay car la logique est inversée
 
         self.last_reconnect_attempt = 0
         self.reconnect_interval = 1
@@ -44,29 +47,67 @@ class ESP32Controller:
             relay_num = int(sphero_num[-1]) - 1  # Extract relay number from sphero identifier
             if 0 <= relay_num < len(self.relays):
                 if state.lower() == "true":
-                    self.relays[relay_num].on()
-                elif state.lower() == "false":
                     self.relays[relay_num].off()
+                elif state.lower() == "false":
+                    self.relays[relay_num].on()
                 elif state.lower() == "completed":
-                    self.relays[relay_num].on()  # Turn relay on and leave it on
+                    self.relays[relay_num].off()  # Turn relay on and leave it on
         except Exception as e:
             print(f"Erreur traitement message sphero: {e}")
 
-    def handle_relay_message(self, message):
-        """Handle incoming relay control messages"""
+    def set_relay_state(self, relay_num, state):
+        """Set relay state and notify server."""
+        if 0 <= relay_num < len(self.relays):
+            try:
+                # Set physical relay state (remember logic is inverted)
+                if state:
+                    self.relays[relay_num].off()  # Activate relay
+                else:
+                    self.relays[relay_num].on()  # Deactivate relay
+
+                # Notify server of new state
+                self.notify_relay_state(relay_num, state)
+                print(f"Relay {relay_num + 1} set to {state}")
+            except Exception as e:
+                print(f"Error setting relay {relay_num + 1} state: {e}")
+
+    def notify_relay_state(self, relay_num, state):
+        """Send relay state update to server."""
         try:
-            # Extraire la dernière partie utile du message après le second `=>`
-            if "=>" in message:
-                parts = message.split("=>")
-                if len(parts) > 2:
-                    payload = parts[-1]  # On prend la partie après le dernier `=>`
-                    if "#" in payload:
-                        sphero_cmd, state = payload.split("#")
-                        if sphero_cmd.startswith("sphero"):
-                            print("start with sphero")
-                            self.handle_sphero_message(sphero_cmd, state)
+            state_str = str(state).lower()
+            msg = f"typhoon_esp=>[typhoon_iphone]=>relay{relay_num + 1}#{state_str}"
+            if "message" in self.ws_client.route_ws_map:
+                self.ws_client.route_ws_map["message"].send(msg)
+                print(f"Sent relay state update: {msg}")
+            else:
+                print("WebSocket message route not available")
         except Exception as e:
-            print(f"Erreur traitement message relais: {e}")
+            print(f"Error sending relay state: {e}")
+
+    def handle_relay_message(self, message):
+        try:
+            print(f"completed message : {message}")
+            if "#" in message:
+                relay_cmd, state = message.split("#")
+                if relay_cmd.startswith("relay"):
+                    relay_num = int(relay_cmd[-1]) - 1
+                    # self.set_relay_state(relay_num, state.lower() == "true")
+        except Exception as e:
+            print(f"Error processing relay message: {e}")
+
+
+    def notify_relay_state(self, relay_num, state):
+        msg = f"typhoon_esp=>[typhoon_iphone]=>relay{relay_num + 1}#{state}"
+        self.ws_client.route_ws_map.get("message", None).send(msg)
+
+    def set_relay_state(self, relay_num, state):
+        if 0 <= relay_num < len(self.relays):
+            if state:
+                self.relays[relay_num].off()
+            else:
+                self.relays[relay_num].on()
+            self.notify_relay_state(relay_num, str(state).lower())
+
 
     def handle_websocket_messages(self):
         """Process WebSocket messages"""
@@ -94,12 +135,17 @@ class ESP32Controller:
             print("Attempting to reconnect WebSocket...")
             self.last_reconnect_attempt = current_time
 
-            # Reinitialize WiFi connection
             if self.ws_client.connect_wifi():
                 print("WiFi reconnected successfully")
-                # Reinitialize WebSocket connections
                 self.ws_client.connect_websockets()
-                print("WebSocket reconnection attempt completed")
+
+                # Resend current relay states after reconnection
+                for i, relay in enumerate(self.relays):
+                    # Get current state (remember logic is inverted)
+                    current_state = not relay.value()  # Convert to logical state
+                    self.notify_relay_state(i, current_state)
+
+                print("WebSocket reconnection completed and states resynchronized")
             else:
                 print("WiFi reconnection failed")
 
