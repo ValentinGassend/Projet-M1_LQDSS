@@ -69,10 +69,10 @@ class ESP32Controller:
             return
 
         if card_id == 322763907 and not self.is_activated:
-            msg = f"maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze"
+            msg = f"maze_esp=>[maze_iphone,maze_esp,ambianceManager_rpi]=>rfid#maze"
             print(f"Sending RFID entrance message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
-            self.is_activated = True
+
         else:
             print(f"card {card_id} is wrong card")
 
