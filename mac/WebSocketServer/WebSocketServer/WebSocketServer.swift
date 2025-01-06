@@ -92,13 +92,10 @@ class WebSockerServer {
                 }
                 else if routeInfos.routeName.contains("Message") {
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
-
-                    print("Processing message from route: \(routeInfos.routeName)")
                     if let parsedMessage = self.parseMessage(text) {
                         if let parsedMessageCode = routeInfos.parsedMessageCode {
                             parsedMessageCode(session, parsedMessage)
                         }
-                        // Handle the message routing directly here as well
                         self.sendMessage(
                             from: parsedMessage.routeOrigin,
                             to: parsedMessage.routeTargets,
@@ -302,7 +299,7 @@ extension WebSockerServer {
     private func sessions(for targets: [String]) -> [WebSocketSession] {
         targets.compactMap { target in
             print("Fetching session for target: \(target)")
-            print("message session : \(messageSessions)")
+//            print("message session : \(messageSessions)")
             if let messageSession = messageSessions[target]?.session {
                 return messageSession
             }
@@ -332,7 +329,7 @@ extension WebSockerServer {
         }
         
         for session in targetSessions {
-            print("Sending to session: \(session)")
+//            print("Sending to session: \(session)")
             session.writeText(message)
         }
     }
