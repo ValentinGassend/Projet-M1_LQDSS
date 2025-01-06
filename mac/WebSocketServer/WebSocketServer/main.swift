@@ -200,8 +200,6 @@ let newRoutes: [RouteInfos] = [
         print("typhoon_iphone message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
-    },parsedMessageCode: { session, parsedMessage in
-        serverWS.sendMessage(from: parsedMessage.routeOrigin, to: parsedMessage.routeTargets, component: parsedMessage.component, data: parsedMessage.data)
     }),
     RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
         
@@ -312,8 +310,6 @@ let newRoutes: [RouteInfos] = [
         print("maze_iphone message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
-    },parsedMessageCode: { session, parsedMessage in
-        serverWS.sendMessage(from: parsedMessage.routeOrigin, to: parsedMessage.routeTargets, component: parsedMessage.component, data: parsedMessage.data)
     }),
     RouteInfos(routeName: "maze_iphonePing", textCode: { session, receivedText in
         
