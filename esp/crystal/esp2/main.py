@@ -1,6 +1,6 @@
 import utime
-from crystal.esp1.WSclient import WSclient
-from crystal.esp1.DoubleRfid import RFIDController
+from WSclient import WSclient
+from DoubleRfid import RFIDController
 
 class ESP32Controller:
     def __init__(self):

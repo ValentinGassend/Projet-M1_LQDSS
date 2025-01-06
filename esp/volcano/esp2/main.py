@@ -1,6 +1,6 @@
 import utime
-from volcano.esp1.WSclient import WSclient
-from volcano.esp1.DoubleRfid import RFIDController
+from WSclient import WSclient
+from DoubleRfid import RFIDController
 
 
 class ESP32Controller:
