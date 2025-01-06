@@ -10,10 +10,10 @@ class ESP32Controller:
         self.rfid = RFIDController()
         self.ws_client = WSclient("Cudy-F810", "13022495", "tornado_esp")
         self.microphones = [
-            Microphone(pin_number=34, sound_threshold=300),
-            Microphone(pin_number=35, sound_threshold=250),
-            Microphone(pin_number=36, sound_threshold=250),
-            Microphone(pin_number=32, sound_threshold=250)
+            Microphone(pin_number=34, sound_threshold=50),
+            Microphone(pin_number=35, sound_threshold=50),
+            Microphone(pin_number=36, sound_threshold=50),
+            Microphone(pin_number=32, sound_threshold=50)
         ]
 
         # Add state tracking
@@ -22,11 +22,9 @@ class ESP32Controller:
         self.reconnect_interval = 1
 
     def handle_entrance_tag(self, card_id):
-        if not self.is_activated:
-            return
 
-        if card_id == 152301587:
-            msg = f"tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>rfid#tornado"
+        if card_id == 152301587 and not self.is_activated:
+            msg = f"tornado_esp=>[tornado_rpi,tornado_esp,ambianceManager_rpi]=>rfid#tornado"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")

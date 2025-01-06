@@ -4,7 +4,7 @@ import array
 import math
 
 class Microphone:
-    def __init__(self, pin_number, sample_rate=10000, sample_duration=0.1, sound_threshold=300):
+    def __init__(self, pin_number, sample_rate=10000, sample_duration=0.05, sound_threshold=300):
         self.pin = machine.ADC(machine.Pin(pin_number))
         self.pin.atten(machine.ADC.ATTN_11DB)
         
