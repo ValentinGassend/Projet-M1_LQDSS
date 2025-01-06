@@ -25,7 +25,7 @@ class ESP32Controller:
         if not self.is_activated:
             return
 
-        if card_id == "152301587":
+        if card_id == 152301587:
             msg = f"tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>rfid#tornado"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:

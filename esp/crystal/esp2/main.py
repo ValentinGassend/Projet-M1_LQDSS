@@ -14,7 +14,7 @@ class ESP32Controller:
         self.reconnect_interval = 1
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        if card_id == "152301587":
+        if card_id == 152301587:
             msg = f"crystal_esp2=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#tornado"
             print(f"Sending RFID entrance message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
@@ -23,7 +23,7 @@ class ESP32Controller:
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
-        if card_id == "327204323":
+        if card_id == 327204323:
             msg = f"crystal_esp2=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#typhoon"
             print(f"Sending RFID exit message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)

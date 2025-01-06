@@ -24,7 +24,7 @@ class ESP32Controller:
         self.controller.add_button(23, "btn1")
         self.controller.add_button(27, "btn2")
         self.controller.add_button(14, "btn3")
-
+        self.message_queue = []
     def attempt_reconnect(self):
         """Attempt to reconnect WebSocket connections"""
         current_time = utime.ticks_ms()
@@ -38,6 +38,22 @@ class ESP32Controller:
                 print("WebSocket reconnection attempt completed")
             else:
                 print("WiFi reconnection failed")
+                
+    def send_message(self, msg):
+        """Envoie un message au serveur"""
+        try:
+            ws = self.ws_client.route_ws_map.get("message", None)
+            if ws:
+                print(f"Sending message: {msg}")
+                ws.socket.setblocking(True)  # S'assure que l'envoi est bloquant
+                ws.send(msg)
+            else:
+                print("WebSocket route 'message' not found")
+                self.message_queue.append(msg)  # Sauvegarde le message pour réessayer plus tard
+        except Exception as e:
+            print(f"Error sending message: {e}")
+            self.message_queue.append(msg)  # Sauvegarde le message en cas d'erreur
+            self.attempt_reconnect()
 
     def handle_websocket_error(self, ws_route, error):
         """Handle WebSocket errors appropriately"""
@@ -49,13 +65,14 @@ class ESP32Controller:
 
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        if not self.is_activated:
+        if self.is_activated:
             return
 
-        if card_id == "322763907":
+        if card_id == 322763907 and not self.is_activated:
             msg = f"maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze"
             print(f"Sending RFID entrance message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
+            self.is_activated = True
         else:
             print(f"card {card_id} is wrong card")
 
@@ -74,8 +91,7 @@ class ESP32Controller:
             return
 
         msg = f"maze_esp=>[maze_iphone]=>{button_name}#true"
-        print(f"Button {button_name} pressed, sending message: {msg}")
-        self.ws_client.route_ws_map.get("message", None).send(msg)
+        self.send_message(msg)  # Utilise la nouvelle méthode d'envoi
 
     def handle_button_release(self, button_name):
         """Handle button press events"""
@@ -83,8 +99,7 @@ class ESP32Controller:
             return
 
         msg = f"maze_esp=>[maze_iphone]=>{button_name}#false"
-        print(f"Button {button_name} pressed, sending message: {msg}")
-        self.ws_client.route_ws_map.get("message", None).send(msg)
+        self.send_message(msg)  # Utilise la nouvelle méthode d'envoi
 
     def handle_websocket_messages(self):
         """Process WebSocket messages"""
@@ -123,6 +138,16 @@ class ESP32Controller:
 
         while True:
             try:
+                
+                 # Tente d'envoyer les messages en attente
+                while self.message_queue:
+                    msg = self.message_queue[0]  # Regarde le premier message
+                    try:
+                        self.send_message(msg)
+                        self.message_queue.pop(0)  # Retire le message si envoyé avec succès
+                    except:
+                        break  # Arrête si l'envoi échoue
+
                 # Check WebSocket messages
                 self.handle_websocket_messages()
 
@@ -136,7 +161,7 @@ class ESP32Controller:
                 self.controller.check_buttons(callback_press=self.handle_button_press,
                                               callback_release=self.handle_button_release)
 
-                utime.sleep_ms(100)
+                utime.sleep_ms(10)
             except Exception as e:
                 print(f"General error: {e}")
                 utime.sleep(5)

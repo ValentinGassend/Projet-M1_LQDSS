@@ -20,7 +20,7 @@ class ESP32Controller:
         ]
         # Désactiver tous les relais à l'initialisation
         for relay in self.relays:
-            relay.on()  # on() désactive le relay car la logique est inversée
+            relay.off()  # on() désactive le relay car la logique est inversée
 
         # Add activation state
         self.is_activated = False
@@ -30,13 +30,13 @@ class ESP32Controller:
         # WebSocket client
         self.ws_client = WSclient("Cudy-F810", "13022495", "typhoon_esp")
 
+        # État verrouillé des relais
+        self.relay_locked = [False] * 4
+
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        if not self.is_activated:
-            return
-
-        if card_id == "327204323":
-            msg = f"typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>rfid#typhoon"
+        if card_id == 327204323 and not self.is_activated:
+            msg = f"typhon_esp=>[typhoon_iphone,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")
@@ -49,37 +49,47 @@ class ESP32Controller:
         msg = f"typhoon_esp=>[typhon_iphone]=>rfid#false"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
-    def handle_sphero_message(self, sphero_num, state):
+    def handle_sphero_message(self, message):
         """Handle sphero-related relay control messages."""
         if not self.is_activated:
             return
 
         try:
-            relay_num = int(sphero_num[-1]) - 1  # Extract relay number from sphero identifier
-            if 0 <= relay_num < len(self.relays):
-                if state.lower() == "true":
-                    self.relays[relay_num].off()
-                elif state.lower() == "false":
-                    self.relays[relay_num].on()
-                elif state.lower() == "completed":
-                    self.relays[relay_num].off()  # Turn relay on and leave it on
+            if "#" in message:
+                sphero_cmd, state = message.split("#")
+                if sphero_cmd.startswith("sphero"):
+                    relay_num = int(sphero_cmd[-1]) - 1  # Extract relay number (sphero1 -> relay 0)
+                    
+                    if 0 <= relay_num < len(self.relays):
+                        # Ne pas modifier si le relais est verrouillé
+                        if self.relay_locked[relay_num]:
+                            return
+                            
+                        if state.lower() == "true":
+                            self.relays[relay_num].on()
+                            print(f"Relay {relay_num + 1} activated")
+                        elif state.lower() == "false":
+                            self.relays[relay_num].off()
+                            print(f"Relay {relay_num + 1} deactivated")
+                        elif state.lower() == "completed":
+                            self.relays[relay_num].on()
+                            self.relay_locked[relay_num] = True  # Verrouiller le relais
+                            print(f"Relay {relay_num + 1} locked in active state")
         except Exception as e:
             print(f"Erreur traitement message sphero: {e}")
 
     def set_relay_state(self, relay_num, state):
         """Set relay state and notify server."""
-        if not self.is_activated:
+        if not self.is_activated or self.relay_locked[relay_num]:
             return
 
         if 0 <= relay_num < len(self.relays):
             try:
-                # Set physical relay state (remember logic is inverted)
                 if state:
                     self.relays[relay_num].off()  # Activate relay
                 else:
                     self.relays[relay_num].on()  # Deactivate relay
 
-                # Notify server of new state
                 self.notify_relay_state(relay_num, state)
                 print(f"Relay {relay_num + 1} set to {state}")
             except Exception as e:
@@ -101,20 +111,6 @@ class ESP32Controller:
         except Exception as e:
             print(f"Error sending relay state: {e}")
 
-    def handle_relay_message(self, message):
-        if not self.is_activated:
-            return
-
-        try:
-            print(f"completed message : {message}")
-            if "#" in message:
-                relay_cmd, state = message.split("#")
-                if relay_cmd.startswith("relay"):
-                    relay_num = int(relay_cmd[-1]) - 1
-                    # self.set_relay_state(relay_num, state.lower() == "true")
-        except Exception as e:
-            print(f"Error processing relay message: {e}")
-
     def handle_websocket_messages(self):
         """Process WebSocket messages"""
         for ws_route, ws in self.ws_client.route_ws_map.items():
@@ -132,8 +128,10 @@ class ESP32Controller:
                             print("Typhoon ESP activated!")
                             self.is_activated = True
 
-                        if ws_route == "message":
-                            self.handle_relay_message(message)
+                        # Gérer les messages sphero
+                        if "sphero" in message and "#" in message:
+                            self.handle_sphero_message(message)
+                            
                         self.ws_client.process_message(ws, message)
             except OSError as e:
                 if e.args[0] != 11:  # Ignore EAGAIN errors

@@ -5,7 +5,7 @@ class Button:
     """
     A class to handle individual button interactions with debounce
     """
-    def __init__(self, pin_number, name, pull_up=True, debounce_time=50):
+    def __init__(self, pin_number, name, pull_up=True, debounce_time=0):
         """
         Initialize a button
         
