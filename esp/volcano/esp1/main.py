@@ -15,6 +15,9 @@ class ESP32Controller:
             RelayController(33)
         ]
 
+        # Ajout du suivi d'état des relais
+        self.relay_states = [False] * len(self.relays)
+
         # Désactiver tous les relais à l'initialisation
         for relay in self.relays:
             relay.on()  # on() désactive le relay car la logique est inversée
@@ -48,11 +51,20 @@ class ESP32Controller:
 
     def set_relay_state(self, relay_num, state):
         if 0 <= relay_num < len(self.relays):
-            if state:
-                self.relays[relay_num].off()
-            else:
-                self.relays[relay_num].on()
-            self.notify_relay_state(relay_num, str(state).lower())
+            # Vérifier si l'état change réellement
+            new_state = bool(state)
+            if self.relay_states[relay_num] != new_state:
+                # Mettre à jour l'état physique du relai
+                if new_state:
+                    self.relays[relay_num].off()
+                else:
+                    self.relays[relay_num].on()
+
+                # Mettre à jour l'état stocké
+                self.relay_states[relay_num] = new_state
+
+                # Envoyer la notification seulement si l'état a changé
+                self.notify_relay_state(relay_num, str(new_state).lower())
 
     def handle_entrance_tag(self, card_id):
         if self.waiting_for_volcano:
@@ -78,7 +90,6 @@ class ESP32Controller:
         try:
             if "#" in message:
                 print(f"Message with #: {message}")
-                # Extract just the state part after 'rfid#'
                 state = message.split("rfid#")[1]
                 print(f"State: {state}")
                 print(f"Sequence started: {self.sequence_started}")
@@ -87,7 +98,6 @@ class ESP32Controller:
                     self.rfid_states[state] = True
                     print(f"Updated RFID state {state}: {self.rfid_states[state]}")
 
-                    # Check if all RFIDs are active
                     if self.check_all_rfids_active():
                         print("All RFIDs active - activating relays")
                         self.activate_all_relays()
@@ -96,13 +106,12 @@ class ESP32Controller:
                     if not self.sequence_started:
                         print("Starting main sequence")
                         self.sequence_started = True
-                        self.waiting_for_volcano = False  # Add this line to update the waiting state
+                        self.waiting_for_volcano = False
                     else:
                         print("Sequence already started")
 
         except Exception as e:
             print(f"Error processing RFID message: {e}")
-            # Add more detailed error information for debugging
             import sys
             sys.print_exception(e)
 
