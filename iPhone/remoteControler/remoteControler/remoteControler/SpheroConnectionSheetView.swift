@@ -82,9 +82,9 @@ struct SpheroConnectionSheetView: View {
     @Binding var connectionStatus: String
     @Binding var connectedSpheroNames: [String]
     @Binding var spheroMazeInfo: [String: BoltToy]
-    
+    @ObservedObject var roleManager: SpheroRoleManager // Changé de @StateObject à @ObservedObject
+        
     @StateObject private var discoveryManager = SpheroDiscoveryManager()
-    @StateObject private var roleManager = SpheroRoleManager()
     @State private var isSearching: Bool = false
     @State private var showingRoleSelection = false
     

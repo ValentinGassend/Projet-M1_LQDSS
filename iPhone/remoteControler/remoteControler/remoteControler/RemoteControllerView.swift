@@ -3,21 +3,46 @@ import SwiftUI
 // Vue principale
 struct RemoteControllerView: View {
     @ObservedObject var wsClient = WebSocketClient.instance
-    @State private var showConnectSheet = false // Contrôle l'affichage de la feuille
-    @State private var isSpheroConnected = false // Indique si une Sphero est connectée
+    @StateObject private var roleManager = SpheroRoleManager()
+    @State private var showConnectSheet = false
+    @State private var isSpheroConnected = false
     @State private var isDefaultSpheroConnected = false
     @State private var isTyphoonSpheroConnected = false
     @State private var connectedSpheroNames: [String] = []
-    @State private var connectionStatus: String = "" // Statut de la connexion
-    @State private var showMazeIcon: Bool = false // Add state variable to bind to MatrixLedView
-    @State private var spheroMazeInfo: [String: BoltToy] = [:] // Dictionnaire pour les informations de la Sphero Maze
+    @State private var connectionStatus: String = ""
+    @State private var showMazeIcon: Bool = false
+    @State private var spheroMazeInfo: [String: BoltToy] = [:]
 
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 Spacer()
-                
+                if !connectedSpheroNames.isEmpty {
+                                    VStack {
+                                        Text("Connected Spheros")
+                                            .font(.title2)
+                                            .fontWeight(.bold)
+                                            .padding(.bottom)
+                                        
+                                        ForEach(SpheroRole.allCases.filter { $0 != .unassigned }, id: \.self) { role in
+                                            if let assignment = roleManager.getRoleAssignment(for: role) {
+                                                HStack {
+                                                    Text(role.rawValue)
+                                                        .fontWeight(.medium)
+                                                    Spacer()
+                                                    Text(assignment.spheroName)
+                                                        .foregroundColor(.blue)
+                                                }
+                                                .padding()
+                                                .background(Color.gray.opacity(0.1))
+                                                .cornerRadius(8)
+                                                .padding(.horizontal)
+                                            }
+                                        }
+                                    }
+                                    .padding(.bottom)
+                                }
                 // title air
                 //
                 Text("Input")
@@ -84,14 +109,14 @@ struct RemoteControllerView: View {
             .navigationTitle("Remote Controller")
         }
         .sheet(isPresented: $showConnectSheet) {
-            SpheroConnectionSheetView(
-                isSpheroConnected: $isSpheroConnected,
-                connectionStatus: $connectionStatus,
-                connectedSpheroNames: $connectedSpheroNames,
-                spheroMazeInfo: $spheroMazeInfo // Passer spheroMazeInfo ici
-
-            )
-        }
+                    SpheroConnectionSheetView(
+                        isSpheroConnected: $isSpheroConnected,
+                        connectionStatus: $connectionStatus,
+                        connectedSpheroNames: $connectedSpheroNames,
+                        spheroMazeInfo: $spheroMazeInfo,
+                        roleManager: roleManager // Passage du roleManager
+                    )
+                }
         .onAppear() {
             wsClient.connectForIdentification(route: IdentificationRoute.typhoonIphoneConnect)
             wsClient.connectForIdentification(route: IdentificationRoute.mazeIphoneConnect)
