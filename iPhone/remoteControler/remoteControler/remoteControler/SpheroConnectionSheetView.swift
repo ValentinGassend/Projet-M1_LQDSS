@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum SpheroRole: String, CaseIterable {
-    case maze = "Maze"
+    case maze = "maze"
     case handle1 = "Handle 1"
     case handle2 = "Handle 2"
     case handle3 = "Handle 3"
@@ -54,8 +54,15 @@ extension SpheroDiscoveryManager: ToyBoxListener {
 
 class SpheroRoleManager: ObservableObject {
     @Published var roleAssignments: [SpheroRoleAssignment] = []
+    private let wsClient: WebSocketClient
+    static let instance = SpheroRoleManager(wsClient:WebSocketClient.instance)
+
     
+    init(wsClient: WebSocketClient) {
+            self.wsClient = wsClient
+        }
     func assignRole(to spheroName: String, role: SpheroRole, toy: BoltToy?) {
+        print("Assigning role \(role.rawValue) to \(spheroName)")
         if let index = roleAssignments.firstIndex(where: { $0.spheroName == spheroName }) {
             if role != .unassigned {
                 if let existingIndex = roleAssignments.firstIndex(where: { $0.role == role }) {
@@ -66,23 +73,47 @@ class SpheroRoleManager: ObservableObject {
         } else {
             roleAssignments.append(SpheroRoleAssignment(spheroName: spheroName, role: role, toy: toy))
         }
+        sendRoleAssignmentMessage(spheroName: spheroName, role: role)
     }
+
+    private func sendRoleAssignmentMessage(spheroName: String, role: SpheroRole) {
+            let routeOrigin = "maze_iphone"
+            let routeTarget = ["maze_iphone"]
+            let component = "sphero"
+            let data = "\(role.rawValue.lowercased())"
+        wsClient.sendMessage(from: routeOrigin, to: routeTarget, component: component, data: data)
+        }
     
     func getRole(for spheroName: String) -> SpheroRole {
-        return roleAssignments.first(where: { $0.spheroName == spheroName })?.role ?? .unassigned
+//        print("Checking role for \(spheroName) ")
+        let value = roleAssignments.first(where: { $0.spheroName == spheroName })?.role ?? .unassigned
+//        print("role value is \(value.rawValue)")
+        return value
     }
     
     func getRoleAssignment(for role: SpheroRole) -> SpheroRoleAssignment? {
-        return roleAssignments.first(where: { $0.role == role })
+        print("Checking assignment for role: \(role.rawValue)")
+//        for assignment in roleAssignments {
+//            print("Assigned Sphero: \(assignment.spheroName) with role: \(assignment.role.rawValue)")
+//        }
+        let result = roleAssignments.first(where: { $0.role == role })
+        if let result = result {
+            print("Found assignment for role \(role.rawValue): \(result.spheroName)")
+        } else {
+            print("No assignment found for role \(role.rawValue)")
+        }
+        return result
     }
+    
 }
 
 struct SpheroConnectionSheetView: View {
     @Binding var isSpheroConnected: Bool
+    @ObservedObject var wsClient: WebSocketClient
     @Binding var connectionStatus: String
     @Binding var connectedSpheroNames: [String]
     @Binding var spheroMazeInfo: [String: BoltToy]
-    @ObservedObject var roleManager: SpheroRoleManager // Changé de @StateObject à @ObservedObject
+    @ObservedObject var roleManager = SpheroRoleManager(wsClient: WebSocketClient.instance)
         
     @StateObject private var discoveryManager = SpheroDiscoveryManager()
     @State private var isSearching: Bool = false
@@ -120,7 +151,10 @@ struct SpheroConnectionSheetView: View {
             
             if !connectedSpheroNames.isEmpty {
                 connectedSpherosView
-                
+                Button("check for role") {
+                    let mazeAssignment = roleManager.getRoleAssignment(for: .maze)
+                    print("mazeAssignment: \(mazeAssignment?.toy?.identifier)")
+                }
                 roleAssignmentView
                 
                 Button("Disconnect All") {
@@ -209,17 +243,17 @@ struct SpheroConnectionSheetView: View {
                 .font(.headline)
                 .padding(.top)
             
-            ForEach(SpheroRole.allCases.filter { $0 != .unassigned }, id: \.self) { role in
-                if let assignment = roleManager.getRoleAssignment(for: role) {
-                    HStack {
-                        Text(role.rawValue)
-                        Spacer()
-                        Text(assignment.spheroName)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 4)
-                }
-            }
+//            ForEach(SpheroRole.allCases.filter { $0 != .unassigned }, id: \.self) { role in
+//                if let assignment = roleManager.getRoleAssignment(for: role) {
+//                    HStack {
+//                        Text(role.rawValue)
+//                        Spacer()
+//                        Text(assignment.spheroName)
+//                    }
+//                    .padding(.horizontal)
+//                    .padding(.vertical, 4)
+//                }
+//            }
         }
         .padding()
         .background(Color.gray.opacity(0.1))

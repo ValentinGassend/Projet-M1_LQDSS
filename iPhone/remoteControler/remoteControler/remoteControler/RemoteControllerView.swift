@@ -3,7 +3,7 @@ import Foundation
 
 class SpheroPresetManager {
     static let shared = SpheroPresetManager()
-
+    
     private let lightningPreset = [
         [false, false, false, false, false, false, false, false],
         [false, false, false, false, true,  true,  true,  false],
@@ -14,25 +14,25 @@ class SpheroPresetManager {
         [false, false, true,  true,  false, false, false, false],
         [false, true,  false, false, false, false, false, false],
     ]
-
+    
     func sendLightningPreset(to sphero: BoltToy) {
-//        print("Envoi du preset Lightning au Sphero \(sphero.name ?? "Inconnu")")
-
+        //        print("Envoi du preset Lightning au Sphero \(sphero.name ?? "Inconnu")")
+        
         // Efface la matrice
         for x in 0..<8 {
             for y in 0..<8 {
                 sphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .black)
             }
         }
-
+        
         // Applique le preset
         for x in 0..<8 {
             for y in 0..<8 where lightningPreset[x][y] {
                 sphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .yellow)
             }
         }
-
-//        print("Preset Lightning envoyé au Sphero \(sphero.name ?? "Inconnu")")
+        
+        //        print("Preset Lightning envoyé au Sphero \(sphero.name ?? "Inconnu")")
     }
 }
 
@@ -40,7 +40,7 @@ class SpheroPresetManager {
 struct RemoteControllerView: View {
     @State private var selectedSpheroName: String?
     @ObservedObject var wsClient = WebSocketClient.instance
-    @StateObject private var roleManager = SpheroRoleManager()
+    @StateObject private var roleManager = SpheroRoleManager.instance
     @State private var showConnectSheet = false
     @State private var isSpheroConnected = false
     @State private var isDefaultSpheroConnected = false
@@ -49,60 +49,52 @@ struct RemoteControllerView: View {
     @State private var connectionStatus: String = ""
     @State private var showMazeIcon: Bool = false
     @State private var spheroMazeInfo: [String: BoltToy] = [:]
-
-
+    
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 Spacer()
-                if !connectedSpheroNames.isEmpty {
-                                    VStack {
-                                        Text("Connected Spheros")
-                                            .font(.title2)
-                                            .fontWeight(.bold)
-                                            .padding(.bottom)
-                                        
-                                        ForEach(SpheroRole.allCases.filter { $0 != .unassigned }, id: \.self) { role in
-                                            if let assignment = roleManager.getRoleAssignment(for: role) {
-                                                HStack {
-                                                    Text(role.rawValue)
-                                                        .fontWeight(.medium)
-                                                    Spacer()
-                                                    Text(assignment.spheroName)
-                                                        .foregroundColor(.blue)
-                                                    
-                                                Spacer()
-                                                    Button("Envoyer l'Éclair") {
-                                                        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == assignment.spheroName }) {
-                                                            SpheroPresetManager.shared.sendLightningPreset(to: toy)
-                                                        } else {
-                                                            print("Aucun Sphero sélectionné ou introuvable.")
-                                                        }
-                                                    }
-                                                    Button("stabiliser") {
-                                                        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == assignment.spheroName }) {
-                                                            toy.setStabilization(state: .on)
-                                                        } else {
-                                                            print("Aucun Sphero sélectionné ou introuvable.")
-                                                        }
-                                                    }
-                                                    Button("destabiliser") {
-                                                        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == assignment.spheroName }) {
-                                                            toy.setStabilization(state: .off)
-                                                        } else {
-                                                            print("Aucun Sphero sélectionné ou introuvable.")
-                                                        }
-                                                    }
-                                                }
-                                                .padding()
-                                                .background(Color.gray.opacity(0.1))
-                                                .cornerRadius(8)
-                                                .padding(.horizontal)
-                                            }
-                                        }
-                                    }
-                                    .padding(.bottom)
-                                }
+//                if !connectedSpheroNames.isEmpty {
+//                    VStack {
+//                        Text("Connected Spheros")
+//                            .font(.title2)
+//                            .fontWeight(.bold)
+//                            .padding(.bottom)
+//                        
+//                        let filteredRoles = SpheroRole.allCases.filter { $0 != .unassigned }
+//
+//                        ForEach(filteredRoles, id: \.self) { role in
+//                            if let assignment = roleManager.getRoleAssignment(for: role) {
+//                                HStack {
+//                                    Text(role.rawValue)
+//                                        .fontWeight(.medium)
+//                                    Spacer()
+//                                    Text(assignment.spheroName)
+//                                        .foregroundColor(.blue)
+//
+//                                    Spacer()
+//                                    Group {
+//                                        ActionButton(title: "Envoyer l'Éclair", action: {
+//                                            sendLightning(toyName: assignment.spheroName)
+//                                        })
+//                                        ActionButton(title: "Stabiliser", action: {
+//                                            setStabilization(toyName: assignment.spheroName)
+//                                        })
+//                                        ActionButton(title: "Déstabiliser", action: {
+//                                            removeStabilization(toyName: assignment.spheroName)
+//                                        })
+//                                    }
+//                                }
+//                                .padding()
+//                                .background(Color.gray.opacity(0.1))
+//                                .cornerRadius(8)
+//                                .padding(.horizontal)
+//                            }
+//                        }
+//                    }
+//                    .padding(.bottom)
+//                }
                 // title air
                 //
                 Text("Input")
@@ -150,17 +142,17 @@ struct RemoteControllerView: View {
                 }
                 
                 ForEach(generateCommands(), id: \.self) { command in
-                                    Button(action: {
-                                        sendMessage(command: command)
-                                    }) {
-                                        Text(command)
-                                            .padding()
-                                            .background(Color.blue)
-                                            .foregroundColor(.white)
-                                            .cornerRadius(8)
-                                            .padding(.bottom, 5)
-                                    }
-                                }
+                    Button(action: {
+                        sendMessage(command: command)
+                    }) {
+                        Text(command)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
+                            .padding(.bottom, 5)
+                    }
+                }
                 
                 
                 
@@ -169,14 +161,15 @@ struct RemoteControllerView: View {
             .navigationTitle("Remote Controller")
         }
         .sheet(isPresented: $showConnectSheet) {
-                    SpheroConnectionSheetView(
-                        isSpheroConnected: $isSpheroConnected,
-                        connectionStatus: $connectionStatus,
-                        connectedSpheroNames: $connectedSpheroNames,
-                        spheroMazeInfo: $spheroMazeInfo,
-                        roleManager: roleManager // Passage du roleManager
-                    )
-                }
+            SpheroConnectionSheetView(
+                isSpheroConnected: $isSpheroConnected,
+                wsClient: wsClient,
+                connectionStatus: $connectionStatus,
+                connectedSpheroNames: $connectedSpheroNames,
+                spheroMazeInfo: $spheroMazeInfo,
+                roleManager: roleManager // Passage du roleManager
+            )
+        }
         .onAppear() {
             wsClient.connectForIdentification(route: IdentificationRoute.typhoonIphoneConnect)
             wsClient.connectForIdentification(route: IdentificationRoute.mazeIphoneConnect)
@@ -196,6 +189,31 @@ struct RemoteControllerView: View {
             }
         }
     }
+    
+    private func sendLightning(toyName: String) {
+        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == toyName }) {
+            SpheroPresetManager.shared.sendLightningPreset(to: toy)
+        } else {
+            print("Aucun Sphero sélectionné ou introuvable.")
+        }
+    }
+
+    
+    private func removeStabilization(toyName: String) {
+        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == toyName }) {
+            toy.setStabilization(state: .off)
+        } else {
+            print("Aucun Sphero sélectionné ou introuvable.")
+        }
+    }
+    private func setStabilization(toyName: String) {
+        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == toyName }) {
+            toy.setStabilization(state: .on)
+        } else {
+            print("Aucun Sphero sélectionné ou introuvable.")
+        }
+    }
+
     // Nouvelle méthode privée pour charger et envoyer le preset lightning
     private func loadLightningPresetAndSend() {
         guard !spheroMazeInfo.isEmpty else {
@@ -318,13 +336,25 @@ struct RemoteControllerView: View {
             "crystal_esp2=>[crystal_esp2,crystal_esp1,ambianceManager_rpi]=>rfid#typhoon"
         ]
     }
-
-        
-        // Fonction pour envoyer le message via WebSocket
-        private func sendMessage(command: String) {
-           if let messageParsed = wsClient.parseMessage(command)
-            {
-               wsClient.sendMessage(from: messageParsed.routeOrigin, to: messageParsed.routeTargets, component: messageParsed.component, data: messageParsed.data)
-           }
+    
+    
+    // Fonction pour envoyer le message via WebSocket
+    private func sendMessage(command: String) {
+        if let messageParsed = wsClient.parseSendedMessage(command)
+        {
+            wsClient.sendMessage(from: messageParsed.routeOrigin, to: messageParsed.routeTargets, component: messageParsed.component, data: messageParsed.data)
         }
+    }
+}
+struct ActionButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(title, action: action)
+            .padding()
+            .background(Color.blue)
+            .foregroundColor(.white)
+            .cornerRadius(8)
+    }
 }
