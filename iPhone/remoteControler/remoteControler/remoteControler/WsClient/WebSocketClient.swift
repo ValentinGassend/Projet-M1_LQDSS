@@ -373,6 +373,8 @@ extension WebSocketClient: WebSocketConnectionDelegate {
                             if let mazeSphero = mazeAssignment.toy {
                                 // Enable stabilization
                                 mazeSphero.setStabilization(state: .on)
+                                mazeSphero.setFrontLed(color: .yellow)
+                                mazeSphero.setBackLed(color: .yellow)
                                 print("Stabilization enabled for Maze Sphero (\(mazeAssignment.spheroName))")
                                 
                                 // Clear the matrix first
