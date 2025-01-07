@@ -1,7 +1,44 @@
 import SwiftUI
+import Foundation
+
+class SpheroPresetManager {
+    static let shared = SpheroPresetManager()
+
+    private let lightningPreset = [
+        [false, false, false, false, false, false, false, false],
+        [false, false, false, false, true,  true,  true,  false],
+        [false, false, false, true,  true,  true,  false, false],
+        [false, false, true,  true,  true,  false, false, false],
+        [false, true,  true,  true,  true,  true,  false, false],
+        [false, false, false, true,  true,  false, false, false],
+        [false, false, true,  true,  false, false, false, false],
+        [false, true,  false, false, false, false, false, false],
+    ]
+
+    func sendLightningPreset(to sphero: BoltToy) {
+//        print("Envoi du preset Lightning au Sphero \(sphero.name ?? "Inconnu")")
+
+        // Efface la matrice
+        for x in 0..<8 {
+            for y in 0..<8 {
+                sphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .black)
+            }
+        }
+
+        // Applique le preset
+        for x in 0..<8 {
+            for y in 0..<8 where lightningPreset[x][y] {
+                sphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .yellow)
+            }
+        }
+
+//        print("Preset Lightning envoyé au Sphero \(sphero.name ?? "Inconnu")")
+    }
+}
 
 // Vue principale
 struct RemoteControllerView: View {
+    @State private var selectedSpheroName: String?
     @ObservedObject var wsClient = WebSocketClient.instance
     @StateObject private var roleManager = SpheroRoleManager()
     @State private var showConnectSheet = false
@@ -33,6 +70,29 @@ struct RemoteControllerView: View {
                                                     Spacer()
                                                     Text(assignment.spheroName)
                                                         .foregroundColor(.blue)
+                                                    
+                                                Spacer()
+                                                    Button("Envoyer l'Éclair") {
+                                                        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == assignment.spheroName }) {
+                                                            SpheroPresetManager.shared.sendLightningPreset(to: toy)
+                                                        } else {
+                                                            print("Aucun Sphero sélectionné ou introuvable.")
+                                                        }
+                                                    }
+                                                    Button("stabiliser") {
+                                                        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == assignment.spheroName }) {
+                                                            toy.setStabilization(state: .on)
+                                                        } else {
+                                                            print("Aucun Sphero sélectionné ou introuvable.")
+                                                        }
+                                                    }
+                                                    Button("destabiliser") {
+                                                        if let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == assignment.spheroName }) {
+                                                            toy.setStabilization(state: .off)
+                                                        } else {
+                                                            print("Aucun Sphero sélectionné ou introuvable.")
+                                                        }
+                                                    }
                                                 }
                                                 .padding()
                                                 .background(Color.gray.opacity(0.1))
