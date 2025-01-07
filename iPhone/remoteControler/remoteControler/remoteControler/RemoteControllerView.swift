@@ -214,7 +214,7 @@ struct RemoteControllerView: View {
             "tornado_rpi=>[tornado_esp]=>rvr#fourth",
             
             // Messages du Labyrinthe (maze_esp)
-            "maze_esp=>[maze_iphone,ambianceManager_rpi]=>rfid#maze",
+            "maze_esp=>[maze_esp,maze_iphone,ambianceManager_rpi]=>rfid#maze",
             "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn1#true",
             "maze_esp=>[maze_iphone]=>btn1#false",
             "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn2#true",
