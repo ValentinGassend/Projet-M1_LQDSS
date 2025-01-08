@@ -27,7 +27,11 @@ struct SpheroDirectionView: View {
     @State private var currentAccData = [Double]()
     @State private var currentGyroData = [Double]()
     @State private var isMovingInPattern = false
-    
+    @State private var totalRotations: Double = 0.0
+    @State private var isTrackingRotation: Bool = false
+    @State private var lastGyroZ: Double = 0.0
+    @State private var currentRotationSpeed: Double = 0.0
+    private let rotationThreshold: Double = 20.0
     enum Classes: Int {
         case Carre, Triangle, Rond
         
@@ -45,19 +49,40 @@ struct SpheroDirectionView: View {
     // This will handle the sensor data callback
     private func handleSensorData(data: SensorData) {
         DispatchQueue.main.async {
-            if (isRecording) {
-                if (!isStopped) {
-                    if let acceleration = data.accelerometer?.filteredAcceleration {
-                        currentAccData.append(contentsOf: [
-                            acceleration.x!,
-                            acceleration.y!,
-                            acceleration.z!
-                        ])
+            // Gyroscope processing
+            if let gyro = data.gyro?.rotationRate {
+                // Ensure gyro.z is treated as an Int
+                let gyroZ = abs(Int(gyro.z ?? 0)) // Convert Double to Int and apply abs()
+                currentRotationSpeed = Double(gyroZ) // Store as Double if needed for calculations
+                
+                if isTrackingRotation {
+                    // Définir un intervalle de temps basé sur la fréquence des données du gyroscope (60Hz par défaut)
+                    let timeInterval = 1.0 / 180.0
+                    
+                    // Convertir le gyroscope en degrés par seconde et calculer le changement angulaire
+                    let rotationChange = Double(gyroZ) * timeInterval * 180.0 / .pi // Conversion radians -> degrés
+                    
+                    // Convertir en tours complets et accumuler
+                    totalRotations += rotationChange / 360.0
+                    
+                    
+                }
+                
+            }
+            
+            // Acceleration tracking
+            if isRecording && !isStopped {
+                if let acceleration = data.accelerometer?.filteredAcceleration {
+                    // Safely unwrap acceleration values
+                    if let x = acceleration.x, let y = acceleration.y, let z = acceleration.z {
+                        currentAccData.append(contentsOf: [x, y, z])
                     }
                 }
             }
         }
     }
+    
+    
     
     private func updateHandle1Sphero() {
         if let assignment = roleManager.getRoleAssignment(for: .handle1) {
@@ -107,7 +132,25 @@ struct SpheroDirectionView: View {
         }
         
     }
+    private func startRotationTracking() {
+        
+        if let handle1 = handle1Sphero {
+            handle1.setStabilization(state: .off)
+            
+            totalRotations = 0.0
+            isTrackingRotation = true
+            
+        }
+    }
     
+    // Function to stop tracking rotations
+    private func stopRotationTracking() {
+        isTrackingRotation = false
+        if let handle1 = handle1Sphero {
+            handle1.setStabilization(state: .on)
+            
+        }
+    }
     
     // Débuter l'enregistrement
     func startRecording() {
@@ -322,6 +365,48 @@ struct SpheroDirectionView: View {
             
             
             ScrollView {
+                VStack {
+                    Text("Rotation Tracking")
+                        .font(.headline)
+                        .padding()
+                    
+                    Text("Total Rotations: \(String(format: "%.2f", totalRotations))")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                    
+                    Text("Current Speed: \(String(format: "%.2f", currentRotationSpeed))°/s")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                    
+                    HStack(spacing: 20) {
+                        Button(action: {
+                            if isTrackingRotation {
+                                stopRotationTracking()
+                            } else {
+                                startRotationTracking()
+                            }
+                        }) {
+                            Text(isTrackingRotation ? "Stop Tracking" : "Start Tracking")
+                                .padding()
+                                .background(isTrackingRotation ? Color.red : Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                        
+                        Button(action: {
+                            totalRotations = 0.0
+                        }) {
+                            Text("Reset Counter")
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(15)
                 Text("Speed: \(currentSpeed, specifier: "%.2f")")
                     .padding()
                 Text("Input quantity: \(inputQuantity, specifier: "%.2f")")
