@@ -19,38 +19,38 @@ class SpheroDiscoveryManager: ObservableObject {
     @Published var discoveredSpheros: Set<String> = []
     private var isObserving = false
     
-    func startObserving() {
-        isObserving = true
-        SharedToyBox.instance.box.addListener(self)
-    }
+//    func startObserving() {
+//        isObserving = true
+//        SharedToyBox.instance.box.addListener(self)
+//    }
     
-    func stopObserving() {
-        isObserving = false
-        SharedToyBox.instance.box.removeListener(self)
-    }
+//    func stopObserving() {
+//        isObserving = false
+//        SharedToyBox.instance.box.removeListener(self)
+//    }
 }
 
-extension SpheroDiscoveryManager: ToyBoxListener {
-    func toyBoxReady(_ toyBox: ToyBox) {
-        // Implementation required by protocol
-    }
+//extension SpheroDiscoveryManager: ToyBoxListener {
+//    func toyBoxReady(_ toyBox: ToyBox) {
+//        // Implementation required by protocol
+//    }
     
-    func toyBox(_ toyBox: ToyBox, discovered descriptor: ToyDescriptor) {
-        if let name = descriptor.name {
-            DispatchQueue.main.async {
-                self.discoveredSpheros.insert(name)
-            }
-        }
-    }
-    
-    func toyBox(_ toyBox: ToyBox, readied toy: Toy) {
-        // Implementation required by protocol
-    }
-    
-    func toyBox(_ toyBox: ToyBox, putAway toy: Toy) {
-        // Implementation required by protocol
-    }
-}
+//    func toyBox(_ toyBox: ToyBox, discovered descriptor: ToyDescriptor) {
+//        if let name = descriptor.name {
+//            DispatchQueue.main.async {
+//                self.discoveredSpheros.insert(name)
+//            }
+//        }
+//    }
+//    
+//    func toyBox(_ toyBox: ToyBox, readied toy: Toy) {
+//        // Implementation required by protocol
+//    }
+//    
+//    func toyBox(_ toyBox: ToyBox, putAway toy: Toy) {
+//        // Implementation required by protocol
+//    }
+//}
 
 class SpheroRoleManager: ObservableObject {
     @Published var roleAssignments: [SpheroRoleAssignment] = []
@@ -77,11 +77,11 @@ class SpheroRoleManager: ObservableObject {
     }
 
     private func sendRoleAssignmentMessage(spheroName: String, role: SpheroRole) {
-            let routeOrigin = "maze_iphone"
-            let routeTarget = ["maze_iphone"]
-            let component = "sphero"
-            let data = "\(role.rawValue.lowercased())"
-//        wsClient.sendMessage(from: routeOrigin, to: routeTarget, component: component, data: data)
+//            let routeOrigin = "maze_iphone"
+//            let routeTarget = ["maze_iphone"]
+//            let component = "sphero"
+//            let data = "\(role.rawValue.lowercased())"
+//            wsClient.sendMessage(from: routeOrigin, to: routeTarget, component: component, data: data)
         }
     
     func getRole(for spheroName: String) -> SpheroRole {
@@ -144,6 +144,8 @@ struct SpheroConnectionSheetView: View {
                 .cornerRadius(8)
             }
             
+            
+            
             if !discoveryManager.discoveredSpheros.isEmpty {
                 discoveredSpherosView
             }
@@ -173,10 +175,12 @@ struct SpheroConnectionSheetView: View {
                         .background(Color.blue)
                         .foregroundColor(.white)
                         .cornerRadius(8)
-                        .disabled(discoveryManager.discoveredSpheros.isEmpty)
                     
         }
         .padding()
+        .onAppear() {
+            
+        }
         .onDisappear {
             cleanup()
         }
@@ -184,7 +188,7 @@ struct SpheroConnectionSheetView: View {
     // Fonction pour connecter toutes les Sphero
     private func connectToAllSphero() {
             connectionStatus = "Connecting to all discovered Spheros..."
-            let discoveredNames = Array(discoveryManager.discoveredSpheros)
+        let discoveredNames = ["SB-8630","SB-5D1C"]
             
             if discoveredNames.isEmpty {
                 connectionStatus = "No Spheros discovered. Please search first."
@@ -311,12 +315,12 @@ struct SpheroConnectionSheetView: View {
     private func startSearch() {
         connectionStatus = "Searching for Spheros..."
         discoveryManager.discoveredSpheros.removeAll()
-        discoveryManager.startObserving()
+//        discoveryManager.startObserving()
         SharedToyBox.instance.searchForBoltsNamed([]) { error in }
     }
     
     private func stopSearch() {
-        discoveryManager.stopObserving()
+//        discoveryManager.stopObserving()
         SharedToyBox.instance.stopScan()
         connectionStatus = "Search stopped"
     }

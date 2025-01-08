@@ -1,223 +1,181 @@
 import SwiftUI
-import AVFoundation
-import simd
 
-
+extension ToyBox {
+    // Ajout d'une méthode pour rechercher et se connecter aux Bolts
+    func searchForBoltsNamed(_ names: [String], completion: @escaping (Error?) -> Void) {
+        // Démarrer la recherche
+        startScan()
+        
+        // Timer pour arrêter la recherche après un délai
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
+            self?.stopScan()
+            completion(nil)  // Appeler le completion handler une fois la recherche terminée
+        }
+    }
+}
 struct SpheroDirectionView: View {
-    @State private var showConnectionSheet = false
-    @State private var isSpheroConnected: Bool = false
-    @State private var connectedSpheroNames: [String] = []
-    @State private var connectionStatus: String = ""
-    @State private var spheroMazeInfo: [String: BoltToy] = [:]
-    @ObservedObject var wsClient = WebSocketClient.instance
-    @ObservedObject var roleManager = SpheroRoleManager.instance
-    @State private var handle1Sphero: BoltToy?
+    @State private var connectedSpheros: [String: BoltToy] = [:]
+    @State private var spheroStates: [String: SpheroBoltState] = [:]
+    @State private var showCollisionMessage: Bool = false
     
-    @State private var currentGyroData = [Double]()
-    @State private var totalRotations: Double = 0.0
-    @State private var isTrackingRotation: Bool = false
-    @State private var lastGyroZ: Double = 0.0
-    @State private var currentRotationSpeed: Double = 0.0
-    private let rotationThreshold: Double = 20.0
+    private let spheroIds = ["SB-5D1C", "SB-8630"]
     
-    private func handleSensorData(data: SensorData) {
-        DispatchQueue.main.async {
-            // Gyroscope processing
-            if let gyro = data.gyro?.rotationRate {
-                // Ensure gyro.z is treated as an Int
-                let gyroZ = abs(Int(gyro.z ?? 0)) // Convert Double to Int and apply abs()
-                currentRotationSpeed = Double(gyroZ) // Store as Double if needed for calculations
-                
-                if isTrackingRotation {
-                    // Définir un intervalle de temps basé sur la fréquence des données du gyroscope (60Hz par défaut)
-                    let timeInterval = 1.0 / 180.0
-                    
-                    // Convertir le gyroscope en degrés par seconde et calculer le changement angulaire
-                    let rotationChange = Double(gyroZ) * timeInterval * 180.0 / .pi // Conversion radians -> degrés
-                    
-                    // Convertir en tours complets et accumuler
-                    totalRotations += rotationChange / 360.0
-                    
-                    
+    private func connectToSpheros() {
+            // Rechercher et se connecter aux Bolts
+            SharedToyBox.instance.searchForBoltsNamed(spheroIds) { error in
+                if error == nil {
+                    // Une fois connecté, configurer chaque Bolt
+//                    configureBolts()
                 }
-                
+            }
+        }
+        
+        private func configureBolts() {
+            for bolt in SharedToyBox.instance.bolts {
+                if let name = bolt.peripheral?.name, spheroIds.contains(name) {
+                    setupSphero(sphero: bolt, id: name)
+                    spheroStates[name] = SpheroBoltState()
+                    connectedSpheros[name] = bolt
+                }
+            }
+        }
+    private func setupSphero(sphero: BoltToy, id: String) {
+            sphero.setStabilization(state: .on)
+            sphero.setCollisionDetection(configuration: .enabled)
+            
+            sphero.onCollisionDetected = { _ in
+                DispatchQueue.main.async {
+                    showCollisionMessage = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        showCollisionMessage = false
+                    }
+                }
             }
             
-            
+            sphero.sensorControl.enable(sensors: SensorMask(arrayLiteral: .accelerometer, .gyro))
+            sphero.sensorControl.interval = 1
         }
-    }
     
-    
-    
-    private func updateHandle1Sphero() {
-        if let assignment = roleManager.getRoleAssignment(for: .handle1) {
-            handle1Sphero = assignment.toy
-            print("Handle1 Sphero updated to: \(assignment.spheroName)")
-            setupSensors()
+    private func moveSphero(id: String, heading: Double, speed: Double, reverse: Bool = false) {
+        guard let sphero = connectedSpheros[id] else { return }
+        if reverse {
+            sphero.roll(heading: heading, speed: speed, rollType: .roll)
         } else {
-            handle1Sphero = nil
-            print("No Handle1 Sphero assigned")
+            sphero.roll(heading: heading, speed: speed)
         }
     }
     
-    private func startRotationTracking() {
-        
-        if let handle1 = handle1Sphero {
-            handle1.setStabilization(state: .off)
-            
-            totalRotations = 0.0
-            isTrackingRotation = true
-            
-        }
+    private func stopSphero(id: String) {
+        guard let sphero = connectedSpheros[id],
+              let state = spheroStates[id] else { return }
+        sphero.stopRoll(heading: state.heading)
     }
     
-    // Function to stop tracking rotations
-    private func stopRotationTracking() {
-        isTrackingRotation = false
-        if let handle1 = handle1Sphero {
-            handle1.setStabilization(state: .on)
-            
-        }
-    }
-    
-    
-    
-    
-    // View body for SwiftUI
     var body: some View {
         VStack {
-            // Connection Status and Button
-            HStack {
-                if let handle1 = handle1Sphero {
-                    Text("Handle1 Sphero Connected")
-                        .foregroundColor(.green)
-                } else {
-                    Text("Handle1 Sphero Not Assigned")
-                        .foregroundColor(.red)
-                }
-                
-                Button(action: {
-                    showConnectionSheet.toggle()
-                }) {
-                    Image(systemName: isSpheroConnected ? "link.circle.fill" : "link.circle")
-                        .font(.title)
-                        .foregroundColor(isSpheroConnected ? .green : .blue)
-                }
+            if showCollisionMessage {
+                Text("Collision détectée!")
+                    .foregroundColor(.red)
+                    .font(.headline)
             }
-            .padding()
-            
-            
-            ScrollView {
+            Button {
+                configureBolts()
+            } label: {
+                Text("config")
+            }
+
+            // Individual controls for each Sphero
+            ForEach(spheroIds, id: \.self) { spheroId in
                 VStack {
-                    Text("Rotation Tracking")
-                        .font(.headline)
-                        .padding()
-                    
-                    Text("Total Rotations: \(String(format: "%.2f", totalRotations))")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                    
-                    Text("Current Speed: \(String(format: "%.2f", currentRotationSpeed))°/s")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                    
-                    HStack(spacing: 20) {
-                        Button(action: {
-                            if isTrackingRotation {
-                                stopRotationTracking()
-                            } else {
-                                startRotationTracking()
-                            }
-                        }) {
-                            Text(isTrackingRotation ? "Stop Tracking" : "Start Tracking")
-                                .padding()
-                                .background(isTrackingRotation ? Color.red : Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
-                        
-                        Button(action: {
-                            totalRotations = 0.0
-                        }) {
-                            Text("Reset Counter")
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
-                        }
+                    HStack {
+                        Text(spheroId)
+                        Text(connectedSpheros[spheroId] != nil ? "Connected" : "Not Connected")
+                            .foregroundColor(connectedSpheros[spheroId] != nil ? .green : .red)
                     }
                     
-                    VStack{
-                        ForEach(connectedSpheroNames, id: \.self) { name in
-                            HStack {
-                                Text(name)
-                                Spacer()
-                                Picker("Role", selection: Binding(
-                                    get: { roleManager.getRole(for: name) },
-                                    set: { newRole in
-                                        let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == name })
-                                        roleManager.assignRole(to: name, role: newRole, toy: toy)
-                                        
-                                        if newRole == .maze {
-                                            spheroMazeInfo.removeAll()
-                                            if let mazeToy = toy {
-                                                spheroMazeInfo[name] = mazeToy
-                                            }
-                                        }
-                                    }
-                                )) {
-                                    ForEach(SpheroRole.allCases, id: \.self) { role in
-                                        Text(role.rawValue).tag(role)
-                                    }
-                                }
-                                .pickerStyle(MenuPickerStyle())
+                    if let state = spheroStates[spheroId] {
+                        SpheroBoltControlView(
+                            state: Binding(
+                                get: { state },
+                                set: { spheroStates[spheroId] = $0 }
+                            ),
+                            onMove: { heading, speed, reverse in
+                                moveSphero(id: spheroId, heading: heading, speed: speed, reverse: reverse)
+                            },
+                            onStop: {
+                                stopSphero(id: spheroId)
                             }
-                            .padding()
-                            .background(Color.green.opacity(0.2))
-                            .cornerRadius(8)
-                        }
-                        
+                        )
                     }
+                }
+                .padding()
+                .background(RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1))
+                .padding(.horizontal)
             }
-        }
-        }
-        .sheet(isPresented: $showConnectionSheet) {
-            SpheroConnectionSheetView(
-                isSpheroConnected: $isSpheroConnected,
-                wsClient: wsClient,
-                connectionStatus: $connectionStatus,
-                connectedSpheroNames: $connectedSpheroNames,
-                spheroMazeInfo: $spheroMazeInfo
-            )
         }
         .onAppear {
-            updateHandle1Sphero()
-        }
-        .onChange(of: showConnectionSheet) { status in
-            updateHandle1Sphero()
+            connectToSpheros()
         }
         .onDisappear {
-            SharedToyBox.instance.bolt?.sensorControl.disable()
+            for (_, sphero) in connectedSpheros {
+                sphero.sensorControl.disable()
+            }
         }
     }
-    
-    private func setupSensors() {
-        guard let handle1 = handle1Sphero else {
-            print("No Handle1 Sphero available for sensor setup")
-            return
-        }
-        
-        print("Setting up sensors for Handle1 Sphero")
-        handle1.sensorControl.enable(
-            sensors: SensorMask(arrayLiteral: .accelerometer, .gyro)
-        )
-        handle1.sensorControl.interval = 1
-        handle1.setStabilization(state: .off)
-        handle1.setCollisionDetection(configuration: .enabled)
-        handle1.sensorControl.onDataReady = { data in
-            handleSensorData(data: data)
-        }
-    }
-    
 }
 
+// State structure for each Sphero
+struct SpheroBoltState {
+    var speed: Double = 0
+    var heading: Double = 0
+}
+
+// Individual control view for each Sphero
+struct SpheroBoltControlView: View {
+    @Binding var state: SpheroBoltState
+    let onMove: (Double, Double, Bool) -> Void
+    let onStop: () -> Void
+    
+    var body: some View {
+        VStack {
+            Text("Speed: \(Int(state.speed))")
+            Slider(value: $state.speed, in: 0...255)
+                .padding(.horizontal)
+            
+            Text("Heading: \(Int(state.heading))°")
+            Slider(value: $state.heading, in: 0...360)
+                .padding(.horizontal)
+            
+            // Direction controls
+            VStack {
+                Button("Forward") {
+                    onMove(state.heading, state.speed, false)
+                }
+                
+                HStack {
+                    Button("Left") {
+                        state.heading = (state.heading + 30).truncatingRemainder(dividingBy: 360)
+                        onMove(state.heading, state.speed, false)
+                    }
+                    
+                    Button("Stop") {
+                        onStop()
+                    }
+                    .padding(.horizontal)
+                    
+                    Button("Right") {
+                        state.heading = (state.heading - 30 + 360).truncatingRemainder(dividingBy: 360)
+                        onMove(state.heading, state.speed, false)
+                    }
+                }
+                .padding(.vertical, 5)
+                
+                Button("Backward") {
+                    onMove(state.heading, state.speed, true)
+                }
+            }
+        }
+        .padding(.vertical)
+    }
+}
