@@ -17,6 +17,7 @@ struct SpheroRoleAssignment {
 
 class SpheroDiscoveryManager: ObservableObject {
     @Published var discoveredSpheros: Set<String> = []
+    @Published var disconnectedSpheros: Set<String> = []
     private var isObserving = false
     
     func startObserving() {
@@ -27,6 +28,17 @@ class SpheroDiscoveryManager: ObservableObject {
     func stopObserving() {
         isObserving = false
         SharedToyBox.instance.box.removeListener(self)
+    }
+    
+    func handleDisconnection(_ spheroName: String) {
+        DispatchQueue.main.async {
+            self.discoveredSpheros.remove(spheroName)
+            self.disconnectedSpheros.insert(spheroName)
+        }
+    }
+    
+    func clearDisconnectedSpheros() {
+        disconnectedSpheros.removeAll()
     }
 }
 
@@ -39,16 +51,23 @@ extension SpheroDiscoveryManager: ToyBoxListener {
         if let name = descriptor.name {
             DispatchQueue.main.async {
                 self.discoveredSpheros.insert(name)
+                self.disconnectedSpheros.remove(name)
             }
         }
     }
     
     func toyBox(_ toyBox: ToyBox, readied toy: Toy) {
-        // Implementation required by protocol
+        if let peripheral = toy.peripheral, let name = peripheral.name {
+            DispatchQueue.main.async {
+                self.disconnectedSpheros.remove(name)
+            }
+        }
     }
     
     func toyBox(_ toyBox: ToyBox, putAway toy: Toy) {
-        // Implementation required by protocol
+        if let peripheral = toy.peripheral, let name = peripheral.name {
+            handleDisconnection(name)
+        }
     }
 }
 
@@ -57,24 +76,50 @@ class SpheroRoleManager: ObservableObject {
     private let wsClient: WebSocketClient
     static let instance = SpheroRoleManager(wsClient:WebSocketClient.instance)
     
-    
     init(wsClient: WebSocketClient) {
         self.wsClient = wsClient
     }
-    func assignRole(to spheroName: String, role: SpheroRole, toy: BoltToy?) {
-        print("Assigning role \(role.rawValue) to \(spheroName)")
-        if let index = roleAssignments.firstIndex(where: { $0.spheroName == spheroName }) {
-            if role != .unassigned {
-                if let existingIndex = roleAssignments.firstIndex(where: { $0.role == role }) {
-                    roleAssignments[existingIndex].role = .unassigned
+    
+    func autoAssignRoles() {
+            let handleSpheros = ["SB-808F", "SB-313C"]
+            let mazeSphero = "SB-F682"
+            let roles: [SpheroRole] = [.handle1, .handle2, .handle3, .handle4]
+            
+            // First assign maze role if the Sphero is present
+            let mazeToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == mazeSphero })
+            if mazeToy != nil {
+                assignRole(to: mazeSphero, role: .maze, toy: mazeToy)
+            }
+            
+            // Then assign handle roles to the other Spheros
+            for (index, spheroName) in handleSpheros.enumerated() {
+                if index < roles.count {
+                    let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == spheroName })
+                    assignRole(to: spheroName, role: roles[index], toy: toy)
                 }
             }
-            roleAssignments[index].role = role
-        } else {
-            roleAssignments.append(SpheroRoleAssignment(spheroName: spheroName, role: role, toy: toy))
         }
-        sendRoleAssignmentMessage(spheroName: spheroName, role: role)
-    }
+    
+    func handleDisconnection(_ spheroName: String) {
+            if let index = roleAssignments.firstIndex(where: { $0.spheroName == spheroName }) {
+                roleAssignments.remove(at: index)
+            }
+        }
+
+    func assignRole(to spheroName: String, role: SpheroRole, toy: BoltToy?) {
+            print("Assigning role \(role.rawValue) to \(spheroName)")
+            if let index = roleAssignments.firstIndex(where: { $0.spheroName == spheroName }) {
+                if role != .unassigned {
+                    if let existingIndex = roleAssignments.firstIndex(where: { $0.role == role }) {
+                        roleAssignments[existingIndex].role = .unassigned
+                    }
+                }
+                roleAssignments[index].role = role
+            } else {
+                roleAssignments.append(SpheroRoleAssignment(spheroName: spheroName, role: role, toy: toy))
+            }
+            sendRoleAssignmentMessage(spheroName: spheroName, role: role)
+        }
     
     private func sendRoleAssignmentMessage(spheroName: String, role: SpheroRole) {
         let routeOrigin = "maze_iphone"
@@ -85,26 +130,12 @@ class SpheroRoleManager: ObservableObject {
     }
     
     func getRole(for spheroName: String) -> SpheroRole {
-        //        print("Checking role for \(spheroName) ")
-        let value = roleAssignments.first(where: { $0.spheroName == spheroName })?.role ?? .unassigned
-        //        print("role value is \(value.rawValue)")
-        return value
+        return roleAssignments.first(where: { $0.spheroName == spheroName })?.role ?? .unassigned
     }
     
     func getRoleAssignment(for role: SpheroRole) -> SpheroRoleAssignment? {
-        //        print("Checking assignment for role: \(role.rawValue)")
-        //        for assignment in roleAssignments {
-        //            print("Assigned Sphero: \(assignment.spheroName) with role: \(assignment.role.rawValue)")
-        //        }
-        let result = roleAssignments.first(where: { $0.role == role })
-        if let result = result {
-            //            print("Found assignment for role \(role.rawValue): \(result.spheroName)")
-        } else {
-            //            print("No assignment found for role \(role.rawValue)")
-        }
-        return result
+        return roleAssignments.first(where: { $0.role == role })
     }
-    
 }
 
 struct SpheroConnectionSheetView: View {
@@ -118,9 +149,11 @@ struct SpheroConnectionSheetView: View {
     @StateObject private var discoveryManager = SpheroDiscoveryManager()
     @State private var isSearching: Bool = false
     @State private var showingRoleSelection = false
+    @State private var reconnectAttempts: [String: Int] = [:]
+    private let maxReconnectAttempts = 3
+    
     var body: some View {
         VStack {
-            
             Text("Connect to Sphero")
                 .font(.title)
                 .padding()
@@ -130,6 +163,24 @@ struct SpheroConnectionSheetView: View {
                     .font(.headline)
                     .foregroundColor(isSpheroConnected ? .green : .red)
                     .padding()
+            }
+            
+            // Disconnected Spheros Warning
+            if !discoveryManager.disconnectedSpheros.isEmpty {
+                ForEach(Array(discoveryManager.disconnectedSpheros), id: \.self) { name in
+                    HStack {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.orange)
+                        Text("\(name) disconnected")
+                        Button("Reconnect") {
+                            attemptReconnect(name)
+                        }
+                        .disabled(reconnectAttempts[name] ?? 0 >= maxReconnectAttempts)
+                    }
+                    .padding()
+                    .background(Color.yellow.opacity(0.2))
+                    .cornerRadius(8)
+                }
             }
             
             Button(action: {
@@ -151,11 +202,6 @@ struct SpheroConnectionSheetView: View {
             
             if !connectedSpheroNames.isEmpty {
                 connectedSpherosView
-                //                Button("check for role") {
-                //                    let mazeAssignment = roleManager.getRoleAssignment(for: .maze)
-                //                    print("mazeAssignment: \(mazeAssignment?.toy?.identifier)")
-                //                }
-                //                roleAssignmentView
                 
                 Button("Disconnect All") {
                     disconnectAllSphero()
@@ -167,22 +213,106 @@ struct SpheroConnectionSheetView: View {
             }
             
             Spacer()
-            Button("Connect to All Discovered Spheros") {
-                connectToAllSphero()
+            Button("Connect to Specific Spheros") {
+                connectToSpecificSpheros()
             }
-            .padding()
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(8)
-            .disabled(discoveryManager.discoveredSpheros.isEmpty)
-            
         }
         .padding()
         .onDisappear {
             cleanup()
         }
     }
-    // Fonction pour connecter toutes les Sphero
+    private func connectToSpecificSpheros() {
+        let targetSpheros = ["SB-92B2", "SB-0994"]
+        connectionStatus = "Starting search for specific Spheros..."
+        
+        // Start discovery if not already searching
+        if !isSearching {
+            startSearch()
+        }
+        
+        // Function to check discovered Spheros and connect
+        func checkAndConnect() {
+            let discoveredTargets = discoveryManager.discoveredSpheros.filter { targetSpheros.contains($0) }
+            print("Discovered targets: \(discoveredTargets)")
+            
+            if discoveredTargets.count == targetSpheros.count {
+                // Both Spheros found, connect to them
+                SharedToyBox.instance.searchForBoltsNamed(Array(discoveredTargets)) { error in
+                    DispatchQueue.main.async {
+                        if error == nil {
+                            isSpheroConnected = true
+                            connectionStatus = "Connected to both Spheros"
+                            
+                            // Update connected Spheros list
+                            connectedSpheroNames = SharedToyBox.instance.bolts
+                                .compactMap { $0.peripheral?.name }
+                                .filter { targetSpheros.contains($0) }
+                            
+                            // Assign roles and reset reconnect attempts
+                            for name in connectedSpheroNames {
+                                if !roleManager.roleAssignments.contains(where: { $0.spheroName == name }) {
+                                    let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == name })
+                                    roleManager.assignRole(to: name, role: .unassigned, toy: toy)
+                                }
+                                reconnectAttempts[name] = 0
+                            }
+                            
+                            roleManager.autoAssignRoles()
+                            stopSearch() // Stop searching once connected
+                        } else {
+                            // If connection fails, continue searching
+                            connectionStatus = "Connection failed, continuing search..."
+                            retrySearch()
+                        }
+                    }
+                }
+            } else {
+                // Not all Spheros found yet, continue searching
+                retrySearch()
+            }
+        }
+        
+        // Function to retry search
+        func retrySearch() {
+            connectionStatus = "Searching for Spheros: \(targetSpheros.joined(separator: ", "))..."
+            
+            // Wait 2 seconds before checking again
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                if discoveryManager.discoveredSpheros.filter({ targetSpheros.contains($0) }).count < targetSpheros.count {
+                    // Restart search if needed
+                    SharedToyBox.instance.stopScan()
+                    SharedToyBox.instance.searchForBoltsNamed([]) { error in }
+                    checkAndConnect()
+                }
+            }
+        }
+        
+        // Start the initial check
+        checkAndConnect()
+    }
+    private func attemptReconnect(_ spheroName: String) {
+        let currentAttempts = reconnectAttempts[spheroName] ?? 0
+        if currentAttempts < maxReconnectAttempts {
+            reconnectAttempts[spheroName] = currentAttempts + 1
+            connectToSingleSphero(spheroName)
+        }
+    }
+    
+    private func handleSpheroDisconnection(_ spheroName: String) {
+        DispatchQueue.main.async {
+            connectedSpheroNames.removeAll { $0 == spheroName }
+            spheroMazeInfo.removeValue(forKey: spheroName)
+            roleManager.handleDisconnection(spheroName)
+            
+            if connectedSpheroNames.isEmpty {
+                isSpheroConnected = false
+            }
+            
+            connectionStatus = "\(spheroName) disconnected"
+        }
+    }
+    
     private func connectToAllSphero() {
         connectionStatus = "Connecting to all discovered Spheros..."
         let discoveredNames = Array(discoveryManager.discoveredSpheros)
@@ -199,13 +329,15 @@ struct SpheroConnectionSheetView: View {
                     connectionStatus = "Connected to all discovered Spheros"
                     connectedSpheroNames = SharedToyBox.instance.bolts.map { $0.peripheral?.name ?? "Unknown Sphero" }
                     
-                    // Assign unassigned role to newly connected Spheros
                     for name in connectedSpheroNames {
                         if !roleManager.roleAssignments.contains(where: { $0.spheroName == name }) {
                             let toy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == name })
                             roleManager.assignRole(to: name, role: .unassigned, toy: toy)
                         }
+                        // Reset reconnect attempts on successful connection
+                        reconnectAttempts[name] = 0
                     }
+                    roleManager.autoAssignRoles()
                 } else {
                     isSpheroConnected = false
                     connectionStatus = "Failed to connect to all Spheros"
@@ -277,29 +409,6 @@ struct SpheroConnectionSheetView: View {
         }
     }
     
-    //    private var roleAssignmentView: some View {
-    //        VStack {
-    //            Text("Role Assignments:")
-    //                .font(.headline)
-    //                .padding(.top)
-    
-    //            ForEach(SpheroRole.allCases.filter { $0 != .unassigned }, id: \.self) { role in
-    //                if let assignment = roleManager.getRoleAssignment(for: role) {
-    //                    HStack {
-    //                        Text(role.rawValue)
-    //                        Spacer()
-    //                        Text(assignment.spheroName)
-    //                    }
-    //                    .padding(.horizontal)
-    //                    .padding(.vertical, 4)
-    //                }
-    //            }
-    //        }
-    //        .padding()
-    //        .background(Color.gray.opacity(0.1))
-    //        .cornerRadius(8)
-    //    }
-    
     private func toggleSearch() {
         isSearching.toggle()
         if isSearching {
@@ -310,8 +419,10 @@ struct SpheroConnectionSheetView: View {
     }
     
     private func startSearch() {
+        isSearching = true
         connectionStatus = "Searching for Spheros..."
         discoveryManager.discoveredSpheros.removeAll()
+        discoveryManager.clearDisconnectedSpheros()
         discoveryManager.startObserving()
         SharedToyBox.instance.searchForBoltsNamed([]) { error in }
     }
@@ -338,6 +449,7 @@ struct SpheroConnectionSheetView: View {
                     }
                     isSpheroConnected = true
                     connectionStatus = "Connected to \(name)"
+                    reconnectAttempts[name] = 0  // Reset reconnect attempts on successful connection
                 } else {
                     connectionStatus = "Failed to connect to \(name)"
                 }
@@ -353,5 +465,6 @@ struct SpheroConnectionSheetView: View {
         connectedSpheroNames.removeAll()
         spheroMazeInfo.removeAll()
         roleManager.roleAssignments.removeAll()
+        reconnectAttempts.removeAll()  // Reset all reconnect attempts
     }
 }

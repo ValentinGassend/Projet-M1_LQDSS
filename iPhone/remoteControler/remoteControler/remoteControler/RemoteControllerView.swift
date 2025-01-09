@@ -66,6 +66,7 @@ struct RemoteControllerView: View {
     }
 }
 
+//    let spheroNames = ["SB-92B2", "SB-0994", "SB-808F", "SB-313C"]
 struct VolcanoView: View {
     let wsClient: WebSocketClient
     

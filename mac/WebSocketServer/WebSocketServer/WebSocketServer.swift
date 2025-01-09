@@ -27,6 +27,7 @@ class WebSockerServer {
         "remoteController": ("original", false),
         "typhoon_esp": ("typhoon", false),
         "typhoon_iphone": ("typhoon", false),
+        "typhoon_iphone1": ("typhoon", false),
         "volcano_esp1": ("volcano", false),
         "volcano_esp2": ("volcano", false),
         "volcano_rpi": ("volcano", false),
@@ -55,7 +56,8 @@ class WebSockerServer {
     // New device group sessions
     @State var typhoonEspSession: WebSocketSession?
     @State var typhoonIphoneSession: WebSocketSession?
-    
+    @State var typhoonIphone1Session: WebSocketSession?
+
     @State var volcanoEsp1Session: WebSocketSession?
     @State var volcanoEsp2Session: WebSocketSession?
     @State var volcanoRpiSession: WebSocketSession?
@@ -108,7 +110,7 @@ class WebSockerServer {
                 }
                 else {
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
-
+                    
                     // Handle other route types
                     routeInfos.textCode(session, text)
                 }
@@ -125,11 +127,32 @@ class WebSockerServer {
             },
             connected: { session in
                 print("Client connected to route: /\(routeInfos.routeName)")
+                if routeInfos.routeName.contains("iphone") {
+                    self.cleanupExistingPhoneSession(routeName: routeInfos.routeName)
+                }
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
+                    let deviceName = self.normalizeDeviceName(routeName: routeInfos.routeName)
                     
+                    if routeInfos.routeName.contains("iphone") {
+                        switch deviceName {
+                        case "typhoon_iphone":
+                            self.typhoonIphoneSession = session
+                        case "typhoon_iphone1":
+                            self.typhoonIphone1Session = session
+                        case "maze_iphone":
+                            self.mazeIphoneSession = session
+                        default:
+                            break
+                        }
+                    }
                     self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true)
                     print("sending hello message to \(routeInfos.routeName)")
+                    session.writeText("Hello from \(routeInfos.routeName)!")
+                    
+                }
+                // Only send hello message if it's not the dashboard
+                if !routeInfos.routeName.contains("Dashboard") {
                     session.writeText("Hello from \(routeInfos.routeName)!")
                     
                 }
@@ -173,7 +196,37 @@ class WebSockerServer {
             }
         )
     }
-    
+    private func cleanupExistingPhoneSession(routeName: String) {
+        sessionQueue.async {
+            let deviceName = self.normalizeDeviceName(routeName: routeName)
+            
+            // Clean up message sessions
+            if self.messageSessions[deviceName] != nil {
+                print("Cleaning up existing message session for \(deviceName)")
+                self.messageSessions.removeValue(forKey: deviceName)
+            }
+            
+            // Clean up ping sessions
+            let pingRouteName = deviceName + "Ping"
+            if self.pingableSessions[pingRouteName] != nil {
+                print("Cleaning up existing ping session for \(pingRouteName)")
+                self.pingableSessions.removeValue(forKey: pingRouteName)
+            }
+            
+            // Update device state
+            self.updateDeviceState(routeName: deviceName, isConnected: false)
+            
+            // Clean up specific phone sessions based on device name
+            switch deviceName {
+            case "typhoon_iphone":
+                self.typhoonIphoneSession = nil
+            case "maze_iphone":
+                self.mazeIphoneSession = nil
+            default:
+                break
+            }
+        }
+    }
     private func registerMessageSession(routeName: String, session: WebSocketSession) {
         let deviceName = normalizeDeviceName(routeName: routeName)
         sessionQueue.async {
@@ -189,6 +242,8 @@ class WebSockerServer {
         case "typhoon_espDisconnect": self.typhoonEspSession = nil
         case "typhoon_iphoneConnect": self.typhoonIphoneSession = session
         case "typhoon_iphoneDisconnect": self.typhoonIphoneSession = nil
+        case "typhoon_iphone1Connect": self.typhoonIphone1Session = session
+        case "typhoon_iphone1Disconnect": self.typhoonIphone1Session = nil
             
         case "volcano_esp1Connect": self.volcanoEsp1Session = session
         case "volcano_esp1Disconnect": self.volcanoEsp1Session = nil
@@ -273,6 +328,7 @@ extension WebSockerServer {
         return [
             "typhoon_esp": typhoonEspSession,
             "typhoon_iphone": typhoonIphoneSession,
+            "typhoon_iphone1": typhoonIphone1Session,
             "volcano_esp1": volcanoEsp1Session,
             "volcano_esp2": volcanoEsp2Session,
             "volcano_rpi": volcanoRpiSession,
@@ -299,7 +355,8 @@ extension WebSockerServer {
     private func sessions(for targets: [String]) -> [WebSocketSession] {
         targets.compactMap { target in
             print("Fetching session for target: \(target)")
-//            print("message session : \(messageSessions)")
+            
+            //            print("message session : \(messageSessions)")
             if let messageSession = messageSessions[target]?.session {
                 return messageSession
             }
@@ -322,17 +379,25 @@ extension WebSockerServer {
         let message = "\(component)#\(data)"
         print("Sending message: \(message) to routes: \(to)")
         
-        let targetSessions = sessions(for: to)
+        // Vérifie si 'to' contient 'typhoon_iphone' et ajoute 'typhoon_iphone1' si nécessaire
+        var updatedTo = to
+        if to.contains("typhoon_iphone") {
+            updatedTo.append("typhoon_iphone1")
+        }
+        
+        let targetSessions = sessions(for: updatedTo)
+        
         if targetSessions.isEmpty {
-            print("Warning: No active sessions found for targets: \(to)")
+            print("Warning: No active sessions found for targets: \(updatedTo)")
             return
         }
         
         for session in targetSessions {
-//            print("Sending to session: \(session)")
+            //            print("Sending to session: \(session)")
             session.writeText(message)
         }
     }
+
     
     
     func onDisconnectedHandle(_ handle: WebSocketSession) {

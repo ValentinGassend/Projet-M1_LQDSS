@@ -186,7 +186,25 @@ let newRoutes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    
+    RouteInfos(routeName: "typhoon_iphone1Connect", textCode: { session, receivedText in
+            print("typhoon_iphone1 connecté")
+            serverWS.typhoonIphone1Session = session
+        }, dataCode: { session, receivedData in
+            print(receivedData)
+        },disconnectedCode: { session in
+            serverWS.typhoonIphone1Session = nil
+            print("Typhoon Iphone1 déconnecté")
+        }),
+        RouteInfos(routeName: "typhoon_iphone1Message", textCode: { session, receivedText in
+            print("typhoon_iphone1 message: \(receivedText)")
+        }, dataCode: { session, receivedData in
+            print(receivedData)
+        }),
+        RouteInfos(routeName: "typhoon_iphone1Ping", textCode: { session, receivedText in
+            //print("typhoon_iphone1 // ping reçu: \(receivedText)")
+        }, dataCode: { session, receivedData in
+            print(receivedData)
+        }),
     RouteInfos(routeName: "typhoon_iphoneConnect", textCode: { session, receivedText in
         print("typhoon_iphone connecté")
         serverWS.typhoonIphoneSession = session
@@ -194,7 +212,7 @@ let newRoutes: [RouteInfos] = [
         print(receivedData)
     },disconnectedCode: { session in
         serverWS.typhoonIphoneSession = nil
-        print("Remote controller déconnecté")
+        print("Typhoon Iphone déconnecté")
     }),
     RouteInfos(routeName: "typhoon_iphoneMessage", textCode: { session, receivedText in
         print("typhoon_iphone message: \(receivedText)")
