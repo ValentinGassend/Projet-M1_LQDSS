@@ -4,29 +4,39 @@ import websocket
 import threading
 
 # Configuration des bandeaux LED
-LED_COUNT = 240        # Total de LEDs (4 éléments x 60 LEDs)
-LED_PIN1 = 18            # GPIO pin connected to the pixels (must support PWM!)
-LED_PIN2 = 12           # Second GPIO pin for the second strip
+LED_COUNT = 1500        # Total de LEDs (4 éléments x 60 LEDs)
+LED_PIN1 = 18           # GPIO pin connected to the pixels (must support PWM!)
+LED_PIN2 = 13           # Second GPIO pin for the second strip
+LED_PIN3 = 12           # Third GPIO pin for the third strip
 LED_FREQ_HZ = 800000    # LED signal frequency in hertz (usually 800khz)
 LED_DMA = 10            # DMA channel to use for generating signal (try 10)
 LED_BRIGHTNESS = 255    # Set to 0 for darkest and 255 for brightest
 LED_INVERT = False      # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL = 1
+# Initialize strips
+print(f"Initializing strip1 on GPIO {LED_PIN1}...")
+strip1 = PixelStrip(LED_COUNT, LED_PIN1, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, channel=0)
+print(f"Initializing strip2 on GPIO {LED_PIN2}...")
+# strip2 = PixelStrip(LED_COUNT, LED_PIN2, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, channel=LED_CHANNEL)
 
-# Initialisation du bandeau LED
-print("Initializing strip1 on GPIO 18...")
-strip1 = PixelStrip(LED_COUNT, LED_PIN1, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS)
-print("Initializing strip2 on GPIO 12...")
-strip2 = PixelStrip(LED_COUNT, LED_PIN2, 800000, 11, True, LED_BRIGHTNESS)
+print(f"Initializing strip3 on GPIO {LED_PIN3}...")
+# strip3 = PixelStrip(LED_COUNT, LED_PIN3, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, channel=0)
+
 
 strip1.begin()
-strip2.begin()
+# strip2.begin()
+# strip3.begin()
 
 # Définir les zones pour chaque élément
-ZONE_FEU = range(0, 60)          # LEDs 0 à 59
-ZONE_EAU = range(60, 120)        # LEDs 60 à 119
-ZONE_VENT = range(60, 120)      # LEDs 120 à 179
-ZONE_ELECTRICITE = range(180, 240)  # LEDs 180 à 239
-
+ZONE_FEU = range(0, 2000)          # LEDs 0 à 59
+ZONE_EAU = range(0, 300)        # LEDs 60 à 119
+ZONE_VENT = range(0, 300)      # LEDs 120 à 179
+ZONE_ELECTRICITE = range(0, 200)  # LEDs 180 à 239
+ZONE_BANDEAU1 = range(0,1600)
+ZONE_BANDEAU2 = range(300,600)
+ZONE_BANDEAU3 = range(600,900)
+ZONE_BANDEAU4 = range(900,1200)
+ZONE_BANDEAU5 = range(1200,1500)
 # WebSocket server URL
 WEBSOCKET_URL = "ws://192.168.1.14:8080/rpiConnect"
 
@@ -37,11 +47,17 @@ class LightController:
         if self.strip is None:
             raise ValueError("Strip object is None!")
     def clear_strip(self):
-        """Éteint toutes les LEDs."""
-        for i in range(self.strip.numPixels()):
+        """Reset all LEDs to complete off state."""
+        # Set each LED to 0 for RGB
+        for i in range(LED_COUNT):
             self.strip.setPixelColor(i, Color(0, 0, 0))
         self.strip.show()
-
+        
+        # Force hardware reset
+        self.strip.begin()
+        
+        # Ensure changes are written
+        self.strip.show()
     def set_zone_color(self, zone, color):
         """
         Définit une couleur pour une zone spécifique.
@@ -52,7 +68,7 @@ class LightController:
             self.strip.setPixelColor(i, color)
         self.strip.show()
         
-    def fill_path_start(self, zone, color, duration):
+    def fill_path_start(self, zone, color, duration=2):
         """
         Remplit une zone avec une couleur dans une direction (gauche à droite).
         :param zone: Plage de LEDs.
@@ -99,7 +115,7 @@ class LightController:
     
 
     
-
+    
     def pulse(self, zone, base_color, pulse_color, duration=2.0):
         """
         Fait pulser une zone entre deux couleurs.
@@ -222,99 +238,31 @@ class LightController:
         if self.ws:
             self.ws.send("electricity_animation_ended")
 
-def test_animations():
+
+
+def test_strips(controllers, test_zones):
     """
-    Test all animations locally.
+    Test multiple LED strips automatically
+    
+    Args:
+        controllers: List of LightController objects
+        test_zones: List of zones corresponding to each controller
     """
-    light_controller1 = LightController(strip1)  # No WebSocket for local testing
-    light_controller2 = LightController(strip2)  # No WebSocket for local testing
-
-    print("Début du test des animations...")
-    light_controller1.clear_strip()
-    light_controller2.clear_strip()
-
-    print("Test : set_zone_color (Vent en gris)")
-    light_controller2.set_zone_color(ZONE_VENT, Color(128, 128, 128))
-    time.sleep(2)
- 
-    # Test set_zone_color
-    print("Test : set_zone_color (Feu en orange)")
-    light_controller2.set_zone_color(ZONE_FEU, Color(255, 69, 0))
-    time.sleep(2)
-    # print("Test : animate_water (Eau)")
-    # light_controller1.fill_path_start(ZONE_EAU,Color(0, 0, 255),2)
-    # time.sleep(2)
+    print("Testing strip control...")
     
- 
-    print("Test : set_zone_color (Feu en vert)")
-    light_controller1.set_zone_color(ZONE_FEU, Color(20, 69, 0))
-    time.sleep(2)
-    
-    print("Test : set_zone_color (Feu en bleu)")
-    light_controller1.set_zone_color(ZONE_FEU, Color(20, 69, 240))
-    time.sleep(2)
-    
-    # print("Test : set_zone_color (Électricité en jaune)")
-    # light_controller1.set_zone_color(ZONE_ELECTRICITE, Color(255, 255, 0))
-    # time.sleep(2)
-
-    # # Test animate_volcano
-    # print("Test : animate_volcano (Feu)")
-    # light_controller1.animate_volcano(ZONE_FEU)
-    # time.sleep(2)
-
-    # # Test animate_water
-    # print("Test : animate_water (Eau)")
-    # light_controller1.animate_water(ZONE_EAU)
-    # time.sleep(2)
-
-    # # Test animate_wind
-    # print("Test : animate_wind (Vent)")
-    # light_controller2.animate_wind(ZONE_VENT)
-    # time.sleep(2)
-
-    # # Test animate_electricity
-    # print("Test : animate_electricity (Électricité)")
-    # light_controller2.animate_electricity(ZONE_ELECTRICITE)
-    # time.sleep(2)
-
-    # # Test clear_strip
-    # print("Test : clear_strip")
-    # light_controller2.clear_strip()
-    # light_controller1.clear_strip()
-    # time.sleep(2)
-
-    print("Test des animations terminé.")
-    light_controller1.clear_strip()
-    light_controller2.clear_strip()
-
-
-
-
-def test_separate_strips():
-    """
-    Test that strips can be controlled independently
-    """
-    print("Testing separate strip control...")
-    
-    # Clear both strips
-    light_controller1.clear_strip()
-    light_controller2.clear_strip()
+    # Clear all strips
+    for controller in controllers:
+        controller.clear_strip()
     time.sleep(1)
     
-    # Test strip 1 only
-    print("Testing strip 1...")
-    light_controller1.set_zone_color(ZONE_FEU, Color(255, 0, 0))
-    time.sleep(2)
-    light_controller1.clear_strip()
+    # Test each strip
+    for i, (controller, zone) in enumerate(zip(controllers, test_zones)):
+        print(f"Testing strip {i+1}...")
+        controller.set_zone_color(zone, Color(255 if i == 0 else 0, 0, 255 if i == 1 else 0))
+        time.sleep(2)
+        controller.clear_strip()
     
-    # Test strip 2 only
-    print("Testing strip 2...")
-    light_controller2.set_zone_color(ZONE_EAU, Color(0, 0, 255))
-    time.sleep(2)
-    light_controller2.clear_strip()
-    
-    print("Separate strip test complete")
+    print("Strip test complete")
 
 # WebSocket event handlers
 def on_message(ws, message):
@@ -326,11 +274,11 @@ def on_message(ws, message):
         if message == "animate_volcano":
             light_controller1.animate_volcano(ZONE_FEU)
         elif message == "animate_water":
-            light_controller2.animate_water(ZONE_EAU)
+            light_controller1.animate_water(ZONE_EAU)   
         elif message == "animate_wind":
             light_controller1.animate_wind(ZONE_VENT)
         elif message == "animate_electricity":
-            light_controller2.animate_electricity(ZONE_ELECTRICITE)
+            light_controller1.animate_electricity(ZONE_ELECTRICITE)
         elif message == "set_zone_color_feu":
             light_controller1.set_zone_color(ZONE_FEU, Color(255, 69, 0))  # Orange
         elif message == "set_zone_color_eau":
@@ -377,7 +325,8 @@ ws = websocket.WebSocketApp(
 
 # Initialize LightController with WebSocket
 light_controller1 = LightController(strip1, ws)
-light_controller2 = LightController(strip2, ws)
+# light_controller2 = LightController(strip2, ws)
+# light_controller3 = LightController(strip3, ws)
 
 # Run WebSocket in a separate thread
 def run_websocket():
@@ -390,13 +339,37 @@ websocket_thread.start()
 # Main loop
 try:
     # Test animations locally
-    test_animations()
-    test_separate_strips()  
-    # Keep the script running
+    # test_animations()
+    # test_separate_strips()
+    # test_strips([light_controller1], [ZONE_FEU, ZONE_EAU])
+    # light_controller1.set_zone_color(ZONE_FEU, Color(128, 128, 128))
+    # light_controller1.fill_path_start(ZONE_FEU, Color(0, 0, 255))
+    
+    light_controller1.set_zone_color(ZONE_BANDEAU1, Color(128, 128, 0))
+    time.sleep(1)
+    # light_controller1.fill_path_end(ZONE_FEU, Color(0, 255, 0))
+
+    # light_controller1.set_zone_color(ZONE_BANDEAU2, Color(128, 128, 128))
+    # time.sleep(1)
+    # # light_controller1.fill_path_end(ZONE_FEU, Color(255, 0, 0))
+
+    # light_controller1.set_zone_color(ZONE_BANDEAU3, Color(128, 0, 128))
+    # time.sleep(1)
+    # # light_controller1.fill_path_end(ZONE_FEU, Color(255, 0, 0))
+
+    # light_controller1.set_zone_color(ZONE_BANDEAU4, Color(0, 255, 0))
+    # time.sleep(1)
+    # # light_controller1.fill_path_end(ZONE_FEU, Color(255, 0, 0))
+
+    # light_controller1.set_zone_color(ZONE_BANDEAU5, Color(0, 0, 255))
+
+    # # Keep the script running
     while True:
         time.sleep(1)
+        # light_controller1.set_zone_color(ZONE_BANDEAU1, Color(128, 128, 0))
+      
 except KeyboardInterrupt:
     print("Arrêt du programme.")
+    light_controller1.clear_strip()
 finally:
     light_controller1.clear_strip()
-    light_controller2.clear_strip()
