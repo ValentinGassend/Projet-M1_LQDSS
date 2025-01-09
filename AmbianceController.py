@@ -16,16 +16,6 @@ LED_CHANNEL = 1
 # Initialize strips
 print(f"Initializing strip1 on GPIO {LED_PIN1}...")
 strip1 = PixelStrip(LED_COUNT, LED_PIN1, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, channel=0)
-print(f"Initializing strip2 on GPIO {LED_PIN2}...")
-# strip2 = PixelStrip(LED_COUNT, LED_PIN2, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, channel=LED_CHANNEL)
-
-print(f"Initializing strip3 on GPIO {LED_PIN3}...")
-# strip3 = PixelStrip(LED_COUNT, LED_PIN3, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, channel=0)
-
-
-strip1.begin()
-# strip2.begin()
-# strip3.begin()
 
 # Définir les zones pour chaque élément
 ZONE_FEU = range(0, 2000)          # LEDs 0 à 59
@@ -259,8 +249,6 @@ websocket_thread.start()
 
 # Main loop
 try:
- 
-    
     light_controller1.set_zone_color(ZONE_BANDEAU1, Color(128, 128, 0))
     time.sleep(1)
   
