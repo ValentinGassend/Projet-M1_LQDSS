@@ -23,6 +23,7 @@ class WebSocketClient:ObservableObject {
     
     @Published var messageReceive:String = ""
     @Published var isRFIDDetectedForMaze:Bool = false
+    @Published var isRFIDDetectedForTyphoon:Bool = false
     @Published var connectedDevices: [Device] = []
     
     func connectForIdentification(route: IdentificationRoute) {
@@ -316,17 +317,26 @@ extension WebSocketClient: WebSocketConnectionDelegate {
         }
         
         // Exemple de traitement pour RFID
-        private func handleRFIDMessage(_ message: ParsedMessage) {
-            print("RFID message for maze")
-            if message.data == "true" {
-                print("RFID detected")
-                isRFIDDetectedForMaze = true
-                
-            } else {
-                print("RFID not detected")
+    private func handleRFIDMessage(_ message: ParsedMessage) {
+        print("component: \(message.component) data: \(message.data)")
+        
+        if message.data == "typhoon" {
+            print("RFID message for typhoon")
+            print("RFID detected")
+            DispatchQueue.main.async {
+                self.isRFIDDetectedForTyphoon = true
+                print("isRFIDDetectedForTyphoon is now: \(self.isRFIDDetectedForTyphoon)")
             }
-            
         }
+        else if message.data == "maze" {
+            print("RFID message for maze")
+            print("RFID detected")
+            isRFIDDetectedForMaze = true
+        }
+        else {
+            print("RFID not detected")
+        }
+    }
         func updateDevicesFromJson(_ jsonString: String) {
             guard let jsonData = jsonString.data(using: .utf8) else {
                 print("Error: Cannot convert string to data")

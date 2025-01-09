@@ -74,19 +74,17 @@ struct ContentView: View {
     
     
     private let ROTATION_SPEED_THRESHOLD: Double = 10.0 // Adjust this threshold as needed
-    private let TOTAL_ROTATIONS_TARGET: Double = 2.0
+    private let TOTAL_ROTATIONS_TARGET: Double = 5.0
     //    private let spheroIds = ["SB-8630", "SB-5D1C"]
     private var spheroIds: [String] {
         return getHandleAssignments()
             .compactMap { $0.spheroName }
     }
     
-    // Helper function to get handle number from spheroId
     private func getHandleNumber(for spheroId: String) -> String? {
             for role in [SpheroRole.handle1, .handle2, .handle3, .handle4] {
                 if let assignment = roleManager.getRoleAssignment(for: role),
                    assignment.spheroName == spheroId {
-                    // Extract number from handle role (e.g., "handle1" -> 1)
                     return role.rawValue.replacingOccurrences(of: "Handle ", with: "")
                 }
             }
@@ -333,9 +331,9 @@ struct ContentView: View {
             wsClient.connectForIdentification(route: .typhoonIphoneConnect)
         }
         .onDisappear {
-            for (_, sphero) in connectedSpheros {
-                sphero.sensorControl.disable()
-            }
+//            for (_, sphero) in connectedSpheros {
+//                sphero.sensorControl.disable()
+//            }
             wsClient.disconnect(route: "remoteControllerConnect")
             wsClient.disconnect(route: "mazeIphoneConnect")
             wsClient.disconnect(route: "typhoonIphoneConnect")
@@ -344,15 +342,10 @@ struct ContentView: View {
 }
 
 // Modèle pour les données de rotation d'un Sphero
-struct SpheroRotationData {
-    var totalRotations: Double = 0.0
-    var currentRotationSpeed: Double = 0.0
-    var lastGyroZ: Double = 0.0
-    var isCapturing: Bool = false
-}
-
-struct SpheroBoltState {
-    var speed: Double = 0
-    var heading: Double = 0
-    
-}
+//struct SpheroRotationData {
+//    var totalRotations: Double = 0.0
+//    var currentRotationSpeed: Double = 0.0
+//    var lastGyroZ: Double = 0.0
+//    var isCapturing: Bool = false
+//}
+//
