@@ -38,16 +38,7 @@ class SpheroPresetManager {
 
 // Vue principale
 struct RemoteControllerView: View {
-    
-    @State private var selectedSpheroName: String?
     @ObservedObject var wsClient = WebSocketClient.instance
-    @StateObject private var roleManager = SpheroRoleManager.instance
-    @State private var showConnectSheet = false
-    @State private var isSpheroConnected = false
-    @State private var connectedSpheroNames: [String] = []
-    @State private var connectionStatus: String = ""
-    @State private var showMazeIcon: Bool = false
-    @State private var spheroMazeInfo: [String: BoltToy] = [:]
     
     var body: some View {
         TabView {
@@ -71,24 +62,6 @@ struct RemoteControllerView: View {
                 .tabItem {
                     Label("Crystal", systemImage: "sparkles")
                 }
-        }
-        .sheet(isPresented: $showConnectSheet) {
-            SpheroConnectionSheetView(
-                isSpheroConnected: $isSpheroConnected,
-                wsClient: wsClient,
-                connectionStatus: $connectionStatus,
-                connectedSpheroNames: $connectedSpheroNames,
-                spheroMazeInfo: $spheroMazeInfo,
-                roleManager: roleManager // Passage du roleManager
-            )
-        }
-        .onAppear {
-            wsClient.connectForIdentification(route: IdentificationRoute.typhoonIphoneConnect)
-            wsClient.connectForIdentification(route: IdentificationRoute.mazeIphoneConnect)
-        }
-        .onDisappear {
-            wsClient.disconnect(route: "mazeIphoneConnect")
-            wsClient.disconnect(route: "typhoonIphoneConnect")
         }
     }
 }

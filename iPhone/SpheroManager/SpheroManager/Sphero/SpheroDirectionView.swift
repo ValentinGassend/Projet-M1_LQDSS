@@ -20,7 +20,7 @@ struct SpheroDirectionView: View {
     @State private var rotationData: [String: SpheroRotationData] = [:]
     private let rotationThreshold: Double = 20.0
     
-    private let spheroIds = ["SB-5D1C", "SB-8630"]
+    private let spheroIds = ["SB-92B2","SB-808F","SB-313C"]
     
     private func connectToSpheros() {
         SharedToyBox.instance.searchForBoltsNamed(spheroIds) { error in
