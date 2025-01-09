@@ -92,15 +92,15 @@ class SpheroRoleManager: ObservableObject {
     }
     
     func getRoleAssignment(for role: SpheroRole) -> SpheroRoleAssignment? {
-        print("Checking assignment for role: \(role.rawValue)")
+//        print("Checking assignment for role: \(role.rawValue)")
 //        for assignment in roleAssignments {
 //            print("Assigned Sphero: \(assignment.spheroName) with role: \(assignment.role.rawValue)")
 //        }
         let result = roleAssignments.first(where: { $0.role == role })
         if let result = result {
-            print("Found assignment for role \(role.rawValue): \(result.spheroName)")
+//            print("Found assignment for role \(role.rawValue): \(result.spheroName)")
         } else {
-            print("No assignment found for role \(role.rawValue)")
+//            print("No assignment found for role \(role.rawValue)")
         }
         return result
     }
@@ -120,6 +120,7 @@ struct SpheroConnectionSheetView: View {
     @State private var showingRoleSelection = false
     var body: some View {
         VStack {
+            
             Text("Connect to Sphero")
                 .font(.title)
                 .padding()

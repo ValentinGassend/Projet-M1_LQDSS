@@ -72,14 +72,22 @@ struct ContentView: View {
     @StateObject private var roleManager = SpheroRoleManager.instance
     @State private var rotationData: [String: SpheroRotationData] = [:]
     
-    private let spheroIds = ["SB-8630", "SB-5D1C"]
-    
-    private func connectToSpheros() {
-        SharedToyBox.instance.searchForBoltsNamed(spheroIds) { error in
-            if error == nil {
-                //                configureBolts()
-            }
+    //    private let spheroIds = ["SB-8630", "SB-5D1C"]
+    private var spheroIds: [String] {
+        return getHandleAssignments()
+            .compactMap { $0.spheroName }
+    }
+    private func getHandleAssignments() -> [SpheroRoleAssignment] {
+        return [.handle1, .handle2, .handle3, .handle4].compactMap { role in
+            roleManager.getRoleAssignment(for: role)
         }
+    }
+    private func connectToSpheros() {
+        //        SharedToyBox.instance.searchForBoltsNamed(spheroIds) { error in
+        //            if error == nil {
+        //                //                configureBolts()
+        //            }
+        //        }
     }
     
     private func configureBolts() {
@@ -257,7 +265,7 @@ struct ContentView: View {
             )
         }
         .onAppear {
-            connectToSpheros()
+            //            connectToSpheros()
             wsClient.connectForIdentification(route: .remoteControllerConnect)
             wsClient.connectForIdentification(route: .mazeIphoneConnect)
             wsClient.connectForIdentification(route: .typhoonIphoneConnect)
