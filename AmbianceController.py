@@ -257,7 +257,7 @@ def main():
     except KeyboardInterrupt:
         print("Arrêt du programme")
         client.stop()
-
+    
 
 if __name__ == "__main__":
     main()
