@@ -430,7 +430,27 @@ let newRoutes: [RouteInfos] = [
         print("crystal_esp2 // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
-    })
+    }),
+    RouteInfos(routeName: "ambianceManagerConnect", textCode: { session, receivedText in
+            serverWS.ambianceManagerSession = session
+            print("Ambiance Manager connecté")
+        }, dataCode: { session, receivedData in
+            print(receivedData)
+        }, disconnectedCode: { session in
+            serverWS.ambianceManagerSession = nil
+            print("Ambiance Manager déconnecté")
+        }),
+        RouteInfos(routeName: "ambianceManagerMessage", textCode: { session, receivedText in
+            print("Message Ambiance Manager: \(receivedText)")
+            // Ajouter logique spécifique pour traiter les messages
+        }, dataCode: { session, receivedData in
+            print(receivedData)
+        }),
+        RouteInfos(routeName: "ambianceManagerPing", textCode: { session, receivedText in
+            print("Ping Ambiance Manager: \(receivedText)")
+        }, dataCode: { session, receivedData in
+            print(receivedData)
+        })
 ]
 
 

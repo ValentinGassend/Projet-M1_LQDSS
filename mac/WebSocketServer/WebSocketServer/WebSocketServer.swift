@@ -68,9 +68,11 @@ class WebSockerServer {
     @State var tornadoEspSession: WebSocketSession?
     @State var tornadoRpiSession: WebSocketSession?
     
-    var crystalEsp1Session: WebSocketSession?
-    var crystalEsp2Session: WebSocketSession?
+    @State var crystalEsp1Session: WebSocketSession?
+    @State var crystalEsp2Session: WebSocketSession?
     
+    @State var ambianceManagerSession: WebSocketSession?
+
     var messageSession: [WebSocketSession?] = []
     
     // Dictionary to store ping-related sessions
