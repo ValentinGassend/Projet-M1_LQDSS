@@ -315,15 +315,18 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showConnectSheet) {
-            SpheroConnectionSheetView(
-                isSpheroConnected: $isSpheroConnected,
-                wsClient: wsClient,
-                connectionStatus: $connectionStatus,
-                connectedSpheroNames: $connectedSpheroNames,
-                spheroMazeInfo: $spheroMazeInfo,
-                roleManager: roleManager
-            )
+            SimpleSpheroConnectionView()
         }
+//        .sheet(isPresented: $showConnectSheet) {
+//            SpheroConnectionSheetView(
+//                isSpheroConnected: $isSpheroConnected,
+//                wsClient: wsClient,
+//                connectionStatus: $connectionStatus,
+//                connectedSpheroNames: $connectedSpheroNames,
+//                spheroMazeInfo: $spheroMazeInfo,
+//                roleManager: roleManager
+//            )
+//        }
         .onAppear {
             //            connectToSpheros()
             wsClient.connectForIdentification(route: .remoteControllerConnect)

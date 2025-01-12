@@ -72,6 +72,7 @@ struct VolcanoView: View {
     private let commands = [
         
         "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager_rpi]=>rfid#volcano",
+        "crystal_esp1=>[ambianceManager]=>set_zone_color#true",
         "volcano_esp1=>[volcano_esp1,volcano_esp2]=>rfid#volcano",
         "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#first",
         "volcano_esp1=>[volcano_esp2]=>relay1#true",

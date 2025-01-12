@@ -16,9 +16,6 @@ class SpheroPresetManager {
     ]
     
     func sendLightningPreset(to sphero: BoltToy) {
-        //        print("Envoi du preset Lightning au Sphero \(sphero.name ?? "Inconnu")")
-        
-        // Efface la matrice
         for x in 0..<8 {
             for y in 0..<8 {
                 sphero.drawMatrix(pixel: Pixel(x: x, y: y), color: .black)
@@ -65,7 +62,7 @@ struct RemoteControllerView: View {
         }
     }
 }
-
+// vent / electricité / eau / feu
 //    let spheroNames = ["SB-92B2", "SB-0994", "SB-808F", "SB-313C"]
 struct VolcanoView: View {
     let wsClient: WebSocketClient
@@ -74,10 +71,20 @@ struct VolcanoView: View {
         
         "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager_rpi]=>rfid#volcano",
         "volcano_esp1=>[volcano_esp1,volcano_esp2]=>rfid#volcano",
+//        "crystal_esp1=>[ambianceManager]=>set_zone_color#true",
+        "crystal_esp1=>[ambianceManager]=>stelle_to_volcano#true",
+        
+        "crystal_esp1=>[ambianceManager]=>volcano_finished#true",
+        
         "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#first",
-        "volcano_esp1=>[volcano_esp2]=>relay1#true",
-        "volcano_esp1=>[volcano_esp2]=>relay1#false",
-        "volcano_esp2=>[volcano_esp1]=>rfid#second"
+//        "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#second",
+//        "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#third",
+//        "volcano_esp1=>[volcano_esp1]=>relay1#true",
+//        "volcano_esp1=>[volcano_esp1]=>relay1#false",
+//        "volcano_esp1=>[volcano_esp1]=>relay2#true",
+//        "volcano_esp1=>[volcano_esp1]=>relay2#false",
+        "volcano_esp2=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#second",     "volcano_esp2=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#third",
+
     ]
     
     var body: some View {
@@ -90,10 +97,15 @@ struct MazeView: View {
     
     private let commands = [
         "crystal_esp1=>[crystal_esp2,crystal_esp1,maze_esp,ambianceManager_rpi]=>rfid#maze",
+        
+        
+        "crystal_esp1=>[ambianceManager]=>stelle_to_maze#true",
+        "crystal_esp1=>[ambianceManager]=>maze_finished#true",
         "maze_esp=>[maze_esp,maze_iphone,ambianceManager_rpi]=>rfid#maze",
         "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn1#true",
         "maze_esp=>[maze_iphone]=>btn1#false",
-        "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn2#true"
+        "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn2#true",
+        "maze_esp=>[maze_iphone,ambianceManager_rpi]=>btn3#true",
     ]
     
     var body: some View {
@@ -293,7 +305,7 @@ struct TyphoonView: View {
                     }
                 }
                 Divider()
-                CommandListView(commands: commands, wsClient: wsClient).frame(height: 300)
+                CommandListView(commands: commands, wsClient: wsClient).frame(height: 400)
             }
             .padding()
             
@@ -326,14 +338,17 @@ struct TyphoonView: View {
     private let commands = [
         "crystal_esp2=>[crystal_esp2,crystal_esp1,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon",
         "typhon_esp=>[typhoon_iphone,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon",
-        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay1#true",
-        "typhon_esp=>[typhoon_iphone]=>relay1#false",
-        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay2#true",
-        "typhon_esp=>[typhoon_iphone]=>relay2#false",
-        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay3#true",
-        "typhon_esp=>[typhoon_iphone]=>relay3#false",
-        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay4#true",
-        "typhon_esp=>[typhoon_iphone]=>relay4#false",
+        
+        "crystal_esp2=>[ambianceManager]=>stelle_to_typhoon#true",
+        "crystal_esp2=>[ambianceManager]=>typhoon_finished#true",
+//        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay1#true",
+//        "typhon_esp=>[typhoon_iphone]=>relay1#false",
+//        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay2#true",
+//        "typhon_esp=>[typhoon_iphone]=>relay2#false",
+//        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay3#true",
+//        "typhon_esp=>[typhoon_iphone]=>relay3#false",
+//        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay4#true",
+//        "typhon_esp=>[typhoon_iphone]=>relay4#false",
         "typhoon_iphone=>[typhoon_esp,ambianceManager_rpi]=>sphero1#true",
         "typhoon_iphone=>[typhoon_esp]=>sphero1#false",
         "typhoon_iphone=>[typhoon_esp,ambianceManager_rpi]=>sphero2#true",
@@ -351,6 +366,8 @@ struct TornadoView: View {
     private let commands = [
         "crystal_esp2=>[crystal_esp2,crystal_esp1,tornado_esp,ambianceManager_rpi]=>rfid#tornado",
         "tornado_esp=>[tornado_esp,tornado_rpi,ambianceManager_rpi]=>rfid#tornado",
+        "crystal_esp2=>[ambianceManager]=>stelle_to_tornado#true",
+        "crystal_esp2=>[ambianceManager]=>tornado_finished#true",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic1#true",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic1#false",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic2#true",
@@ -359,10 +376,10 @@ struct TornadoView: View {
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic3#false",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic4#true",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic4#false",
-        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#first",
-        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#second",
-        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#third",
-        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#fourth"
+//        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#first",
+//        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#second",
+//        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#third",
+//        "tornado_rpi=>[tornado_esp,ambianceManager_rpi]=>rvr#fourth"
         
     ]
     
@@ -375,8 +392,11 @@ struct CrystalView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
+        "crystal_esp1=>[ambianceManager]=>stelle_start#true",
+        "crystal_esp1=>[ambianceManager]=>stelle_finished#true",
         "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager_rpi]=>rfid#volcano",
         "crystal_esp1=>[crystal_esp2,crystal_esp1,maze_esp,ambianceManager_rpi]=>rfid#maze",
+        
         //        "crystal_esp2=>[crystal_esp2,crystal_esp1,AmbianceManager_rpi]=>crystal_start_animation",
         "crystal_esp2=>[crystal_esp2,crystal_esp1,tornado_esp,ambianceManager_rpi]=>rfid#tornado",
         "crystal_esp2=>[crystal_esp2,crystal_esp1,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon"
