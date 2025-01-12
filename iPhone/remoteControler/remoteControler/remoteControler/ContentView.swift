@@ -61,6 +61,7 @@ struct HandleView: View {
 }
 
 struct ContentView: View {
+    @ObservedObject private var connectionManager = SpheroConnectionController.shared
     @State private var connectedSpheros: [String: BoltToy] = [:]
     @State private var spheroStates: [String: SpheroBoltState] = [:]
     @StateObject private var wsClient = WebSocketClient.instance
@@ -235,6 +236,7 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    SpheroConnectionStatusView()
                     if !connectionStatus.isEmpty {
                         Text(connectionStatus)
                             .font(.headline)

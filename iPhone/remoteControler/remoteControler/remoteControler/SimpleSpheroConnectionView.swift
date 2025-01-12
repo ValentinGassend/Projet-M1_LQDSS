@@ -2,6 +2,8 @@
 import SwiftUI
 
 struct SimpleSpheroConnectionView: View {
+    @ObservedObject private var connectionManager = SpheroConnectionController.shared
+    @Environment(\.dismiss) private var dismiss
     @State private var connectedSpheroNames: [String] = []
     @State private var connectionStatus: String = ""
     @State private var disconnectedSphero: String? = nil
@@ -13,8 +15,8 @@ struct SimpleSpheroConnectionView: View {
     private let maxRetries = 3
     
     private func connectToSpecificSpheros() {
-        startConnectionAttempt(spheros: targetSpheros)
-    }
+            connectionManager.connectToSpheros(targetSpheros)
+        }
     
     private func reconnectSphero(_ spheroName: String) {
         startConnectionAttempt(spheros: [spheroName])
@@ -127,95 +129,43 @@ struct SimpleSpheroConnectionView: View {
     }
     var body: some View {
         VStack(spacing: 20) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Spheros ciblés:")
-                    .font(.headline)
-                
-                ForEach(targetSpheros, id: \.self) { targetSphero in
-                    Text(targetSphero)
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(8)
-                }
-            }
-            
-            if isConnecting {
-                VStack(spacing: 10) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle())
-                    
-                    if retryCount > 0 {
-                        Text("Tentative \(retryCount)/\(maxRetries)")
-                            .foregroundColor(.orange)
+                    // Replace all local state references with connectionManager
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Spheros ciblés:")
+                            .font(.headline)
+                        
+                        ForEach(targetSpheros, id: \.self) { targetSphero in
+                            Text(targetSphero)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color.gray.opacity(0.2))
+                                .cornerRadius(8)
+                        }
                     }
                     
-                    Button(action: cancelConnection) {
-                        Text("Annuler la connexion")
-                            .padding()
-                            .background(Color.red)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
-            } else {
-                Button(action: connectToSpecificSpheros) {
-                    Text("Se connecter aux Spheros")
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-            }
-            
-            if let disconnectedName = disconnectedSphero {
-                VStack(spacing: 10) {
-                    HStack {
-                        Image(systemName: "exclamationmark.circle.fill")
-                            .foregroundColor(.orange)
-                        Text("\(disconnectedName) s'est déconnecté")
-                            .foregroundColor(.orange)
-                    }
-                    
-                    Button(action: connectToSpecificSpheros) {
-                        Text("Reconnecter \(disconnectedName)")
-                            .padding()
-                            .background(Color.orange)
-                            .foregroundColor(.white)
-                            .cornerRadius(8)
-                    }
-                }
-                .padding()
-                .background(Color.orange.opacity(0.1))
-                .cornerRadius(8)
-            }
-            
-            if !connectedSpheroNames.isEmpty {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Spheros connectés:")
-                        .font(.headline)
-                    
-                    ForEach(connectedSpheroNames, id: \.self) { name in
-                        HStack {
-                            Text(name)
-                            Spacer()
-                            Button(action: { disconnectSphero(name) }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
+                    if connectionManager.isConnecting {
+                        VStack(spacing: 10) {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                            
+                            Button(action: { connectionManager.cancelConnection() }) {
+                                Text("Annuler la connexion")
+                                    .padding()
+                                    .background(Color.red)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(8)
                             }
                         }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.green.opacity(0.2))
-                        .cornerRadius(8)
+                    } else {
+                        Button(action: connectToSpecificSpheros) {
+                            Text("Se connecter aux Spheros")
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
                     }
-                }
-            }
-            
-            if !connectionStatus.isEmpty {
-                Text(connectionStatus)
-                    .foregroundColor(connectionStatus == "Connecté" ? .green : .red)
-            }
+            SpheroConnectionStatusView()
         }
         .padding()
     }
