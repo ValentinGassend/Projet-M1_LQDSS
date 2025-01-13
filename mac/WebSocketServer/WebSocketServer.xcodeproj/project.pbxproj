@@ -10,6 +10,8 @@
 		611C4ADB2CC7C4F300351126 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611C4ADA2CC7C4F300351126 /* main.swift */; };
 		611C4AE32CC7C5AB00351126 /* Swifter in Frameworks */ = {isa = PBXBuildFile; productRef = 611C4AE22CC7C5AB00351126 /* Swifter */; };
 		611C4B062CC7E7F300351126 /* TerminalCommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 611C4B052CC7E7F300351126 /* TerminalCommandExecutor.swift */; };
+		A7D77C642D35B77D001562D8 /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7D77C632D35B77D001562D8 /* AudioPlayer.swift */; };
+		A7D77C672D35B9E8001562D8 /* Bottle.aiff in Resources */ = {isa = PBXBuildFile; fileRef = A7D77C652D35B91D001562D8 /* Bottle.aiff */; };
 		EDA13E182CC7EAF0009D54B9 /* WebSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA13E172CC7EAF0009D54B9 /* WebSocketServer.swift */; };
 		EDA13E232CC8FB5A009D54B9 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA13E222CC8FB5A009D54B9 /* Utilities.swift */; };
 		EDA13E252CC8FE3F009D54B9 /* TmpFileManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA13E242CC8FE3F009D54B9 /* TmpFileManager.swift */; };
@@ -31,6 +33,8 @@
 		611C4AD72CC7C4F300351126 /* WebSocketServer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = WebSocketServer; sourceTree = BUILT_PRODUCTS_DIR; };
 		611C4ADA2CC7C4F300351126 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		611C4B052CC7E7F300351126 /* TerminalCommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalCommandExecutor.swift; sourceTree = "<group>"; };
+		A7D77C632D35B77D001562D8 /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
+		A7D77C652D35B91D001562D8 /* Bottle.aiff */ = {isa = PBXFileReference; lastKnownFileType = audio.aiff; path = Bottle.aiff; sourceTree = "<group>"; };
 		EDA13E172CC7EAF0009D54B9 /* WebSocketServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketServer.swift; sourceTree = "<group>"; };
 		EDA13E222CC8FB5A009D54B9 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		EDA13E242CC8FE3F009D54B9 /* TmpFileManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TmpFileManager.swift; sourceTree = "<group>"; };
@@ -76,6 +80,8 @@
 				611C4B052CC7E7F300351126 /* TerminalCommandExecutor.swift */,
 				EDA13E172CC7EAF0009D54B9 /* WebSocketServer.swift */,
 				EDA13E222CC8FB5A009D54B9 /* Utilities.swift */,
+				A7D77C632D35B77D001562D8 /* AudioPlayer.swift */,
+				A7D77C652D35B91D001562D8 /* Bottle.aiff */,
 				EDA13E242CC8FE3F009D54B9 /* TmpFileManager.swift */,
 			);
 			path = WebSocketServer;
@@ -91,6 +97,7 @@
 				611C4AD32CC7C4F300351126 /* Sources */,
 				611C4AD42CC7C4F300351126 /* Frameworks */,
 				611C4AD52CC7C4F300351126 /* CopyFiles */,
+				A7D77C662D35B9E2001562D8 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -143,6 +150,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		A7D77C662D35B9E2001562D8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A7D77C672D35B9E8001562D8 /* Bottle.aiff in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		611C4AD32CC7C4F300351126 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -153,6 +171,7 @@
 				EDA13E232CC8FB5A009D54B9 /* Utilities.swift in Sources */,
 				611C4ADB2CC7C4F300351126 /* main.swift in Sources */,
 				EDA13E252CC8FE3F009D54B9 /* TmpFileManager.swift in Sources */,
+				A7D77C642D35B77D001562D8 /* AudioPlayer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

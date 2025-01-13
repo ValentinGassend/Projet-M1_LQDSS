@@ -72,9 +72,10 @@ struct VolcanoView: View {
         "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager_rpi]=>rfid#volcano",
         "volcano_esp1=>[volcano_esp1,volcano_esp2]=>rfid#volcano",
 //        "crystal_esp1=>[ambianceManager]=>set_zone_color#true",
-        "crystal_esp1=>[ambianceManager]=>stelle_to_volcano#true",
+        "crystal_esp1=>[volcano_esp1,ambianceManager]=>crystal_to_volcano#true",
         
-        "crystal_esp1=>[ambianceManager]=>volcano_finished#true",
+        "crystal_esp1=>[volcano_esp1,ambianceManager]=>volcano_finished#true",
+        "crystal_esp1=>[volcano_esp1,ambianceManager]=>volcano_to_crystal#true",
         
         "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#first",
 //        "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#second",
@@ -99,6 +100,10 @@ struct MazeView: View {
         "crystal_esp1=>[crystal_esp2,crystal_esp1,maze_esp,ambianceManager_rpi]=>rfid#maze",
         
         
+        "maze_esp=>[maze_esp,ambianceManager]=>crystal_to_maze#true",
+        
+        "maze_esp=>[maze_esp,ambianceManager]=>maze_finished#true",
+        "maze_esp=>[maze_esp,ambianceManager]=>maze_to_crystal#true",
         "crystal_esp1=>[ambianceManager]=>stelle_to_maze#true",
         "crystal_esp1=>[ambianceManager]=>maze_finished#true",
         "maze_esp=>[maze_esp,maze_iphone,ambianceManager_rpi]=>rfid#maze",
@@ -364,10 +369,13 @@ struct TornadoView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
+        "tornado_esp=>[tornado_esp]=>crystal_to_tornado#true",
         "crystal_esp2=>[crystal_esp2,crystal_esp1,tornado_esp,ambianceManager_rpi]=>rfid#tornado",
         "tornado_esp=>[tornado_esp,tornado_rpi,ambianceManager_rpi]=>rfid#tornado",
-        "crystal_esp2=>[ambianceManager]=>stelle_to_tornado#true",
-        "crystal_esp2=>[ambianceManager]=>tornado_finished#true",
+        "tornado_esp=>[tornado_esp]=>tornado_finished#true",
+        "tornado_esp=>[tornado_esp]=>tornado_to_crystal#true",
+        "tornado_esp=>[tornado_esp]=>led_tornado#off",
+        "tornado_esp=>[tornado_esp]=>led_tornado#on",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic1#true",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic1#false",
         "tornado_esp=>[tornado_rpi,ambianceManager_rpi]=>mic2#true",

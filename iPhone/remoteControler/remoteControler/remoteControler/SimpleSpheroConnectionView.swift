@@ -13,19 +13,19 @@ struct SimpleSpheroConnectionView: View {
     @State private var searchTask: Task<Void, Never>? = nil
     @State private var timeoutTask: Task<Void, Never>? = nil
     @State private var retryCount: Int = 0
-    private let targetSpheros = ["SB-8630", "SB-5D1C"]
+    private let targetSpheros = ["SB-808F", "SB-0994"]
     private let maxRetries = 3
     
     private func connectToSpecificSpheros() {
             connectionManager.connectToSpheros(targetSpheros)
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     // Assign roles based on the order in targetSpheros array
                     if let firstToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[0] }) {
                         roleManager.assignRole(to: targetSpheros[0], role: .handle1, toy: firstToy)
                     }
                     if let secondToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[1] }) {
-                        roleManager.assignRole(to: targetSpheros[1], role: .maze, toy: secondToy)
+                        roleManager.assignRole(to: targetSpheros[1], role: .handle2, toy: secondToy)
                     }
                 }
         }

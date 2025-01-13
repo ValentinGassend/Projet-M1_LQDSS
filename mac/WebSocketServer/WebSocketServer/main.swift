@@ -35,6 +35,7 @@ var routes: [RouteInfos] = [
     RouteInfos(routeName: "remoteControllerDashboard", textCode: { session, receivedText in
         serverWS.remoteControllerSession = session
         if receivedText == "getDevices" {
+            AudioPlayer.shared.playSound()
             // Créer un dictionnaire de toutes les sessions disponibles
             let allDevices = serverWS.deviceStates.mapValues { state in
                 ["type": state.type, "isConnected": state.isConnected]
