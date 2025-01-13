@@ -237,6 +237,7 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     SpheroConnectionStatusView()
+                    MazeSpheroControlView()
                     if !connectionStatus.isEmpty {
                         Text(connectionStatus)
                             .font(.headline)

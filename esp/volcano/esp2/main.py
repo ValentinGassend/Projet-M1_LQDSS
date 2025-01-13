@@ -7,23 +7,14 @@ class ESP32Controller:
     def __init__(self):
         self.rfid = RFIDController()
         self.ws_client = WSclient("Cudy-F810", "13022495", "volcano_esp2")
-        self.rfid_detection_enabled = False  # État initial: détection désactivée
 
     def handle_entrance_tag(self, card_id):
-        if not self.rfid_detection_enabled:
-            print("Détection RFID désactivée - ignoré tag d'entrée")
-            return
-
-        msg = f"volcano_esp2=>[volcano_esp1]=>rfid#second"
+        msg = f"volcano_esp2=>[volcano_esp1]=>rfid#third"
         print(f"Sending RFID entrance message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_exit_tag(self, card_id):
-        if not self.rfid_detection_enabled:
-            print("Détection RFID désactivée - ignoré tag de sortie")
-            return
-
-        msg = f"volcano_esp2=>[volcano_esp1]=>rfid#third"
+        msg = f"volcano_esp2=>[volcano_esp1]=>rfid#second"
         print(f"Sending RFID exit message: {msg}")
         self.ws_client.route_ws_map.get("message", None).send(msg)
 

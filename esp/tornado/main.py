@@ -16,30 +16,25 @@ class ESP32Controller:
             Microphone(pin_number=32, sound_threshold=50)
         ]
 
-        # Add state tracking
-        self.is_activated = False
         self.last_reconnect_attempt = 0
         self.reconnect_interval = 1
 
     def handle_entrance_tag(self, card_id):
 
-        if card_id == 152301587 and not self.is_activated:
+        if card_id == 152301587:
             msg = f"tornado_esp=>[tornado_rpi,tornado_esp,ambianceManager_rpi]=>rfid#tornado"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")
 
     def handle_exit_tag(self, card_id):
-        if not self.is_activated:
-            return
+        
 
         msg = f"tornado_esp=>[tornado_rpi]=>rfid#false"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_mic_message(self, message):
-        if not self.is_activated:
-            return
-
+        
         try:
             if "#" in message:
                 mic_cmd, state = message.split("#")
@@ -51,9 +46,7 @@ class ESP32Controller:
             print(f"Error processing microphone message: {e}")
 
     def monitor_microphones(self):
-        if not self.is_activated:
-            return
-
+        
         for index, mic in enumerate(self.microphones, start=1):
             try:
                 samples = mic.read_samples()
@@ -78,11 +71,6 @@ class ESP32Controller:
                     message = ws.receive(first_byte=data)
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
-
-                        # Check for activation message
-                        if "rfid#tornado" in message:
-                            print("Tornado ESP activated!")
-                            self.is_activated = True
 
                         if "ping" in message.lower():
                             self.ws_client.process_message(ws, message)

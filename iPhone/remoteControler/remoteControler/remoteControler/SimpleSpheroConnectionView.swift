@@ -4,6 +4,8 @@ import SwiftUI
 struct SimpleSpheroConnectionView: View {
     @ObservedObject private var connectionManager = SpheroConnectionController.shared
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var roleManager = SpheroRoleManager.instance
+
     @State private var connectedSpheroNames: [String] = []
     @State private var connectionStatus: String = ""
     @State private var disconnectedSphero: String? = nil
@@ -16,6 +18,16 @@ struct SimpleSpheroConnectionView: View {
     
     private func connectToSpecificSpheros() {
             connectionManager.connectToSpheros(targetSpheros)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    // Assign roles based on the order in targetSpheros array
+                    if let firstToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[0] }) {
+                        roleManager.assignRole(to: targetSpheros[0], role: .handle1, toy: firstToy)
+                    }
+                    if let secondToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[1] }) {
+                        roleManager.assignRole(to: targetSpheros[1], role: .maze, toy: secondToy)
+                    }
+                }
         }
     
     private func reconnectSphero(_ spheroName: String) {
@@ -129,42 +141,49 @@ struct SimpleSpheroConnectionView: View {
     }
     var body: some View {
         VStack(spacing: 20) {
-                    // Replace all local state references with connectionManager
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Spheros ciblés:")
-                            .font(.headline)
-                        
-                        ForEach(targetSpheros, id: \.self) { targetSphero in
-                            Text(targetSphero)
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.gray.opacity(0.2))
-                                .cornerRadius(8)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Spheros ciblés:")
+                    .font(.headline)
+                
+                ForEach(targetSpheros, id: \.self) { targetSphero in
+                    HStack {
+                        Text(targetSphero)
+                        Spacer()
+                        // Show assigned role if connected
+                        if connectionManager.connectedSpheroNames.contains(targetSphero) {
+                            Text(roleManager.getRole(for: targetSphero).rawValue)
+                                .foregroundColor(.green)
                         }
                     }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(8)
+                }
+            }
+            
+            if connectionManager.isConnecting {
+                VStack(spacing: 10) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
                     
-                    if connectionManager.isConnecting {
-                        VStack(spacing: 10) {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                            
-                            Button(action: { connectionManager.cancelConnection() }) {
-                                Text("Annuler la connexion")
-                                    .padding()
-                                    .background(Color.red)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(8)
-                            }
-                        }
-                    } else {
-                        Button(action: connectToSpecificSpheros) {
-                            Text("Se connecter aux Spheros")
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
+                    Button(action: { connectionManager.cancelConnection() }) {
+                        Text("Annuler la connexion")
+                            .padding()
+                            .background(Color.red)
+                            .foregroundColor(.white)
+                            .cornerRadius(8)
                     }
+                }
+            } else {
+                Button(action: connectToSpecificSpheros) {
+                    Text("Se connecter aux Spheros")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+            }
             SpheroConnectionStatusView()
         }
         .padding()

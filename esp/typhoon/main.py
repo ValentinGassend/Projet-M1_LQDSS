@@ -22,9 +22,6 @@ class ESP32Controller:
         for relay in self.relays:
             relay.off()  # on() désactive le relay car la logique est inversée
 
-        # Add activation state
-        self.is_activated = False
-
         self.last_reconnect_attempt = 0
         self.reconnect_interval = 1
         # WebSocket client
@@ -35,7 +32,7 @@ class ESP32Controller:
 
     def handle_entrance_tag(self, card_id):
         """Callback for entrance RFID detection"""
-        if card_id == 327204323 and not self.is_activated:
+        if card_id == 327204323:
             msg = f"typhon_esp=>[typhoon_iphone,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
@@ -43,17 +40,11 @@ class ESP32Controller:
 
     def handle_exit_tag(self, card_id):
         """Callback for exit RFID detection"""
-        if not self.is_activated:
-            return
-
         msg = f"typhoon_esp=>[typhon_iphone]=>rfid#false"
         self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_sphero_message(self, message):
         """Handle sphero-related relay control messages."""
-        if not self.is_activated:
-            return
-
         try:
             if "#" in message:
                 sphero_cmd, state = message.split("#")
@@ -80,7 +71,7 @@ class ESP32Controller:
 
     def set_relay_state(self, relay_num, state):
         """Set relay state and notify server."""
-        if not self.is_activated or self.relay_locked[relay_num]:
+        if self.relay_locked[relay_num]:
             return
 
         if 0 <= relay_num < len(self.relays):
@@ -97,9 +88,7 @@ class ESP32Controller:
 
     def notify_relay_state(self, relay_num, state):
         """Send relay state update to server."""
-        if not self.is_activated:
-            return
-
+        
         try:
             state_str = str(state).lower()
             msg = f"typhoon_esp=>[typhoon_iphone]=>relay{relay_num + 1}#{state_str}"
@@ -123,10 +112,6 @@ class ESP32Controller:
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
 
-                        # Check for activation message
-                        if "rfid#typhoon" in message:
-                            print("Typhoon ESP activated!")
-                            self.is_activated = True
 
                         # Gérer les messages sphero
                         if "sphero" in message and "#" in message:
@@ -149,12 +134,10 @@ class ESP32Controller:
                 print("WiFi reconnected successfully")
                 self.ws_client.connect_websockets()
 
-                if self.is_activated:
-                    # Resend current relay states after reconnection
-                    for i, relay in enumerate(self.relays):
-                        # Get current state (remember logic is inverted)
-                        current_state = not relay.value()  # Convert to logical state
-                        self.notify_relay_state(i, current_state)
+                for i, relay in enumerate(self.relays):
+                    # Get current state (remember logic is inverted)
+                    current_state = not relay.value()  # Convert to logical state
+                    self.notify_relay_state(i, current_state)
 
                 print("WebSocket reconnection completed and states resynchronized")
             else:

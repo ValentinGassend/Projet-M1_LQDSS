@@ -32,9 +32,7 @@ class ESP32Controller:
             "third": False
         }
 
-        # Add state control
-        self.sequence_started = False  # Controls if the main sequence has started
-        self.waiting_for_volcano = True  # Initially waiting for volcano tag
+        
 
     def check_all_rfids_active(self):
         """Check if all RFID states are True"""
@@ -67,23 +65,17 @@ class ESP32Controller:
                 self.notify_relay_state(relay_num, str(new_state).lower())
 
     def handle_entrance_tag(self, card_id):
-        if self.waiting_for_volcano:
-            if card_id == 323235155:
-                msg = f"volcano_esp1=>[volcano_esp1,volcano_esp2,crystal_esp1]=>rfid#volcano"
-                print(f"Sending RFID entrance message: {msg}")
-                self.ws_client.route_ws_map.get("message", None).send(msg)
-            else:
-                print("Waiting for volcano tag first")
-        else:
-            print(f"Volcano tag detection disabled")
-
-    def handle_exit_tag(self, card_id):
-        if self.sequence_started and not self.waiting_for_volcano:
-            msg = f"volcano_esp1=>[volcano_esp2,volcano_esp1]=>rfid#first"
-            print(f"Sending RFID exit message: {msg}")
+        if card_id == 323235155:
+            msg = f"volcano_esp1=>[volcano_esp1,volcano_esp2,crystal_esp1]=>rfid#volcano"
+            print(f"Sending RFID entrance message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
-            print("Sequence not started or waiting for volcano tag")
+            print("Waiting for volcano tag first")
+    def handle_exit_tag(self, card_id):
+        
+        msg = f"volcano_esp1=>[volcano_esp2,volcano_esp1]=>rfid#first"
+        print(f"Sending RFID exit message: {msg}")
+        self.ws_client.route_ws_map.get("message", None).send(msg)
 
     def handle_rfid_message(self, message):
         """Handle RFID state messages"""
@@ -91,25 +83,15 @@ class ESP32Controller:
             if "#" in message:
                 print(f"Message with #: {message}")
                 state = message.split("rfid#")[1]
-                print(f"State: {state}")
-                print(f"Sequence started: {self.sequence_started}")
 
-                if state in ["first", "second", "third"] and self.sequence_started:
+                if state in ["first", "second", "third"]:
                     self.rfid_states[state] = True
                     print(f"Updated RFID state {state}: {self.rfid_states[state]}")
 
                     if self.check_all_rfids_active():
                         print("All RFIDs active - activating relays")
                         self.activate_all_relays()
-
-                elif state == "volcano":
-                    if not self.sequence_started:
-                        print("Starting main sequence")
-                        self.sequence_started = True
-                        self.waiting_for_volcano = False
-                    else:
-                        print("Sequence already started")
-
+                
         except Exception as e:
             print(f"Error processing RFID message: {e}")
             import sys

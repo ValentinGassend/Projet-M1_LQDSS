@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SpheroConnectionStatusView: View {
     @ObservedObject private var connectionManager = SpheroConnectionController.shared
+    @ObservedObject private var roleManager = SpheroRoleManager.instance
     private let targetSpheros = ["SB-8630", "SB-5D1C"]
     
     var body: some View {
@@ -15,6 +16,15 @@ struct SpheroConnectionStatusView: View {
                         HStack {
                             Text(name)
                             Spacer()
+                            Text(roleManager.getRole(for: name).rawValue)
+                                                            .foregroundColor(.blue)
+                                                            .padding(.horizontal, 8)
+                                                            .padding(.vertical, 4)
+                                                            .background(
+                                                                RoundedRectangle(cornerRadius: 4)
+                                                                    .fill(Color.blue.opacity(0.2))
+                                                            )
+                                                        
                             Button(action: { connectionManager.disconnectSphero(name) }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .foregroundColor(.red)
