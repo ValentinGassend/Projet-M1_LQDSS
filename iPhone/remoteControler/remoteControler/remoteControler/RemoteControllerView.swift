@@ -401,8 +401,8 @@ struct CrystalView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
-        "crystal_esp1=>[ambianceManager]=>stelle_start#true",
-        "crystal_esp1=>[ambianceManager]=>stelle_finished#true",
+        "crystal_esp1=>[ambianceManager]=>led_crystal#on",
+        "crystal_esp1=>[ambianceManager]=>led_crystal#off",
         "crystal_esp1=>[ambianceManager]=>crystal#tornado",
         "crystal_esp1=>[ambianceManager]=>crystal#maze",
         "crystal_esp1=>[ambianceManager]=>crystal#typhoon",

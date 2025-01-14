@@ -1,33 +1,29 @@
+import _thread
 import utime
 from WSclient import WSclient
 from machine import Pin
 from neopixel import NeoPixel
-import time
-from WebSocketClient import WebSocketClient
 
 class ESP32Controller:
-    
-        # Configuration
-
     def __init__(self):
+        self.NUM_LEDS = 300
+        self.PIN = 5
         
-        self.NUM_LEDS = 300  # Nombre de LEDs dans le bandeau
-        self.PIN = 5        # Broche GPIO connectée au bandeau LED
+        self.ZONE_GROUND = (0, 120)
+        self.ZONE_TABLE = (120, 300)
+        self.ZONE_GLOBAL = (0, 300)
         
-        # Définition des zones
-        self.ZONE_GROUND = (0, 120)     # Zone "ground" : LEDs 0 à 119
-        self.ZONE_TABLE = (120, 300)    # Zone "table" : LEDs 120 à 299
-        self.ZONE_GLOBAL = (0, 300)     # Zone "global" : LEDs 0 à 299
+        self.ZONE_AIR = (160, 205)
+        self.ZONE_ELEC = (85, 160)
+        self.ZONE_WATER = (35, 85)
+        self.ZONE_FIRE = (1, 35)
         
-        self.ZONE_AIR= (250,300)
-        self.ZONE_ELEC=(200,250)
-        self.ZONE_WATER=(150,200)
-        self.ZONE_FIRE=(100,150)
-        
-        # Initialisation
         self.np = NeoPixel(Pin(self.PIN), self.NUM_LEDS)
         self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_espLed")
-       
+        
+        self.current_animation = None
+        self.stop_animation = False
+        self.animation_lock = _thread.allocate_lock()
         
         self.COLORS = {
             "orange": (220, 50, 0),
@@ -47,13 +43,41 @@ class ESP32Controller:
             "lavender": (230, 230, 250),
             "turquoise": (64, 224, 208),
         }
-        
-    def set_color(self,zone,r, g, b):
+
+    def stop_current_animation(self):
+        with self.animation_lock:
+            self.stop_animation = True
+            while self.current_animation:
+                utime.sleep_ms(50)
+            self.stop_animation = False
+
+    def websocket_thread(self):
+        while True:
+            try:
+                self.handle_websocket_messages()
+                utime.sleep_ms(100)
+            except Exception as e:
+                print(f"WebSocket thread error: {e}")
+                utime.sleep(5)
+
+    def animation_thread(self, animation_func, args):
+        with self.animation_lock:
+            self.current_animation = animation_func.__name__
+            try:
+                animation_func(*args)
+            finally:
+                self.current_animation = None
+
+    def start_animation(self, animation_func, args=()):
+        self.stop_current_animation()
+        _thread.start_new_thread(self.animation_thread, (animation_func, args))
+
+    def set_color(self, zone, r, g, b):
         start, end = zone
         for i in range(start, end):
             self.np[i] = (r, g, b)
         self.np.write()
-
+        
     def clear(self,zone):
         self.set_color(zone, 0, 0, 0)
 
@@ -200,257 +224,151 @@ class ESP32Controller:
             utime.sleep_ms(delay_ms)
 
    
-    def send_message(self, msg):
-        """Envoie un message au serveur"""
-        try:
-            ws = self.ws_client.route_ws_map.get("message", None)
-            if ws:
-                print(f"Sending message: {msg}")
-                ws.socket.setblocking(True)  # S'assure que l'envoi est bloquant
-                ws.send(msg)
-            else:
-                print("WebSocket route 'message' not found")
-                self.message_queue.append(msg)  # Sauvegarde le message pour réessayer plus tard
-        except Exception as e:
-            print(f"Error sending message: {e}")
-            self.message_queue.append(msg)  # Sauvegarde le message en cas d'erreur
-            self.attempt_reconnect()        
-
     def process_websocket_message(self, message):
-        """Traite les messages WebSocket reçus"""
         if "led_crystal#on" in message:
             print("led_on#true")
-            self.set_color(self.ZONE_GLOBAL, 150, 150, 150)
+            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 128, 0, 128))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_crystal#true")
+            
         elif "led_crystal#off" in message:
             print("led_off#true")
-            self.set_color(self.ZONE_GLOBAL, 0, 0, 0)
+            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_crystal#true")
+            
         elif message == "crystal#tornado":
             print("Démarrage de l'animation 'crystal_to_tornado'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#start")
-            self.blink_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], 15, 100)
-            self.fill_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], delay_ms=5, direction="end")
-            self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#end")
+            self.start_animation(self.tornado_animation)
+            
         elif message == "crystal#maze":
             print("Démarrage de l'animation 'crystal_maze'")
-            self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#maze")
-            self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
-            self.fill_animation(self.ZONE_ELEC, *self.COLORS["yellow"], delay_ms=5, direction="end")
-            self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#maze")
+            self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#start")
+            self.start_animation(self.maze_animation)
+            
         elif message == "crystal#typhoon":
             print("Démarrage de l'animation 'crystal_typhoon'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#start")
-            self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
-            self.fill_animation(self.ZONE_WATER, *self.COLORS["blue"], delay_ms=5, direction="end")
-            self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#end")
+            self.start_animation(self.typhoon_animation)
+            
         elif message == "crystal#volcano":
             print("Démarrage de l'animation 'crystal_volcano'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#start")
-            self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
-            self.fill_animation(self.ZONE_FIRE, *self.COLORS["red"], delay_ms=5, direction="end")
-            self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#end")
+            self.start_animation(self.volcano_animation)
+            
         elif message == "crystal#finished":
             print("Démarrage de l'animation 'crystal_finished'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#start")
-            self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
-            self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
-            self.blink_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], 15, 100)
-            self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
-            self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#end")
+            self.start_animation(self.finish_animation)
+            
         else:
             print("message inconnu :", message)
 
-# #VENT ANIMATION 
-# #stelle_to_tornado#true 
-# controller.fill_animation(controller.ZONE_GLOBAL, *controller.COLORS["purple"], delay_ms=1, direction="start")
-# utime.sleep(0.1)
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["purple"])
-# 
-# #rfid#tornado
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# 
-# #tornado_finished#true
-# controller.blink_animation(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# 
-# #tornado_to_stelle#true
-# controller.fill_animation(controller.ZONE_GROUND, *controller.COLORS["blue_grey"], delay_ms=1, direction="end")
-# controller.set_color(controller.ZONE_TABLE, 0,0,0)
-# controller.fill_animation(controller.ZONE_GROUND, 0,0,0, delay_ms=1, direction="end")
+    def tornado_animation(self):
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], 15, 100)
+        if not self.stop_animation:
+            self.fill_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], delay_ms=5, direction="end")
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#end")
 
+    def maze_animation(self):
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
+        if not self.stop_animation:
+            self.fill_animation(self.ZONE_ELEC, *self.COLORS["yellow"], delay_ms=5, direction="end")
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#end")
 
+    def typhoon_animation(self):
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
+        if not self.stop_animation:
+            self.fill_animation(self.ZONE_WATER, *self.COLORS["blue"], delay_ms=5, direction="end")
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#end")
+
+    def volcano_animation(self):
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
+        if not self.stop_animation:
+            self.fill_animation(self.ZONE_FIRE, *self.COLORS["red"], delay_ms=5, direction="end")
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#end")
+
+    def finish_animation(self):
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], 15, 100)
+        if not self.stop_animation:
+            self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#end")
+
+    def start(self):
+        print("Starting controller...")
+        if not self.ws_client.connect_wifi():
+            print("WiFi connection failed. Stopping.")
+            return
+
+        self.ws_client.connect_websockets()
+        
+        _thread.start_new_thread(self.websocket_thread, ())
+        
+        while True:
+            utime.sleep(1)
+            
     def handle_websocket_messages(self):
-            for ws_route, ws in self.ws_client.route_ws_map.items():
-                try:
-                    ws.socket.setblocking(False)
-                    data = ws.socket.recv(1)
-                    ws.socket.setblocking(True)
-                    if data:
-                        message = ws.receive(first_byte=data)
-                        if message:
-                            print(f"Message received on route {ws_route}: {message}")
-                            self.process_websocket_message(message)
+        """Gère la réception des messages WebSocket"""
+        for ws_route, ws in self.ws_client.route_ws_map.items():
+            try:
+                ws.socket.setblocking(False)
+                data = ws.socket.recv(1)
+                ws.socket.setblocking(True)
+                if data:
+                    message = ws.receive(first_byte=data)
+                    if message:
+                        print(f"Message received on route {ws_route}: {message}")
+                        self.process_websocket_message(message)
 
-                            if "ping" in message.lower():
-                                self.ws_client.process_message(ws, message)
+                        if "ping" in message.lower():
+                            self.ws_client.process_message(ws, message)
 
-                except OSError as e:
-                    if e.args[0] != 11:
-                        print(f"Error on WebSocket route {ws_route}: {e}")
-                        self.handle_websocket_error(ws_route, e)
-
-    def attempt_reconnect(self):
-        """Attempt to reconnect WebSocket connections"""
-        current_time = utime.ticks_ms()
-        if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
-            print("Attempting to reconnect WebSocket...")
-            self.last_reconnect_attempt = current_time
-
-            if self.ws_client.connect_wifi():
-                print("WiFi reconnected successfully")
-                self.ws_client.connect_websockets()
-                print("WebSocket reconnection attempt completed")
-            else:
-                print("WiFi reconnection failed")
+            except OSError as e:
+                if e.args[0] != 11:  # 11 is EAGAIN (no data available)
+                    print(f"Error on WebSocket route {ws_route}: {e}")
+                    self.handle_websocket_error(ws_route, e)
 
     def handle_websocket_error(self, ws_route, error):
-        """Handle WebSocket errors appropriately"""
+        """Gère les erreurs WebSocket"""
         if error.args[0] == 128:  # ENOTCONN
             print(f"Connection lost on route {ws_route}, attempting reconnection...")
             self.attempt_reconnect()
         else:
             print(f"Error on WebSocket route {ws_route}: {error}")
-    def start(self):
-            print("Démarrage du contrôleur...")
 
-            if not self.ws_client.connect_wifi():
-                print("Connexion WiFi échouée. Arrêt.")
-                return
-
+    def attempt_reconnect(self):
+        """Tente de se reconnecter au WebSocket"""
+        print("Attempting to reconnect WebSocket...")
+        
+        if self.ws_client.connect_wifi():
+            print("WiFi reconnected successfully")
             self.ws_client.connect_websockets()
+            print("WebSocket reconnection attempt completed")
+        else:
+            print("WiFi reconnection failed")
 
-            while True:
-               
-                try:
-                    self.handle_websocket_messages()
-                 
-                    utime.sleep_ms(100)
+    def send_message(self, msg):
+        """Envoie un message au serveur WebSocket"""
+        try:
+            ws = self.ws_client.route_ws_map.get("message", None)
+            if ws:
+                print(f"Sending message: {msg}")
+                ws.socket.setblocking(True)
+                ws.send(msg)
+            else:
+                print("WebSocket route 'message' not found")
+        except Exception as e:
+            print(f"Error sending message: {e}")
+            self.attempt_reconnect()
 
-                except Exception as e	:
-                    print(f"Erreur générale: {e}")
-                    utime.sleep(5)
-                    self.init()
-                    self.start()
-
-
-
-
+# Création et démarrage du contrôleur
 controller = ESP32Controller()
-# Démarrage du contrôleur
 controller.start()
-#controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["purple"])
-# Animation de pulsation avec transition entre rouge et bleu
-# controller.color_transition_pulse(
-#     zone=controller.ZONE_GLOBAL,
-#     color1=controller.COLORS["purple"],  # Starting color
-#     color2=controller.COLORS["blue"],    # Ending color
-#     pulse_speed_ms=3,                   # Speed of the pulse
-#     step=55                               # Step size for transition
-# )
-# 
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["blue"])
-
-
-# #VENT ANIMATION 
-# #stelle_to_tornado#true 
-# controller.fill_animation(controller.ZONE_GLOBAL, *controller.COLORS["purple"], delay_ms=1, direction="start")
-# utime.sleep(0.1)
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["purple"])
-# 
-# #rfid#tornado
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# 
-# #tornado_finished#true
-# controller.blink_animation(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["blue_grey"])
-# 
-# #tornado_to_stelle#true
-# controller.fill_animation(controller.ZONE_GROUND, *controller.COLORS["blue_grey"], delay_ms=1, direction="end")
-# controller.set_color(controller.ZONE_TABLE, 0,0,0)
-# controller.fill_animation(controller.ZONE_GROUND, 0,0,0, delay_ms=1, direction="end")
-
-
-
-# 
-# #ELEC ANIMATION 
-# #stelle_to_maze#true 
-# controller.fill_animation(controller.ZONE_GLOBAL, *controller.COLORS["purple"], delay_ms=1, direction="start")
-# utime.sleep(0.1)
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["purple"])
-# controller.set_color((120,140), *controller.COLORS["teal"])
-# utime.sleep(2)
-# #rfid#maze
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["gold"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["gold"])
-# 
-# #maze_finished#true
-# controller.blink_animation(controller.ZONE_TABLE, *controller.COLORS["gold"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["gold"])
-# 
-# #maze_to_stelle#true
-# controller.fill_animation(controller.ZONE_GROUND, *controller.COLORS["gold"], delay_ms=1, direction="end")
-# controller.set_color(controller.ZONE_TABLE, 0,0,0)
-# controller.fill_animation(controller.ZONE_GROUND, 0,0,0, delay_ms=1, direction="end")
-# 
-
-
-# #EAU ANIMATION 
-# #stelle_to_typhoon#true 
-# controller.fill_animation(controller.ZONE_GLOBAL, *controller.COLORS["purple"], delay_ms=1, direction="start")
-# utime.sleep(0.1)
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["purple"])
-# 
-# #rfid#typhoon
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["cyan"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["cyan"])
-# 
-# #typhoon_finished#true
-# controller.blink_animation(controller.ZONE_TABLE, *controller.COLORS["cyan"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["cyan"])
-# 
-# #typhoon_to_stelle#true
-# controller.fill_animation(controller.ZONE_GROUND, *controller.COLORS["cyan"], delay_ms=1, direction="end")
-# controller.set_color(controller.ZONE_TABLE, 0,0,0)
-# controller.fill_animation(controller.ZONE_GROUND, 0,0,0, delay_ms=1, direction="end")
-# 
-# 
-# 
-# 
-# #FEU ANIMATION 
-# #stelle_to_volcano#true 
-# controller.fill_animation(controller.ZONE_GLOBAL, *controller.COLORS["purple"], delay_ms=1, direction="start")
-# utime.sleep(0.1)
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["purple"])
-# 
-# #rfid#volcano
-# controller.pulse_animation(controller.ZONE_TABLE, *controller.COLORS["orange"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["orange"])
-# #volcano_finished#true
-# 
-# controller.blink_animation(controller.ZONE_TABLE, *controller.COLORS["orange"])
-# controller.set_color(controller.ZONE_TABLE, *controller.COLORS["orange"])
-# 
-# #volcano_to_stelle#true
-# controller.fill_animation(controller.ZONE_GROUND, *controller.COLORS["orange"], delay_ms=1, direction="end")
-# controller.set_color(controller.ZONE_TABLE, 0,0,0)
-# controller.fill_animation(controller.ZONE_GROUND, 0,0,0, delay_ms=1, direction="end")
-
-
-
-
-
-#controller.blink_animation(controller.ZONE_TABLE, *controller.COLORS["orange"], 3, 250)
-
