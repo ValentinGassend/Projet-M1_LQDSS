@@ -410,12 +410,29 @@ extension WebSockerServer {
     func sendMessage(from: String, to: [String], component: String, data: String) {
         let message = "\(component)#\(data)"
         print("Sending message: \(message) to routes: \(to)")
+        let ledDevices = [
+            "volcano_espLed",
+            "typhoon_espLed",
+            "maze_espLed",
+            "tornado_espLed",
+            "crystal_espLed"
+        ]
+        
         
         // Vérifie si 'to' contient 'typhoon_iphone' et ajoute 'typhoon_iphone1' si nécessaire
         var updatedTo = to
+        
+        if to.contains("ambianceManager") {
+            print("Message destiné à ambianceManager, redirection vers tous les appareils LED")
+            updatedTo.append(contentsOf: ledDevices)
+            // Retirer ambianceManager de la liste pour éviter le double envoi
+            updatedTo.removeAll { $0 == "ambianceManager" }
+        }
         if to.contains("typhoon_iphone") {
             updatedTo.append("typhoon_iphone1")
         }
+        updatedTo = Array(Set(updatedTo))
+        print("Liste finale des destinataires: \(updatedTo)")
         
         let targetSessions = sessions(for: updatedTo)
         
