@@ -36,8 +36,15 @@ class WebSockerServer {
         "tornado_esp": ("tornado", false),
         "tornado_rpi": ("tornado", false),
         "crystal_esp1": ("crystal", false),
-        "crystal_esp2": ("crystal", false)
+        "crystal_esp2": ("crystal", false),
+        "volcano_espLed": ("volcano", false),
+        "typhoon_espLed": ("typhoon", false),
+        "maze_espLed": ("maze", false),
+        "tornado_espLed": ("tornado", false),
+        "crystal_espLed": ("crystal", false)
     ]
+    
+    
     
     
     // Original sessions
@@ -53,11 +60,19 @@ class WebSockerServer {
     var spheroStickId: String?
     var spheroStickIsConnected: Bool = false
     
+    
+    
+    @State var volcanoEspLedSession: WebSocketSession?
+    @State var typhoonEspLedSession: WebSocketSession?
+    @State var mazeEspLedSession: WebSocketSession?
+    @State var tornadoEspLedSession: WebSocketSession?
+    @State var crystalEspLedSession: WebSocketSession?
+    
     // New device group sessions
     @State var typhoonEspSession: WebSocketSession?
     @State var typhoonIphoneSession: WebSocketSession?
     @State var typhoonIphone1Session: WebSocketSession?
-
+    
     @State var volcanoEsp1Session: WebSocketSession?
     @State var volcanoEsp2Session: WebSocketSession?
     @State var volcanoRpiSession: WebSocketSession?
@@ -72,7 +87,7 @@ class WebSockerServer {
     @State var crystalEsp2Session: WebSocketSession?
     
     @State var ambianceManagerSession: WebSocketSession?
-
+    
     var messageSession: [WebSocketSession?] = []
     
     // Dictionary to store ping-related sessions
@@ -269,6 +284,16 @@ class WebSockerServer {
         case "crystal_esp2Connect": self.crystalEsp2Session = session
         case "crystal_esp2Disconnect": self.crystalEsp2Session = nil
             
+        case "volcano_espLedConnect": self.volcanoEspLedSession = session
+        case "volcano_espLedDisconnect": self.volcanoEspLedSession = nil
+        case "typhoon_espLedConnect": self.typhoonEspLedSession = session
+        case "typhoon_espLedDisconnect": self.typhoonEspLedSession = nil
+        case "maze_espLedConnect": self.mazeEspLedSession = session
+        case "maze_espLedDisconnect": self.mazeEspLedSession = nil
+        case "tornado_espLedConnect": self.tornadoEspLedSession = session
+        case "tornado_espLedDisconnect": self.tornadoEspLedSession = nil
+        case "crystal_espLedConnect": self.crystalEspLedSession = session
+        case "crystal_espLedDisconnect": self.crystalEspLedSession = nil
         default: break
         }
     }
@@ -339,7 +364,12 @@ extension WebSockerServer {
             "tornado_esp": tornadoEspSession,
             "tornado_rpi": tornadoRpiSession,
             "crystal_esp1": crystalEsp1Session,
-            "crystal_esp2": crystalEsp2Session
+            "crystal_esp2": crystalEsp2Session,
+            "volcano_espLed": volcanoEspLedSession,
+            "typhoon_espLed": typhoonEspLedSession,
+            "maze_espLed": mazeEspLedSession,
+            "tornado_espLed": tornadoEspLedSession,
+            "crystal_espLed": crystalEspLedSession
         ]
     }
     func normalizeDeviceName(routeName: String) -> String {
@@ -399,7 +429,7 @@ extension WebSockerServer {
             session.writeText(message)
         }
     }
-
+    
     
     
     func onDisconnectedHandle(_ handle: WebSocketSession) {

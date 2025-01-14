@@ -453,7 +453,115 @@ let newRoutes: [RouteInfos] = [
             print(receivedData)
         })
 ]
+let ledRoutes: [RouteInfos] = [
+    // Routes pour volcano LED
+    RouteInfos(routeName: "volcano_espLedConnect", textCode: { session, receivedText in
+        serverWS.volcanoEspLedSession = session
+        print("volcano_espLed connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }, disconnectedCode: { session in
+        serverWS.volcanoEspLedSession = nil
+        print("volcano_espLed déconnecté")
+    }),
+    RouteInfos(routeName: "volcano_espLedMessage", textCode: { session, receivedText in
+        print("volcano_espLed message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "volcano_espLedPing", textCode: { session, receivedText in
+        print("volcano_espLed ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
 
+    // Routes pour typhoon LED
+    RouteInfos(routeName: "typhoon_espLedConnect", textCode: { session, receivedText in
+        serverWS.typhoonEspLedSession = session
+        print("typhoon_espLed connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }, disconnectedCode: { session in
+        serverWS.typhoonEspLedSession = nil
+        print("typhoon_espLed déconnecté")
+    }),
+    RouteInfos(routeName: "typhoon_espLedMessage", textCode: { session, receivedText in
+        print("typhoon_espLed message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "typhoon_espLedPing", textCode: { session, receivedText in
+        print("typhoon_espLed ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+
+    // Routes pour maze LED
+    RouteInfos(routeName: "maze_espLedConnect", textCode: { session, receivedText in
+        serverWS.mazeEspLedSession = session
+        print("maze_espLed connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }, disconnectedCode: { session in
+        serverWS.mazeEspLedSession = nil
+        print("maze_espLed déconnecté")
+    }),
+    RouteInfos(routeName: "maze_espLedMessage", textCode: { session, receivedText in
+        print("maze_espLed message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "maze_espLedPing", textCode: { session, receivedText in
+        print("maze_espLed ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+
+    // Routes pour tornado LED
+    RouteInfos(routeName: "tornado_espLedConnect", textCode: { session, receivedText in
+        serverWS.tornadoEspLedSession = session
+        print("tornado_espLed connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }, disconnectedCode: { session in
+        serverWS.tornadoEspLedSession = nil
+        print("tornado_espLed déconnecté")
+    }),
+    RouteInfos(routeName: "tornado_espLedMessage", textCode: { session, receivedText in
+        print("tornado_espLed message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "tornado_espLedPing", textCode: { session, receivedText in
+        print("tornado_espLed ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+
+    // Routes pour crystal LED
+    RouteInfos(routeName: "crystal_espLedConnect", textCode: { session, receivedText in
+        serverWS.crystalEspLedSession = session
+        print("crystal_espLed connecté")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }, disconnectedCode: { session in
+        serverWS.crystalEspLedSession = nil
+        print("crystal_espLed déconnecté")
+    }),
+    RouteInfos(routeName: "crystal_espLedMessage", textCode: { session, receivedText in
+        print("crystal_espLed message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "crystal_espLedPing", textCode: { session, receivedText in
+        print("crystal_espLed ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    })
+]
+
+// Ajouter les nouvelles routes LED aux routes existantes
+routes.append(contentsOf: ledRoutes)
 
 // add new routes in routes
 routes.append(contentsOf: newRoutes)

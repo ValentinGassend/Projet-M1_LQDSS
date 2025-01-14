@@ -342,10 +342,11 @@ struct TyphoonView: View {
     
     private let commands = [
         "crystal_esp2=>[crystal_esp2,crystal_esp1,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon",
-        "typhon_esp=>[typhoon_iphone,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon",
-        
-        "crystal_esp2=>[ambianceManager]=>stelle_to_typhoon#true",
-        "crystal_esp2=>[ambianceManager]=>typhoon_finished#true",
+        "typhoon_esp=>[typhoon_iphone,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon",
+        "typhoon_esp=>[typhoon_esp,ambianceManager]=>crystal_to_typhoon#true",
+        "typhoon_esp=>[typhoon_esp,ambianceManager]=>typhoon_finished#true",
+        "typhoon_esp=>[typhoon_esp,ambianceManager]=>typhoon_to_crystal#true",
+        "typhoon_esp=>[typhoon_esp,ambianceManager]=>led_typhoon#off",
 //        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay1#true",
 //        "typhon_esp=>[typhoon_iphone]=>relay1#false",
 //        "typhon_esp=>[typhoon_iphone,ambianceManager_rpi]=>relay2#true",
@@ -402,10 +403,14 @@ struct CrystalView: View {
     private let commands = [
         "crystal_esp1=>[ambianceManager]=>stelle_start#true",
         "crystal_esp1=>[ambianceManager]=>stelle_finished#true",
+        "crystal_esp1=>[crystal_esp1]=>crystal#tornado",
+        "crystal_esp1=>[crystal_esp1]=>crystal#maze",
+        "crystal_esp1=>[crystal_esp1]=>crystal#typhoon",
+        "crystal_esp1=>[crystal_esp1]=>crystal#volcano",
+        "crystal_esp1=>[crystal_esp1]=>crystal#finished",
         "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager_rpi]=>rfid#volcano",
         "crystal_esp1=>[crystal_esp2,crystal_esp1,maze_esp,ambianceManager_rpi]=>rfid#maze",
         
-        //        "crystal_esp2=>[crystal_esp2,crystal_esp1,AmbianceManager_rpi]=>crystal_start_animation",
         "crystal_esp2=>[crystal_esp2,crystal_esp1,tornado_esp,ambianceManager_rpi]=>rfid#tornado",
         "crystal_esp2=>[crystal_esp2,crystal_esp1,typhoon_esp,ambianceManager_rpi]=>rfid#typhoon"
     ]
