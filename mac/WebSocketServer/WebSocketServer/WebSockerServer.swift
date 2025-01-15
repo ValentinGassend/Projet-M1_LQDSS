@@ -1,18 +1,15 @@
+//
+//  WebSockerServer.swift
+//  WebSocketServer
+//
+//  Created by Valentin Gassant on 15/01/2025.
+//
+
+
 import Swifter
 import SwiftUI
 import Foundation
 import Combine
-
-struct RouteInfos {
-    var routeName: String
-    var textCode: (WebSocketSession, String) -> ()
-    var dataCode: (WebSocketSession, Data) -> ()
-    var parsedMessageCode: ((WebSocketSession, ParsedMessage) -> ())? = nil
-    var connectedCode: ((WebSocketSession) -> ())? = nil
-    var disconnectedCode: ((WebSocketSession) -> ())? = nil
-}
-
-
 
 class WebSockerServer {
     
@@ -24,8 +21,8 @@ class WebSockerServer {
     let server = HttpServer()
     var deviceStates: [String: (type: String, isConnected: Bool)] = [
         "remoteController_iphone2": ("remoteController", false),
+        "tornado_rvr": ("remoteController", false),
         "remoteController_iphone1": ("remoteController", false),
-        "tornado_rvr": ("tornado", false),
         "typhoon_esp": ("typhoon", false),
         "typhoon_iphone": ("typhoon", false),
         "typhoon_iphone1": ("typhoon", false),
@@ -35,6 +32,7 @@ class WebSockerServer {
         "maze_esp": ("maze", false),
         "maze_iphone": ("maze", false),
         "tornado_esp": ("tornado", false),
+        "tornado_rpi": ("tornado", false),
         "crystal_esp1": ("crystal", false),
         "crystal_esp2": ("crystal", false),
         "volcano_espLed": ("volcano", false),
@@ -52,6 +50,7 @@ class WebSockerServer {
     var laserSession: WebSocketSession?
     var iPhoneSession: WebSocketSession?
     var rvrTornadoSession: WebSocketSession?
+    var remoteControllerSession: WebSocketSession?
     
     // Sphero sessions
     var spheroTyphoonId: String?
@@ -94,7 +93,6 @@ class WebSockerServer {
     // Dictionary to store message-related sessions
     var messageSessions: [String: (session: WebSocketSession, isConnected: Bool)] = [:]
     
-        let audioPlayer = AudioPlayer.shared
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
@@ -109,30 +107,6 @@ class WebSockerServer {
                         }
                     }
                 }
-                else if routeInfos.routeName == "remoteController_iphone1Dashboard" {
-                                    print("Message received on remoteController_iphone1Dashboard: \(text)")
-                                    if text == "getDevices" {
-                                        self.audioPlayer.playSound()
-                                        self.sessionQueue.async {
-                                            let allDevices = self.deviceStates.mapValues { state in
-                                                [
-                                                    "type": state.type,
-                                                    "isConnected": state.isConnected
-                                                ]
-                                            }
-                                            
-                                            do {
-                                                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                                                if let jsonString = String(data: jsonData, encoding: .utf8) {
-                                                    session.writeText(jsonString)
-                                                    print("Sent device states to dashboard: \(jsonString)")
-                                                }
-                                            } catch {
-                                                print("Error generating JSON: \(error)")
-                                            }
-                                        }
-                                    }
-                                }
                 else if routeInfos.routeName.contains("Message") {
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
                     if let parsedMessage = self.parseMessage(text) {
@@ -169,17 +143,20 @@ class WebSockerServer {
             connected: { session in
                 print("Client connected to route: /\(routeInfos.routeName)")
                 if routeInfos.routeName.contains("iphone") {
-                                    self.handleIPhoneConnection(routeName: routeInfos.routeName, session: session)
-                                }
+                    self.cleanupExistingPhoneSession(routeName: routeInfos.routeName)
+                }
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
                     let deviceName = self.normalizeDeviceName(routeName: routeInfos.routeName)
                     
                     if routeInfos.routeName.contains("iphone") {
                         switch deviceName {
-                        case "remoteController_iphone1":
+                        case "typhoon_iphone":
+                            self.remoteController_iphone2Session = session
+                        case "typhoon_iphone1":
                             self.remoteController_iphone1Session = session
-                                                
+                        case "maze_iphone":
+                            self.mazeIphoneSession = session
                         default:
                             break
                         }
@@ -280,8 +257,8 @@ class WebSockerServer {
         case "typhoon_espDisconnect": self.typhoonEspSession = nil
         case "typhoon_iphoneConnect": self.remoteController_iphone2Session = session
         case "typhoon_iphoneDisconnect": self.remoteController_iphone2Session = nil
-        case "remoteController_iphone1Connect": self.remoteController_iphone1Session = session
-        case "remoteController_iphone1Disconnect": self.remoteController_iphone1Session = nil
+        case "typhoon_iphone1Connect": self.remoteController_iphone1Session = session
+        case "typhoon_iphone1Disconnect": self.remoteController_iphone1Session = nil
             
         case "volcano_esp1Connect": self.volcanoEsp1Session = session
         case "volcano_esp1Disconnect": self.volcanoEsp1Session = nil
@@ -368,213 +345,5 @@ class WebSockerServer {
         } catch {
             print("Server failed to start: \(error.localizedDescription)")
         }
-    }
-}
-
-
-extension WebSockerServer {
-    private var sessionMapping: [String: WebSocketSession?] {
-        return [
-            "typhoon_esp": typhoonEspSession,
-            "remoteController_iphone1": remoteController_iphone1Session,
-            "remoteController_iphone2": remoteController_iphone2Session,
-            "volcano_esp1": volcanoEsp1Session,
-            "volcano_esp2": volcanoEsp2Session,
-            "volcano_rpi": volcanoRpiSession,
-            "maze_esp": mazeEspSession,
-            "maze_iphone": mazeIphoneSession,
-            "tornado_esp": tornadoEspSession,
-            "tornado_rpi": tornadoRpiSession,
-            "crystal_esp1": crystalEsp1Session,
-            "crystal_esp2": crystalEsp2Session,
-            "volcano_espLed": volcanoEspLedSession,
-            "typhoon_espLed": typhoonEspLedSession,
-            "maze_espLed": mazeEspLedSession,
-            "tornado_espLed": tornadoEspLedSession,
-            "crystal_espLed": crystalEspLedSession
-        ]
-    }
-    func normalizeDeviceName(routeName: String) -> String {
-        if routeName.hasSuffix("Connect") {
-            return String(routeName.dropLast("Connect".count))
-        } else if routeName.hasSuffix("Message") {
-            return String(routeName.dropLast("Message".count))
-            
-        } else if routeName.hasSuffix("Ping") {
-            return String(routeName.dropLast("Ping".count))
-            
-        }
-        return routeName
-    }
-    private func sessions(for targets: [String]) -> [WebSocketSession] {
-        targets.compactMap { target in
-            print("Fetching session for target: \(target)")
-            
-            //            print("message session : \(messageSessions)")
-            if let messageSession = messageSessions[target]?.session {
-                return messageSession
-            }
-            return nil
-        }
-    }
-    private func handleIPhoneConnection(routeName: String, session: WebSocketSession) {
-            let deviceName = normalizeDeviceName(routeName: routeName)
-            
-            switch deviceName {
-            case "remoteController_iphone1":
-                self.remoteController_iphone1Session = session
-                // Register message session
-                if routeName.contains("Message") {
-                    registerMessageSession(routeName: routeName, session: session)
-                }
-                // Update device state
-                updateDeviceState(routeName: deviceName, isConnected: true)
-                
-            case "remoteController_iphone2":
-                self.remoteController_iphone2Session = session
-                if routeName.contains("Message") {
-                    registerMessageSession(routeName: routeName, session: session)
-                }
-                updateDeviceState(routeName: deviceName, isConnected: true)
-                
-            default:
-                break
-            }
-        }
-    func updateDeviceState(routeName: String, isConnected: Bool) {
-            let deviceName = normalizeDeviceName(routeName: routeName)
-            // Don't process dashboard routes
-            if deviceName.contains("Dashboard") {
-                return
-            }
-            
-            sessionQueue.async {
-                if var state = self.deviceStates[deviceName] {
-                    state.isConnected = isConnected
-                    self.deviceStates[deviceName] = state
-                    print("Updated state for \(deviceName): isConnected = \(isConnected)")
-                    
-                    // Notify dashboard of state change
-                    if let dashboardSession = self.remoteController_iphone1Session {
-                        do {
-                            let allDevices = self.deviceStates.mapValues { state in
-                                [
-                                    "type": state.type,
-                                    "isConnected": state.isConnected
-                                ]
-                            }
-                            let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                                dashboardSession.writeText(jsonString)
-                            }
-                        } catch {
-                            print("Error sending update to dashboard: \(error)")
-                        }
-                    }
-                }
-            }
-        }
-    func sendMessage(from: String, to: [String], component: String, data: String) {
-        let message = "\(component)#\(data)"
-        print("Sending message: \(message) to routes: \(to)")
-        let ledDevices = [
-            "volcano_espLed",
-            "typhoon_espLed",
-            "maze_espLed",
-            "tornado_espLed",
-            "crystal_espLed"
-        ]
-        
-        
-        // Vérifie si 'to' contient 'typhoon_iphone' et ajoute 'typhoon_iphone1' si nécessaire
-        var updatedTo = to
-        
-        if to.contains("ambianceManager") {
-            print("Message destiné à ambianceManager, redirection vers tous les appareils LED")
-            updatedTo.append(contentsOf: ledDevices)
-            // Retirer ambianceManager de la liste pour éviter le double envoi
-            updatedTo.removeAll { $0 == "ambianceManager" }
-        }
-        if to.contains("typhoon_iphone") {
-            updatedTo.append("typhoon_iphone1")
-        }
-        updatedTo = Array(Set(updatedTo))
-        print("Liste finale des destinataires: \(updatedTo)")
-        
-        let targetSessions = sessions(for: updatedTo)
-        
-        if targetSessions.isEmpty {
-            print("Warning: No active sessions found for targets: \(updatedTo)")
-            return
-        }
-        
-        for session in targetSessions {
-            //            print("Sending to session: \(session)")
-            session.writeText(message)
-        }
-    }
-    
-    
-    
-    func onDisconnectedHandle(_ handle: WebSocketSession) {
-        // deconnecte la session
-    }
-    func parseMessage(_ message: String) -> ParsedMessage? {
-        let components = message.components(separatedBy: "=>")
-        guard components.count == 3 else {
-            print("Invalid message format (wrong number of components): \(message)")
-            return nil
-        }
-        
-        let origin = components[0].trimmingCharacters(in: .whitespaces)
-        
-        let targetsString = components[1]
-            .trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
-        let targets = targetsString
-            .components(separatedBy: ",")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-        
-        let componentData = components[2].components(separatedBy: "#")
-        guard componentData.count == 2 else {
-            print("Invalid component/data format: \(components[2])")
-            return nil
-        }
-        
-        return ParsedMessage(
-            routeOrigin: origin,
-            routeTargets: targets,
-            component: componentData[0].trimmingCharacters(in: .whitespaces),
-            data: componentData[1].trimmingCharacters(in: .whitespaces)
-        )
-    }
-}
-
-
-struct PingSessionInfo {
-    var session: WebSocketSession
-    var isConnected: Bool
-    var lastPingTime: Date
-    var consecutiveFailures: Int = 0
-    static let maxFailures = 3
-}
-
-struct ParsedMessage {
-    let routeOrigin: String
-    let routeTargets: [String]
-    let component: String
-    let data: String
-    func toString() -> String {
-        "==== Parsed Message ====\norigin: \(routeOrigin)\ntargets: \(routeTargets.joined(separator: ","))\ncomponent: \(component)\ndata: \(data)\n========================"
-    }
-}
-
-struct DeviceResponse: Codable {
-    let type: String
-    let isConnected: Bool
-    let id: String?  // Optionnel car uniquement présent pour les Sphero
-    
-    enum CodingKeys: String, CodingKey {
-        case type, isConnected, id
     }
 }

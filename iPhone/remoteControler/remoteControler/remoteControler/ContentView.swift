@@ -332,17 +332,19 @@ struct ContentView: View {
 //        }
         .onAppear {
             //            connectToSpheros()
-            wsClient.connectForIdentification(route: .remoteControllerConnect)
-            wsClient.connectForIdentification(route: .mazeIphoneConnect)
-            wsClient.connectForIdentification(route: .typhoonIphoneConnect)
+//            wsClient.connectForIdentification(route: .remote)
+            wsClient.connectForIdentification(route: .remoteController_iphone1Connect)
+//            wsClient.connectForIdentification(route: .typhoonIphoneConnect)
         }
         .onDisappear {
 //            for (_, sphero) in connectedSpheros {
 //                sphero.sensorControl.disable()
 //            }
-            wsClient.disconnect(route: "remoteControllerConnect")
-            wsClient.disconnect(route: "mazeIphoneConnect")
-            wsClient.disconnect(route: "typhoonIphoneConnect")
+            
+            wsClient.disconnect(route: "remoteController_iphone1Connect")
+//            wsClient.disconnect(route: "remoteControllerConnect")
+//            wsClient.disconnect(route: "mazeIphoneConnect")
+//            wsClient.disconnect(route: "typhoonIphoneConnect")
         }
     }
 }

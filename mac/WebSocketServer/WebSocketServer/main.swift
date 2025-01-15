@@ -16,54 +16,7 @@ var cancellable: AnyCancellable? = nil
 
 // Liste des routes avec leur logique associée
 var routes: [RouteInfos] = [
-    RouteInfos(routeName: "remoteControllerConnect", textCode: { session, receivedText in
-        serverWS.remoteControllerSession = session
-        print("Remote controller connecté")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.remoteControllerSession = nil
-        print("Remote controller déconnecté")
-    }),
     
-    RouteInfos(routeName: "remoteControllerMessage", textCode: { session, receivedText in
-        print(receivedText)
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "remoteControllerDashboard", textCode: { session, receivedText in
-        serverWS.remoteControllerSession = session
-        if receivedText == "getDevices" {
-            AudioPlayer.shared.playSound()
-            // Créer un dictionnaire de toutes les sessions disponibles
-            let allDevices = serverWS.deviceStates.mapValues { state in
-                ["type": state.type, "isConnected": state.isConnected]
-            }
-            // Convertir en JSON et envoyer
-            do {
-                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                if let jsonString = String(data: jsonData, encoding: .utf8) {
-                    session.writeText(jsonString)
-                    print("Envoyé à la requête 'getDevices': \(jsonString)")
-                }
-            } catch {
-                print("Erreur lors de la génération du JSON: \(error)")
-            }
-        }
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "rpiConnect", textCode: { session, receivedText in
-        serverWS.rpiSession = session
-        print("RPI connecté : \(receivedText)")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.rpiSession = nil
-        print("rpiSession déconnecté")
-    }),
     
     RouteInfos(routeName: "rvrTornadoConnect", textCode: { session, receivedText in
         serverWS.rvrTornadoSession = session
@@ -77,88 +30,6 @@ var routes: [RouteInfos] = [
         print("rvrTornado déconnecté")
     }),
     
-    RouteInfos(routeName: "iPhoneConnect", textCode: { session, receivedText in
-        serverWS.iPhoneSession = session
-        print("iPhone connecté")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.iPhoneSession = nil
-        print("iPhone déconnecté")
-    }),
-    
-    RouteInfos(routeName: "spheroIdentificationConnect", textCode: { session, receivedText in
-        print(receivedText)
-        if let iPhoneSession = serverWS.iPhoneSession {
-            if receivedText == "SB-8630" {
-                serverWS.spheroTyphoonId = "SB-8630"
-                serverWS.spheroTyphoonIsConnected = true
-                print("spheroTyphoonId connecté")
-                iPhoneSession.writeText("\(serverWS.spheroTyphoonId) [consigne]")
-            } else if receivedText == "SB-313C" {
-                serverWS.spheroStickId = "SB-313C"
-                serverWS.spheroStickIsConnected = true
-                print("spheroStickId connecté")
-                iPhoneSession.writeText("\(serverWS.spheroStickId) [consigne]")
-            }
-        } else {
-            print("iPhoneSession non connecté")
-        }
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "rpiLaserConnect", textCode: { session, receivedText in
-        serverWS.laserSession = session
-        print("Laser connecté")
-        serverWS.laserSession?.writeText("python3 laser.py")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.laserSession = nil
-        print("Rpi lasser déconnecté")
-    }),
-    
-    RouteInfos(routeName: "rpiLaserMessage", textCode: { session, receivedText in
-        print(receivedText)
-        if receivedText == "True" {
-            serverWS.laserSession?.writeText("stop")
-            serverWS.rpiSession?.writeText("start 100")
-        }
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "moveRobot", textCode: { session, receivedText in
-        if let rpiSess = serverWS.rpiSession {
-            print("Mouvement du robot : \(receivedText)")
-            rpiSess.writeText("python3 \(receivedText).py")
-        } else {
-            print("RPI non connecté")
-        }
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "say", textCode: { session, receivedText in
-        cmd.say(textToSay: receivedText)
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    
-    RouteInfos(routeName: "imagePrompting", textCode: { session, receivedText in
-        if let jsonData = receivedText.data(using: .utf8),
-           let imagePrompting = try? JSONDecoder().decode(ImagePrompting.self, from: jsonData) {
-            let dataImageArray = imagePrompting.toDataArray()
-            let tmpImagesPath = TmpFileManager.instance.saveImageDataArray(dataImageArray: dataImageArray)
-            if tmpImagesPath.count == 1 {
-                cmd.imagePrompting(imagePath: tmpImagesPath[0], prompt: imagePrompting.prompt)
-            } else {
-                print("You are sending too many images.")
-            }
-        }
-    }, dataCode: { session, receivedData in
-    })
 ]
 // Nouvelles routes générées
 // Pour chaque route, trois fonctions seront ajoutées : Connect, Message et Ping
@@ -187,40 +58,70 @@ let newRoutes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    RouteInfos(routeName: "typhoon_iphone1Connect", textCode: { session, receivedText in
+    RouteInfos(routeName: "remoteController_iphone1Connect", textCode: { session, receivedText in
             print("typhoon_iphone1 connecté")
-            serverWS.typhoonIphone1Session = session
+        serverWS.remoteController_iphone1Session = session
         }, dataCode: { session, receivedData in
             print(receivedData)
         },disconnectedCode: { session in
-            serverWS.typhoonIphone1Session = nil
+            serverWS.remoteController_iphone1Session = nil
             print("Typhoon Iphone1 déconnecté")
         }),
-        RouteInfos(routeName: "typhoon_iphone1Message", textCode: { session, receivedText in
+        RouteInfos(routeName: "remoteController_iphone1Message", textCode: { session, receivedText in
             print("typhoon_iphone1 message: \(receivedText)")
         }, dataCode: { session, receivedData in
             print(receivedData)
         }),
-        RouteInfos(routeName: "typhoon_iphone1Ping", textCode: { session, receivedText in
+        RouteInfos(routeName: "remoteController_iphone1Ping", textCode: { session, receivedText in
             //print("typhoon_iphone1 // ping reçu: \(receivedText)")
         }, dataCode: { session, receivedData in
             print(receivedData)
         }),
-    RouteInfos(routeName: "typhoon_iphoneConnect", textCode: { session, receivedText in
-        print("typhoon_iphone connecté")
-        serverWS.typhoonIphoneSession = session
+    // Add this to the existing routes in main.swift after the ambianceManager routes
+    RouteInfos(routeName: "remoteController_iphone1Dashboard", textCode: { session, receivedText in
+        
+//        print("message received on remoteController_iphone1Dashboard: \(receivedText)")
+        if receivedText == "getDevices" {
+            let audioPlayer = AudioPlayer.shared
+            audioPlayer.playSound()
+            let server = WebSockerServer.instance
+            // Create a dictionary of all available sessions and their states
+            let allDevices = server.deviceStates.mapValues { state in
+                [
+                    "type": state.type,
+                    "isConnected": state.isConnected
+                ]
+            }
+            
+            // Convert to JSON and send
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
+                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                    session.writeText(jsonString)
+//                    print("Sent device states to dashboard: \(jsonString)")
+                }
+            } catch {
+//                print("Error generating JSON: \(error)")
+            }
+        }
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "remoteController_iphone2Connect", textCode: { session, receivedText in
+        print("remoteController iphone 2 connecté")
+        serverWS.remoteController_iphone2Session = session
     }, dataCode: { session, receivedData in
         print(receivedData)
     },disconnectedCode: { session in
-        serverWS.typhoonIphoneSession = nil
-        print("Typhoon Iphone déconnecté")
+        serverWS.remoteController_iphone2Session = nil
+        print("remoteController iphone 2 déconnecté")
     }),
-    RouteInfos(routeName: "typhoon_iphoneMessage", textCode: { session, receivedText in
-        print("typhoon_iphone message: \(receivedText)")
+    RouteInfos(routeName: "remoteController_iphone2Message", textCode: { session, receivedText in
+        print("remoteController iphone 2 message: \(receivedText)")
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    RouteInfos(routeName: "typhoon_iphonePing", textCode: { session, receivedText in
+    RouteInfos(routeName: "remoteController_iphone2Ping", textCode: { session, receivedText in
         
         //        print("typhoon_iphone // ping reçu: \(receivedText)")
     }, dataCode: { session, receivedData in

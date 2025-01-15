@@ -27,7 +27,7 @@ class WebSocketClient:ObservableObject {
     @Published var connectedDevices: [Device] = []
     
     func connectForIdentification(route: IdentificationRoute) {
-        // Construire l'URL pour la route
+        // Construire l'URL pour la route d'identification
         if let socketURL = URL(string: "ws://\(ipAddress)\(route.rawValue)Connect") {
             let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
             socket.delegate = self
@@ -38,24 +38,41 @@ class WebSocketClient:ObservableObject {
             sendWelcomeMessage(for: route)
             createMessageRoute(for: route)
             createPingRoute(for: route)
-            if route == .remoteControllerConnect {
-                
-                let dashboardRouteKey = "\(route.rawValue)Dashboard"
-                if let socketURL = URL(string: "ws://\(ipAddress)\(dashboardRouteKey)") {
-                    let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
-                    socket.delegate = self
-                    socket.connect()
-                    routes[dashboardRouteKey] = socket
-                    socket.send(string: "getDevices")
-                    print("Message route created for \(dashboardRouteKey)")
-                }
-            }
             
+            if route == .remoteController_iphone1Connect {
+                createDashboardRoute(for: route)
+            }
         }
     }
     
-    func sendToDashboardroute (route:IdentificationRoute, msg: String ,completion: ((String?) -> Void)? = nil) {
-        let dashboardRouteKey = "\(route.rawValue)Dashboard"
+    private func createDashboardRoute(for route: IdentificationRoute) {
+        // Supprimer le "Connect" du rawValue pour le dashboard
+        let baseRoute = route.rawValue.replacingOccurrences(of: "Connect", with: "")
+        let dashboardRouteKey = "\(baseRoute)Dashboard"
+        
+        if let socketURL = URL(string: "ws://\(ipAddress)\(dashboardRouteKey)") {
+            print("Creating dashboard connection for \(dashboardRouteKey)")
+            
+            let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
+            socket.delegate = self
+            
+            // Stocker la socket dans les routes
+            routes[dashboardRouteKey] = socket
+            
+            // Connecter la socket
+            socket.connect()
+            
+            // Attendre un court instant pour s'assurer que la connexion est établie
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+                print("Sending getDevices to dashboard")
+                socket.send(string: "getDevices")
+            }
+        }
+    }
+    func sendToDashboardroute(route: IdentificationRoute, msg: String, completion: ((String?) -> Void)? = nil) {
+        let baseRoute = route.rawValue.replacingOccurrences(of: "Connect", with: "")
+        let dashboardRouteKey = "\(baseRoute)Dashboard"
+        
         guard let url = URL(string: "ws://\(ipAddress)\(dashboardRouteKey)") else { return }
         
         webSocketTask = URLSession.shared.webSocketTask(with: url)
@@ -92,8 +109,10 @@ class WebSocketClient:ObservableObject {
     }
     
     private func createMessageRoute(for route: IdentificationRoute) {
-        // Construire l'URL pour la route de message
-        let messageRouteKey = "\(route.rawValue)Message"
+        // Supprimer le "Connect" du rawValue pour la route message
+        let baseRoute = route.rawValue.replacingOccurrences(of: "Connect", with: "")
+        let messageRouteKey = "\(baseRoute)Message"
+        
         if let socketURL = URL(string: "ws://\(ipAddress)\(messageRouteKey)") {
             let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
             socket.delegate = self
@@ -103,16 +122,43 @@ class WebSocketClient:ObservableObject {
             print("Message route created for \(messageRouteKey)")
         }
     }
+
     private func createPingRoute(for route: IdentificationRoute) {
-        // Construire l'URL pour la route de message
-        let messageRouteKey = "\(route.rawValue)Ping"
-        if let socketURL = URL(string: "ws://\(ipAddress)\(messageRouteKey)") {
+        // Supprimer le "Connect" du rawValue pour la route ping
+        let baseRoute = route.rawValue.replacingOccurrences(of: "Connect", with: "")
+        let pingRouteKey = "\(baseRoute)Ping"
+        
+        if let socketURL = URL(string: "ws://\(ipAddress)\(pingRouteKey)") {
             let socket = NWWebSocket(url: socketURL, connectAutomatically: true)
             socket.delegate = self
             socket.connect()
-            routes[messageRouteKey] = socket
+            routes[pingRouteKey] = socket
             
-            print("Ping route created for \(messageRouteKey)")
+            print("Ping route created for \(pingRouteKey)")
+        }
+    }
+
+    func sentToRoute(route: IdentificationRoute, msg: String) {
+        // Supprimer le "Connect" du rawValue pour la route message
+        let baseRoute = route.rawValue.replacingOccurrences(of: "Connect", with: "")
+        let messageRouteKey = "\(baseRoute)Message"
+        
+        if let socket = routes[messageRouteKey] {
+            socket.send(string: msg)
+            print("Sent: \(msg) to \(messageRouteKey)")
+        } else {
+            print("Error: Message route \(messageRouteKey) not found!")
+        }
+    }
+
+    func sentToMessageRoute(route: IdentificationRoute, msg: String) {
+        // Supprimer le "Connect" du rawValue pour la route message
+        let baseRoute = route.rawValue.replacingOccurrences(of: "Connect", with: "")
+        let messageRouteKey = "\(baseRoute)Message"
+        
+        if let socket = routes[messageRouteKey] {
+            socket.send(string: msg)
+            print("Sended: \(msg) to \(messageRouteKey)")
         }
     }
     func connect(route: String) {
@@ -134,25 +180,6 @@ class WebSocketClient:ObservableObject {
     func sendSpheroTyphoonName(msg:String) {
         self.connect(route: "spheroTyphoon")
         routes["spheroTyphoon"]?.send(string: msg)
-    }
-    func sentToRoute(route: IdentificationRoute, msg: String) {
-        // Identifier la route de message associée
-        let messageRouteKey = "\(route.rawValue)Message"
-        
-        // Vérifier si la route de message existe, sinon log une erreur
-        if let socket = routes[messageRouteKey] {
-            socket.send(string: msg)
-            print("Sent: \(msg) to \(messageRouteKey)")
-        } else {
-            print("Error: Message route \(messageRouteKey) not found!")
-        }
-    }
-    
-    func sentToMessageRoute(route:IdentificationRoute, msg:String) {
-        if let socket = routes[route.rawValue+"Message"] {
-            socket.send(string: msg)
-            print("Sended: \(msg) to \(route.rawValue+"Message")")
-        }
     }
     
     func sendWelcomeMessage(for route: IdentificationRoute) {
@@ -221,15 +248,9 @@ extension WebSocketClient: WebSocketConnectionDelegate {
             let targetString = targets.joined(separator: ",")
             let formattedMessage = "\(origin)=>[\(targetString)]=>\(component)#\(data)"
             let originMessage = origin+"Message"
-            if origin.contains("maze") {
-                
-                self.sentToMessageRoute(route: IdentificationRoute.mazeIphoneConnect, msg: formattedMessage)
-                
-            }
-            else {
-                self.sentToMessageRoute(route: IdentificationRoute.typhoonIphoneConnect, msg: formattedMessage)
-                
-            }
+            
+                self.sentToMessageRoute(route: IdentificationRoute.remoteController_iphone1Connect, msg: formattedMessage)
+              
         }
         func processReceivedMessage(connection: NWWebSocket, string: String) {
             //            print("Receive String Message \(string) on \(connection)")
@@ -261,20 +282,18 @@ extension WebSocketClient: WebSocketConnectionDelegate {
         }
         
         
-        private func respondToPing(for route: String) {
-            // Identifier la route d'identification associée (enlevant le suffixe "Ping")
-            let identificationRouteKey = route.replacingOccurrences(of: "Ping", with: "")
-            
-            // Vérifier si une connexion existe pour cette route d'identification
-            if let identificationSocket = routes[route] {
-                // Renvoyer la valeur de la route d'identification
-                //                    identificationSocket.send(string: identificationRouteKey)
-                identificationSocket.send(string: "pong")
-                //                    print("Responded to ping on \(route) with \(identificationRouteKey)")
-            } else {
-                print("Error: Identification route \(identificationRouteKey) not found for ping response")
-            }
+    private func respondToPing(for route: String) {
+        // Supprimer le suffixe "Ping" et "Connect" pour obtenir la route de base
+        let baseRoute = route
+            .replacingOccurrences(of: "Ping", with: "")
+            .replacingOccurrences(of: "Connect", with: "")
+        
+        if let pingSocket = routes[route] {
+            pingSocket.send(string: "pong")
+        } else {
+            print("Error: Ping route \(route) not found for ping response")
         }
+    }
         func webSocketDidReceiveMessage(
             connection: WebSocketConnection,
             string: String

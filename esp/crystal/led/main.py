@@ -11,12 +11,18 @@ class ESP32Controller:
         
         self.ZONE_GROUND = (0, 120)
         self.ZONE_TABLE = (120, 300)
-        self.ZONE_GLOBAL = (0, 300)
+        self.ZONE_GLOBAL = (1, 205)
         
-        self.ZONE_AIR = (160, 205)
-        self.ZONE_ELEC = (85, 160)
-        self.ZONE_WATER = (35, 85)
-        self.ZONE_FIRE = (1, 35)
+        #self.ZONE_AIR = (175, 205)
+        #self.ZONE_ELEC = (100, 175)
+        #self.ZONE_WATER = (50, 100)
+        #self.ZONE_FIRE = (1, 50)
+        
+        
+        self.ZONE_AIR = (185, 205)
+        self.ZONE_ELEC = (110, 185)
+        self.ZONE_WATER = (60, 110)
+        self.ZONE_FIRE = (1, 60)
         
         self.np = NeoPixel(Pin(self.PIN), self.NUM_LEDS)
         self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_espLed")
@@ -26,13 +32,14 @@ class ESP32Controller:
         self.animation_lock = _thread.allocate_lock()
         
         self.COLORS = {
-            "orange": (220, 50, 0),
-            "purple": (128, 0, 128),
+            "orange": (110, 25, 0),
+            "purple": (255, 0, 255),
             "blue_grey": (96, 125, 139),
-            "blue": (50, 50, 255),
-            "yellow": (220, 210, 0),
+            "blue": (0, 0, 255),
+            "white": (255, 255, 255),
+            "yellow": (192, 192, 0),
             "green": (0, 255, 0),
-            "red": (255, 0, 0),
+            "red": (192, 0, 0),
             "pink": (255, 192, 203),
             "cyan": (0, 150, 255),
             "magenta": (255, 0, 255),
@@ -265,9 +272,9 @@ class ESP32Controller:
 
     def tornado_animation(self):
         if not self.stop_animation:
-            self.blink_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], 15, 100)
+            self.blink_animation(self.ZONE_AIR, *self.COLORS["white"], 15, 100)
         if not self.stop_animation:
-            self.fill_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], delay_ms=5, direction="end")
+            self.fill_animation(self.ZONE_AIR, *self.COLORS["white"], delay_ms=5, direction="end")
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#end")
 
     def maze_animation(self):
@@ -288,7 +295,7 @@ class ESP32Controller:
         if not self.stop_animation:
             self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
         if not self.stop_animation:
-            self.fill_animation(self.ZONE_FIRE, *self.COLORS["red"], delay_ms=5, direction="end")
+            self.fill_animation(self.ZONE_FIRE, *self.COLORS["orange"], delay_ms=5, direction="end")
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#end")
 
     def finish_animation(self):
@@ -297,7 +304,7 @@ class ESP32Controller:
         if not self.stop_animation:
             self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
         if not self.stop_animation:
-            self.blink_animation(self.ZONE_AIR, *self.COLORS["blue_grey"], 15, 100)
+            self.blink_animation(self.ZONE_AIR, *self.COLORS["white"], 15, 100)
         if not self.stop_animation:
             self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#end")

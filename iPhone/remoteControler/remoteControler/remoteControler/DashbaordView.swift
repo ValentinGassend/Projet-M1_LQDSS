@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+
 struct Device: Identifiable, Codable {
     var id: String { device }
     var device: String
@@ -17,6 +18,7 @@ struct DashboardView: View {
     @State private var connectedDevices: [Device] = []
     @State private var selectedTheme: String? = nil
     @State private var selectedDeviceType: String? = nil
+    @State private var timer: Timer? = nil
     
     var body: some View {
         NavigationStack {
@@ -75,9 +77,7 @@ struct DashboardView: View {
                 }
                 .listStyle(InsetGroupedListStyle())
                 
-                Button(action: {
-                    wsClient.sendToDashboardroute(route: .remoteControllerConnect, msg: "getDevices")
-                }) {
+                Button(action: refreshDevices) {
                     Text("Refresh")
                         .padding()
                         .background(Color.blue)
@@ -87,15 +87,48 @@ struct DashboardView: View {
             }
             .padding()
             .navigationTitle("Dashboard")
-        }.onAppear {
-            wsClient.connectForIdentification(route: .remoteControllerConnect)
-            wsClient.connectForIdentification(route: .mazeIphoneConnect)
-            wsClient.connectForIdentification(route: .typhoonIphoneConnect)
-        }.onDisappear {
-            wsClient.disconnect(route: "remoteControllerConnect")
-            wsClient.disconnect(route: "mazeIphoneConnect")
-            wsClient.disconnect(route: "typhoonIphoneConnect")
         }
+        .onAppear {
+            setupConnections()
+            startAutoRefresh()
+        }
+        .onDisappear {
+            stopAutoRefresh()
+            disconnectAll()
+        }
+    }
+    
+    // MARK: - Auto Refresh
+    
+    private func startAutoRefresh() {
+        // Cancel any existing timer
+        timer?.invalidate()
+        
+        // Create new timer that fires every 6 seconds
+        timer = Timer.scheduledTimer(withTimeInterval: 6.0, repeats: true) { _ in
+            refreshDevices()
+        }
+    }
+    
+    private func stopAutoRefresh() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func refreshDevices() {
+        wsClient.sendToDashboardroute(route: .remoteController_iphone1Connect, msg: "getDevices")
+    }
+    
+    // MARK: - Connection Management
+    
+    private func setupConnections() {
+//        wsClient.connectForIdentification(route: .remoteController_iphone1Connect)
+//        wsClient.connectForIdentification(route: .mazeIphoneConnect)
+//        wsClient.connectForIdentification(route: .typhoonIphoneConnect)
+    }
+    
+    private func disconnectAll() {
+//        wsClient.disconnect(route: "remoteController_iphone1Connect")
     }
     
     // MARK: - Filtering Logic

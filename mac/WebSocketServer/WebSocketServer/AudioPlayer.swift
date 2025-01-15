@@ -14,7 +14,7 @@ class AudioPlayer {
     func playSound() {
         // Debug: Afficher tous les fichiers du bundle
         if let resources = Bundle.main.urls(forResourcesWithExtension: "aiff", subdirectory: nil) {
-            print("Available .aiff files in bundle:")
+//            print("Available .aiff files in bundle:")
             resources.forEach { print($0.lastPathComponent) }
         }
         

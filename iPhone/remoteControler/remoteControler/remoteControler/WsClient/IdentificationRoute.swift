@@ -9,7 +9,7 @@ enum IdentificationRoute: String, CaseIterable {
     case spheroIdentificationConnect = "spheroIdentification"
     case typhoonIphoneConnect = "typhoon_iphone"
     case mazeIphoneConnect = "maze_iphone"
-    case remoteControllerConnect = "remoteController"
+    case remoteController_iphone1Connect = "remoteController_iphone1"
     case rpiConnect = "rpi"
     
     var welcomeMessage: String {
