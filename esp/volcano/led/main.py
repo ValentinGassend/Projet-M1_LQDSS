@@ -24,11 +24,11 @@ class ESP32Controller:
         self.animation_lock = _thread.allocate_lock()
         
         self.COLORS = {
-            "orange": (220, 50, 0),
-            "purple": (128, 0, 128),
+            "orange": (110, 25, 0),
+            "purple": (64, 0, 64),
             "blue_grey": (96, 125, 139),
             "blue": (50, 50, 255),
-            "yellow": (220, 210, 0),
+            "yellow": (110, 105, 0),
             "green": (0, 255, 0),
             "red": (255, 0, 0),
             "pink": (255, 192, 203),

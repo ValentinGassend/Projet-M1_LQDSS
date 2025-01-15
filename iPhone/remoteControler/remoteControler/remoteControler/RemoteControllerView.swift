@@ -68,22 +68,18 @@ struct VolcanoView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
-        
-        "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager]=>rfid#volcano",
-        "volcano_esp1=>[volcano_esp1,volcano_esp2]=>rfid#volcano",
+        "volcano_esp1=>[ambianceManager]=>rfid#volcano",
 //        "crystal_esp1=>[ambianceManager]=>set_zone_color#true",
-        "crystal_esp1=>[volcano_esp1,ambianceManager]=>crystal_to_volcano#true",
+        "crystal_esp1=>[ambianceManager]=>crystal_to_volcano#true",
         
-        "crystal_esp1=>[volcano_esp1,ambianceManager]=>volcano_finished#true",
-        "crystal_esp1=>[volcano_esp1,ambianceManager]=>volcano_to_crystal#true",
+        "crystal_esp1=>[ambianceManager]=>volcano_finished#true",
+        "crystal_esp1=>[ambianceManager]=>volcano_to_crystal#true",
+        
+        "volcano_esp1=>[ambianceManager]=>led_volcano#off",
+        "volcano_esp1=>[ambianceManager]=>led_volcano#on",
+        
         
         "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#first",
-//        "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#second",
-//        "volcano_esp1=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#third",
-//        "volcano_esp1=>[volcano_esp1]=>relay1#true",
-//        "volcano_esp1=>[volcano_esp1]=>relay1#false",
-//        "volcano_esp1=>[volcano_esp1]=>relay2#true",
-//        "volcano_esp1=>[volcano_esp1]=>relay2#false",
         "volcano_esp2=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#second",     "volcano_esp2=>[volcano_esp1,volcano_esp2 crystal_esp2,crystal_esp1]=>rfid#third",
 
     ]
@@ -97,16 +93,14 @@ struct MazeView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
-        "crystal_esp1=>[crystal_esp2,crystal_esp1,maze_esp,ambianceManager]=>rfid#maze",
         
         
-        "maze_esp=>[maze_esp,ambianceManager]=>crystal_to_maze#true",
-        
-        "maze_esp=>[maze_esp,ambianceManager]=>maze_finished#true",
-        "maze_esp=>[maze_esp,ambianceManager]=>maze_to_crystal#true",
-        "crystal_esp1=>[ambianceManager]=>stelle_to_maze#true",
-        "crystal_esp1=>[ambianceManager]=>maze_finished#true",
-        "maze_esp=>[maze_esp,maze_iphone,ambianceManager]=>rfid#maze",
+        "ambianceManager=>[ambianceManager]=>crystal_to_maze#true",
+        "ambianceManager=>[ambianceManager]=>rfid#maze",
+        "ambianceManager=>[ambianceManager]=>maze_finished#true",
+        "ambianceManager=>[ambianceManager]=>maze_to_crystal#true",
+        "ambianceManager=>[ambianceManager]=>led_maze#off",
+        "ambianceManager=>[ambianceManager]=>led_maze#on",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn1#true",
         "maze_esp=>[maze_iphone]=>btn1#false",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn2#true",
@@ -341,20 +335,12 @@ struct TyphoonView: View {
     }
     
     private let commands = [
-        "crystal_esp2=>[crystal_esp2,crystal_esp1,typhoon_esp,ambianceManager]=>rfid#typhoon",
-        "typhoon_esp=>[typhoon_iphone,typhoon_esp,ambianceManager]=>rfid#typhoon",
-        "typhoon_esp=>[typhoon_esp,ambianceManager]=>crystal_to_typhoon#true",
-        "typhoon_esp=>[typhoon_esp,ambianceManager]=>typhoon_finished#true",
-        "typhoon_esp=>[typhoon_esp,ambianceManager]=>typhoon_to_crystal#true",
-        "typhoon_esp=>[typhoon_esp,ambianceManager]=>led_typhoon#off",
-//        "typhon_esp=>[typhoon_iphone,ambianceManager]=>relay1#true",
-//        "typhon_esp=>[typhoon_iphone]=>relay1#false",
-//        "typhon_esp=>[typhoon_iphone,ambianceManager]=>relay2#true",
-//        "typhon_esp=>[typhoon_iphone]=>relay2#false",
-//        "typhon_esp=>[typhoon_iphone,ambianceManager]=>relay3#true",
-//        "typhon_esp=>[typhoon_iphone]=>relay3#false",
-//        "typhon_esp=>[typhoon_iphone,ambianceManager]=>relay4#true",
-//        "typhon_esp=>[typhoon_iphone]=>relay4#false",
+        "ambianceManager=>[typhoon_esp,ambianceManager]=>crystal_to_typhoon#true",
+        "ambianceManager=>[ambianceManager]=>rfid#typhoon",
+        "ambianceManager=>[typhoon_esp,ambianceManager]=>typhoon_finished#true",
+        "ambianceManager=>[typhoon_esp,ambianceManager]=>typhoon_to_crystal#true",
+        "ambianceManager=>[typhoon_esp,ambianceManager]=>led_typhoon#off",
+        "ambianceManager=>[typhoon_esp,ambianceManager]=>led_typhoon#on",
         "typhoon_iphone=>[typhoon_esp,ambianceManager]=>sphero1#true",
         "typhoon_iphone=>[typhoon_esp]=>sphero1#false",
         "typhoon_iphone=>[typhoon_esp,ambianceManager]=>sphero2#true",
@@ -370,13 +356,12 @@ struct TornadoView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
-        "tornado_esp=>[tornado_esp]=>crystal_to_tornado#true",
-        "crystal_esp2=>[crystal_esp2,crystal_esp1,tornado_esp,ambianceManager]=>rfid#tornado",
-        "tornado_esp=>[tornado_esp,tornado_rpi,ambianceManager]=>rfid#tornado",
-        "tornado_esp=>[tornado_esp]=>tornado_finished#true",
-        "tornado_esp=>[tornado_esp]=>tornado_to_crystal#true",
-        "tornado_esp=>[tornado_esp]=>led_tornado#off",
-        "tornado_esp=>[tornado_esp]=>led_tornado#on",
+        "ambianceManager=>[ambianceManager]=>crystal_to_tornado#true",
+        "ambianceManager=>[ambianceManager]=>rfid#tornado",
+        "ambianceManager=>[ambianceManager]=>tornado_finished#true",
+        "ambianceManager=>[ambianceManager]=>tornado_to_crystal#true",
+        "ambianceManager=>[ambianceManager]=>led_tornado#off",
+        "ambianceManager=>[ambianceManager]=>led_tornado#on",
         "tornado_esp=>[tornado_rpi,ambianceManager]=>mic1#true",
         "tornado_esp=>[tornado_rpi,ambianceManager]=>mic1#false",
         "tornado_esp=>[tornado_rpi,ambianceManager]=>mic2#true",
@@ -401,18 +386,17 @@ struct CrystalView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
-        "crystal_esp1=>[ambianceManager]=>led_crystal#on",
-        "crystal_esp1=>[ambianceManager]=>led_crystal#off",
-        "crystal_esp1=>[ambianceManager]=>crystal#tornado",
-        "crystal_esp1=>[ambianceManager]=>crystal#maze",
-        "crystal_esp1=>[ambianceManager]=>crystal#typhoon",
-        "crystal_esp1=>[ambianceManager]=>crystal#volcano",
-        "crystal_esp1=>[ambianceManager]=>crystal#finished",
-        "crystal_esp1=>[crystal_esp2,crystal_esp1,volcano_esp1,volcano_esp2,ambianceManager]=>rfid#volcano",
-        "crystal_esp1=>[crystal_esp2,crystal_esp1,maze_esp,ambianceManager]=>rfid#maze",
-        
-        "crystal_esp2=>[crystal_esp2,crystal_esp1,tornado_esp,ambianceManager]=>rfid#tornado",
-        "crystal_esp2=>[crystal_esp2,crystal_esp1,typhoon_esp,ambianceManager]=>rfid#typhoon"
+        "ambianceManager=>[ambianceManager]=>crystal#tornado",
+        "ambianceManager=>[ambianceManager]=>crystal#maze",
+        "ambianceManager=>[ambianceManager]=>crystal#typhoon",
+        "ambianceManager=>[ambianceManager]=>crystal#volcano",
+        "ambianceManager=>[ambianceManager]=>crystal#finished",
+        "ambianceManager=>[ambianceManager]=>led_crystal#off",
+        "ambianceManager=>[ambianceManager]=>led_crystal#on",
+        "crystal_esp1=>[crystal_esp1]=>rfid#volcano",
+        "crystal_esp1=>[crystal_esp1]=>rfid#maze",
+        "crystal_esp2=>[crystal_esp1]=>rfid#tornado",
+        "crystal_esp2=>[crystal_esp1]=>rfid#typhoon"
     ]
     
     var body: some View {
