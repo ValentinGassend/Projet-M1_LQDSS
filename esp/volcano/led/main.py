@@ -6,23 +6,24 @@ from neopixel import NeoPixel
 import time
 from WebSocketClient import WebSocketClient
 
+
 class ESP32Controller:
     def __init__(self):
         self.NUM_LEDS = 300
         self.PIN = 5
-        
+
         self.ZONE_GROUND = (0, 120)
         self.ZONE_TABLE = (120, 300)
         self.ZONE_GLOBAL = (0, 300)
-        
+
         self.np = NeoPixel(Pin(self.PIN), self.NUM_LEDS)
         self.ws_client = WSclient("Cudy-F810", "13022495", "volcano_espLed")
-        
+
         # Thread control
         self.current_animation = None
         self.stop_animation = False
         self.animation_lock = _thread.allocate_lock()
-        
+
         self.COLORS = {
             "orange": (110, 25, 0),
             "purple": (64, 0, 64),
@@ -40,6 +41,10 @@ class ESP32Controller:
             "gold": (210, 160, 0),
             "lavender": (230, 230, 250),
             "turquoise": (64, 224, 208),
+            "maze": (55, 30, 0),
+            "typhoon": (0, 0, 48),
+            "tornado": (48, 48, 30),
+            "volcano": (148, 25, 0),
         }
 
     def stop_current_animation(self):
@@ -94,12 +99,12 @@ class ESP32Controller:
     def pulse_animation(self, zone, r, g, b, pulse_count=3, pulse_speed_ms=2, step=20):
         if self.stop_animation:
             return
-            
+
         start, end = zone
         for _ in range(pulse_count):
             if self.stop_animation:
                 return
-                
+
             for intensity in range(0, 256, step):
                 if self.stop_animation:
                     return
@@ -108,7 +113,7 @@ class ESP32Controller:
                 scaled_b = int(b * intensity / 255)
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
-            
+
             for intensity in range(255, -1, -step):
                 if self.stop_animation:
                     return
@@ -128,7 +133,7 @@ class ESP32Controller:
         for mix in range(0, 256, step):
             if self.stop_animation:
                 return
-                
+
             mixed_r = int(r1 + (r2 - r1) * mix / 255)
             mixed_g = int(g1 + (g2 - g1) * mix / 255)
             mixed_b = int(b1 + (b2 - b1) * mix / 255)
@@ -154,7 +159,7 @@ class ESP32Controller:
     def blink_animation(self, zone, r, g, b, blink_count=5, blink_delay_ms=500):
         if self.stop_animation:
             return
-            
+
         for _ in range(blink_count):
             if self.stop_animation:
                 return
@@ -166,7 +171,7 @@ class ESP32Controller:
     def fill_animation(self, zone, r, g, b, delay_ms=50, direction="start"):
         if self.stop_animation:
             return
-            
+
         start, end = zone
         if direction == "start":
             led_range = range(start, end)
@@ -201,16 +206,16 @@ class ESP32Controller:
 
     def volcano_finished_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_finished#start")
-        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["orange"], 2, step=35)
+        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["volcano"], 2, step=35)
         if not self.stop_animation:
-            self.set_color(self.ZONE_TABLE, *self.COLORS["orange"])
+            self.set_color(self.ZONE_TABLE, *self.COLORS["volcano"])
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_finished#end")
 
     def volcano_to_crystal_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_to_crystal#start")
-        self.fill_animation(self.ZONE_GROUND, *self.COLORS["orange"], delay_ms=5, direction="end")
+        self.fill_animation(self.ZONE_GROUND, *self.COLORS["volcano"], delay_ms=5, direction="end")
         if not self.stop_animation:
-            self.set_color(self.ZONE_GLOBAL, *self.COLORS["orange"])
+            self.set_color(self.ZONE_GLOBAL, *self.COLORS["volcano"])
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_to_crystal#end")
 
     # WebSocket message processing
@@ -219,28 +224,28 @@ class ESP32Controller:
             print("led_on#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 148, 25, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_volcano#true")
-            
+
         elif "led_volcano#off" in message:
             print("led_off#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_volcano#true")
-            
+
         elif message == "crystal_to_volcano#true":
             print("Starting 'crystal_to_volcano' animation")
             self.start_animation(self.crystal_to_volcano_animation)
-            
+
         elif message == "rfid#volcano":
             print("Starting 'volcano_rfid' animation")
             self.start_animation(self.volcano_rfid_animation)
-            
+
         elif message == "volcano_finished#true":
             print("Starting 'volcano_finished' animation")
             self.start_animation(self.volcano_finished_animation)
-            
+
         elif message == "volcano_to_crystal#true":
             print("Starting 'volcano_to_crystal' animation")
             self.start_animation(self.volcano_to_crystal_animation)
-            
+
         else:
             print("Unknown message:", message)
 
@@ -301,13 +306,14 @@ class ESP32Controller:
             return
 
         self.ws_client.connect_websockets()
-        
+
         # Start WebSocket thread
         _thread.start_new_thread(self.websocket_thread, ())
-        
+
         # Main loop
         while True:
             utime.sleep(1)
+
 
 # Create and start controller
 controller = ESP32Controller()

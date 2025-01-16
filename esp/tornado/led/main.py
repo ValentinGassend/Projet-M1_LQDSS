@@ -6,23 +6,24 @@ from neopixel import NeoPixel
 import time
 from WebSocketClient import WebSocketClient
 
+
 class ESP32Controller:
     def __init__(self):
         self.NUM_LEDS = 300
         self.PIN = 5
-        
+
         self.ZONE_GROUND = (0, 120)
         self.ZONE_TABLE = (120, 300)
         self.ZONE_GLOBAL = (0, 300)
-        
+
         self.np = NeoPixel(Pin(self.PIN), self.NUM_LEDS)
         self.ws_client = WSclient("Cudy-F810", "13022495", "tornado_espLed")
-        
+
         # Contrôle des threads
         self.current_animation = None
         self.stop_animation = False
         self.animation_lock = _thread.allocate_lock()
-        
+
         self.COLORS = {
             "orange": (220, 50, 0),
             "purple": (128, 0, 128),
@@ -40,6 +41,10 @@ class ESP32Controller:
             "gold": (210, 160, 0),
             "lavender": (230, 230, 250),
             "turquoise": (64, 224, 208),
+            "maze": (55, 30, 0),
+            "typhoon": (0, 0, 48),
+            "tornado": (48, 48, 30),
+            "volcano": (148, 25, 0),
         }
 
     def stop_current_animation(self):
@@ -92,11 +97,11 @@ class ESP32Controller:
     def pulse_animation(self, zone, r, g, b, pulse_count=3, pulse_speed_ms=2, step=20):
         if self.stop_animation:
             return
-            
+
         for _ in range(pulse_count):
             if self.stop_animation:
                 return
-                
+
             for intensity in range(0, 256, step):
                 if self.stop_animation:
                     return
@@ -105,7 +110,7 @@ class ESP32Controller:
                 scaled_b = int(b * intensity / 255)
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
-            
+
             for intensity in range(255, -1, -step):
                 if self.stop_animation:
                     return
@@ -118,14 +123,14 @@ class ESP32Controller:
     def color_transition_pulse(self, zone, color1, color2, pulse_speed_ms=10, step=5):
         if self.stop_animation:
             return
-            
+
         r1, g1, b1 = color1
         r2, g2, b2 = color2
 
         for mix in range(0, 256, step):
             if self.stop_animation:
                 return
-                
+
             mixed_r = int(r1 + (r2 - r1) * mix / 255)
             mixed_g = int(g1 + (g2 - g1) * mix / 255)
             mixed_b = int(b1 + (b2 - b1) * mix / 255)
@@ -151,7 +156,7 @@ class ESP32Controller:
     def blink_animation(self, zone, r, g, b, blink_count=5, blink_delay_ms=500):
         if self.stop_animation:
             return
-            
+
         for _ in range(blink_count):
             if self.stop_animation:
                 return
@@ -163,7 +168,7 @@ class ESP32Controller:
     def fill_animation(self, zone, r, g, b, delay_ms=50, direction="start"):
         if self.stop_animation:
             return
-            
+
         start, end = zone
         if direction == "start":
             led_range = range(start, end)
@@ -198,16 +203,16 @@ class ESP32Controller:
 
     def tornado_finished_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>tornado_finished#start")
-        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["blue_grey"], 2, step=35)
+        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["tornado"], 2, step=35)
         if not self.stop_animation:
-            self.set_color(self.ZONE_TABLE, *self.COLORS["blue_grey"])
+            self.set_color(self.ZONE_TABLE, *self.COLORS["tornado"])
         self.send_message("ambianceManager=>[ambianceManager]=>tornado_finished#end")
 
     def tornado_to_crystal_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>tornado_to_crystal#start")
-        self.fill_animation(self.ZONE_GROUND, *self.COLORS["blue_grey"], delay_ms=5, direction="end")
+        self.fill_animation(self.ZONE_GROUND, *self.COLORS["tornado"], delay_ms=5, direction="end")
         if not self.stop_animation:
-            self.set_color(self.ZONE_GLOBAL, *self.COLORS["blue_grey"])
+            self.set_color(self.ZONE_GLOBAL, *self.COLORS["tornado"])
         self.send_message("ambianceManager=>[ambianceManager]=>tornado_to_crystal#end")
 
     def process_websocket_message(self, message):
@@ -215,28 +220,28 @@ class ESP32Controller:
             print("led_on#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 48, 48, 30))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_tornado#true")
-            
+
         elif "led_tornado#off" in message:
             print("led_off#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_tornado#true")
-            
+
         elif message == "crystal_to_tornado#true":
             print("Starting 'crystal_to_tornado' animation")
             self.start_animation(self.crystal_to_tornado_animation)
-            
+
         elif message == "rfid#tornado":
             print("Starting 'tornado_rfid' animation")
             self.start_animation(self.tornado_rfid_animation)
-            
+
         elif message == "tornado_finished#true":
             print("Starting 'tornado_finished' animation")
             self.start_animation(self.tornado_finished_animation)
-            
+
         elif message == "tornado_to_crystal#true":
             print("Starting 'tornado_to_crystal' animation")
             self.start_animation(self.tornado_to_crystal_animation)
-            
+
         else:
             print("Unknown message:", message)
 
@@ -296,13 +301,14 @@ class ESP32Controller:
             return
 
         self.ws_client.connect_websockets()
-        
+
         # Démarrage du thread WebSocket
         _thread.start_new_thread(self.websocket_thread, ())
-        
+
         # Boucle principale
         while True:
             utime.sleep(1)
+
 
 # Création et démarrage du contrôleur
 controller = ESP32Controller()
