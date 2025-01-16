@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="fix: rvr">
+    <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="fix: led color">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/esp/maze/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/led/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/tornado/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/led/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/typhoon/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/typhoon/led/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/volcano/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/led/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +95,7 @@
       <workItem from="1735902368080" duration="14000" />
       <workItem from="1736467639227" duration="4861000" />
       <workItem from="1736722214304" duration="932000" />
-      <workItem from="1736878277341" duration="4963000" />
+      <workItem from="1736878277341" duration="5260000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />
@@ -162,7 +159,8 @@
     <MESSAGE value="feat: esp identification" />
     <MESSAGE value="wip: auto ping server" />
     <MESSAGE value="fix: rvr" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: rvr" />
+    <MESSAGE value="fix: led color" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: led color" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/WSclient_py$AmbianceManager.coverage" NAME="AmbianceManager Coverage Results" MODIFIED="1736469907854" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/rpi" />

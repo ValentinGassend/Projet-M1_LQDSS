@@ -37,8 +37,9 @@ class Button:
         self.last_state = reading
         return False
 
+
 class ButtonController:
-    """Manages multiple buttons using the improved single button implementation"""
+    """Manages multiple buttons with sequence logic"""
     def __init__(self):
         self.buttons = {}
         # Track button activation states
@@ -47,7 +48,10 @@ class ButtonController:
             "btn2": False,
             "btn3": False
         }
+        self.btn1_first_press = True  # Track if it's the first press of btn1
         self.btn1_locked = False
+        self.btn1_unlock_notified = False  # Track if unlock message has been sent
+
         
     def add_button(self, pin_number, button_name):
         """Add a new button with the improved implementation"""
@@ -57,10 +61,23 @@ class ButtonController:
         
     def can_activate_button(self, button_name):
         """Check if a button can be activated based on sequence rules"""
-        if button_name == "btn1" and self.btn1_locked:
-            # btn1 can only be activated if both btn2 and btn3 have been activated
-            return self.button_states["btn2"] and self.button_states["btn3"]
+        if button_name == "btn1":
+            if self.btn1_first_press:
+                return True
+            elif self.btn1_locked:
+                # btn1 can only be reactivated if both btn2 and btn3 have been activated
+                return self.button_states["btn2"] and self.button_states["btn3"]
         return True
+        
+        
+    def get_button_message(self, button_name, is_pressed):
+        """Generate appropriate message based on button state"""
+        if button_name == "btn1" and is_pressed:
+            if self.btn1_first_press:
+                return f"{button_name}#start"
+            elif self.button_states["btn2"] and self.button_states["btn3"]:
+                return f"{button_name}#end"
+        return f"{button_name}#{'true' if is_pressed else 'false'}"
         
     def check_buttons(self, callback_press=None, callback_release=None):
         """Check all buttons and trigger callbacks when state changes"""
@@ -69,14 +86,28 @@ class ButtonController:
                 if button.pressed:
                     if self.can_activate_button(name):
                         if callback_press:
-                            callback_press(name)
+                            message = self.get_button_message(name, True)
+                            callback_press(message)
                             self.button_states[name] = True
+                            
                             if name == "btn1":
-                                self.btn1_locked = True
+                                if self.btn1_first_press:
+                                    self.btn1_first_press = False
+                                    self.btn1_locked = True
+                            # Check sequence after any button press
+                            self.check_button_sequence(callback_press)
                     else:
                         print(f"{name} is locked - activate other buttons first")
                 elif button.released and callback_release:
-                    callback_release(name)
+                    message = self.get_button_message(name, False)
+                    callback_release(message)
+    def check_button_sequence(self, callback_press=None):
+        """Check if btn1 should be unlocked and send notification"""
+        if (self.btn1_locked and not self.btn1_unlock_notified and 
+            self.button_states["btn2"] and self.button_states["btn3"]):
+            if callback_press:
+                callback_press("btn1#unlock")
+                self.btn1_unlock_notified = True
                         
     def reset_sequence(self):
         """Reset the button sequence"""
@@ -85,8 +116,12 @@ class ButtonController:
             "btn2": False,
             "btn3": False
         }
+        self.btn1_first_press = True
         self.btn1_locked = False
-
+        self.btn1_unlock_notified = False
+        
+        
+        
 class ESP32Controller:
     def __init__(self):
         self.rfid = RFIDController()
@@ -99,7 +134,7 @@ class ESP32Controller:
         self.button_controller.add_button(14, "btn3")
         
         self.ct_attempt = 0
-        self.reconnect_interval = 10  # 1 second in milliseconds
+        self.reconnect_interval = 10000  # 10 seconds in milliseconds
         self.message_queue = []
 
     def attempt_reconnect(self):
@@ -140,7 +175,7 @@ class ESP32Controller:
     def handle_entrance_tag(self, card_id):
         
         if card_id == 322763907:
-            msg = "maze_esp=>[maze_iphone,maze_esp,ambianceManager_rpi]=>rfid#maze"
+            msg = "maze_esp=>[maze_iphone,maze_esp,ambianceManager]=>rfid#maze"
             print(f"Sending RFID entrance message: {msg}")
             ws = self.ws_client.route_ws_map.get("message", None)
             if ws:
@@ -158,13 +193,13 @@ class ESP32Controller:
             # Reset button sequence when exit tag is detected
             self.button_controller.reset_sequence()
 
-    def handle_button_press(self, button_name):
-        msg = f"maze_esp=>[maze_iphone]=>{button_name}#true"
+    def handle_button_press(self, message):
+        msg = f"maze_esp=>[maze_iphone,ambianceManager]=>{message}"
         self.send_message(msg)
 
-    def handle_button_release(self, button_name):
-        msg = f"maze_esp=>[maze_iphone]=>{button_name}#false"
-        self.send_message(msg)
+    def handle_button_release(self, message):
+        msg = f"maze_esp=>[maze_iphone,ambianceManager]=>{message}"
+        #self.send_message(msg)
 
     def handle_websocket_messages(self):
         for ws_route, ws in self.ws_client.route_ws_map.items():

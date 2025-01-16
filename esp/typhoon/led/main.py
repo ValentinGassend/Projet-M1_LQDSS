@@ -26,7 +26,7 @@ class ESP32Controller:
 
         self.COLORS = {
             "orange": (220, 50, 0),
-            "purple": (128, 0, 128),
+            "purple": (96, 0, 96),
             "blue_grey": (96, 125, 139),
             "blue": (25, 25, 255),
             "yellow": (220, 210, 0),
@@ -95,34 +95,36 @@ class ESP32Controller:
             pos -= 170
             return (pos * 3, 0, 255 - pos * 3)
 
-    # Animation methods
     def pulse_animation(self, zone, r, g, b, pulse_count=3, pulse_speed_ms=2, step=20):
-        if self.stop_animation:
-            return
-
         start, end = zone
-        for _ in range(pulse_count):
-            if self.stop_animation:
-                return
-
+        current_pulse = 0
+        
+        while current_pulse < pulse_count:
+            # Fondu d'entrée (fade in)
             for intensity in range(0, 256, step):
-                if self.stop_animation:
-                    return
-                scaled_r = int(r * intensity / 255)
-                scaled_g = int(g * intensity / 255)
-                scaled_b = int(b * intensity / 255)
+                scaled_r = min(r, int(r * intensity / 255))
+                scaled_g = min(g, int(g * intensity / 255))
+                scaled_b = min(b, int(b * intensity / 255))
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
-
+            
+            # Pause à l'intensité maximale
+            utime.sleep_ms(200)  # Pause plus longue au maximum
+            
+            # Si c'est la dernière pulsation ou si on doit arrêter, on reste au maximum
+            if current_pulse == pulse_count - 1 or self.stop_animation:
+                self.set_color(zone, r, g, b)
+                return
+            
+            # Sinon, on continue avec le fade out
             for intensity in range(255, -1, -step):
-                if self.stop_animation:
-                    return
-                scaled_r = int(r * intensity / 255)
-                scaled_g = int(g * intensity / 255)
-                scaled_b = int(b * intensity / 255)
+                scaled_r = min(r, int(r * intensity / 255))
+                scaled_g = min(g, int(g * intensity / 255))
+                scaled_b = min(b, int(b * intensity / 255))
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
-
+            
+            current_pulse += 1
     def color_transition_pulse(self, zone, color1, color2, pulse_speed_ms=10, step=5):
         if self.stop_animation:
             return
@@ -192,25 +194,62 @@ class ESP32Controller:
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_typhoon#start")
         self.fill_animation(self.ZONE_GLOBAL, *self.COLORS["purple"], delay_ms=6, direction="start")
         if not self.stop_animation:
-            self.pulse_animation(self.ZONE_TABLE, *self.COLORS["purple"])
+            self.pulse_animation(self.ZONE_TABLE, *self.COLORS["purple"],2)
         if not self.stop_animation:
             self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_typhoon#end")
 
     def typhoon_rfid_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_rfid#start")
-        self.blink_animation(self.ZONE_TABLE, *self.COLORS["purple"], 3, 300)
+        self.start_animation(self.pulse_animation, (self.ZONE_TABLE, 
+                                                  purple[0], purple[1], purple[2],
+                                                  2,    # pulse_count
+                                                  20,  # pulse_speed_ms
+                                                  35))  # step
         if not self.stop_animation:
             self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_rfid#end")
 
     def typhoon_finished_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_finished#start")
-        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["typhoon"], 2, step=35)
+        
+        # Remplissage rapide depuis la fin
+        start, end = self.ZONE_TABLE
+        for i in range(end - 1, start - 1, -1):  # Parcours du dernier LED au premier
+            if self.stop_animation:
+                return
+            self.np[i] = self.COLORS["typhoon"]
+            self.np.write()
+            utime.sleep_ms(1)  # Délai très court pour un remplissage rapide
+        
+        # Une seule pulsation en typhon
         if not self.stop_animation:
+            # Augmentation de l'intensité
+            for intensity in range(0, 256, 35):
+                if self.stop_animation:
+                    return
+                r, g, b = self.COLORS["typhoon"]
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(self.ZONE_TABLE, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(2)
+            
+            # Diminution de l'intensité
+            for intensity in range(255, -1, -35):
+                if self.stop_animation:
+                    return
+                r, g, b = self.COLORS["typhoon"]
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(self.ZONE_TABLE, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(2)
+            
+            # Retour à la couleur typhon pleine
             self.set_color(self.ZONE_TABLE, *self.COLORS["typhoon"])
+        
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_finished#end")
-
     def typhoon_to_crystal_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_to_crystal#start")
         self.fill_animation(self.ZONE_GROUND, *self.COLORS["typhoon"], delay_ms=5, direction="end")
@@ -222,7 +261,7 @@ class ESP32Controller:
     def process_websocket_message(self, message):
         if "led_typhoon#on" in message:
             print("led_on#true")
-            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 48))
+            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 96, 0, 96))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_typhoon#true")
 
         elif "led_typhoon#off" in message:
@@ -236,8 +275,12 @@ class ESP32Controller:
 
         elif message == "rfid#typhoon":
             print("Starting 'typhoon_rfid' animation")
-            self.start_animation(self.typhoon_rfid_animation)
-
+            purple = self.COLORS["purple"]
+            self.start_animation(self.pulse_animation, (self.ZONE_TABLE, 
+                                                  purple[0], purple[1], purple[2],
+                                                  2,    # pulse_count
+                                                  20,  # pulse_speed_ms
+                                                  35))  # step
         elif message == "typhoon_finished#true":
             print("Starting 'typhoon_finished' animation")
             self.start_animation(self.typhoon_finished_animation)
