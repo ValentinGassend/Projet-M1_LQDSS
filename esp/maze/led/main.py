@@ -8,33 +8,37 @@ from WebSocketClient import WebSocketClient
 
 class ESP32Controller:
     def __init__(self):
-        self.NUM_LEDS = 300
+        self.NUM_LEDS = 657
         self.PIN = 5
         
         self.ZONE_GROUND = (0, 120)
         self.ZONE_TABLE = (120, 300)
-        self.ZONE_GLOBAL = (0, 300)
+        self.ZONE_GLOBAL = (0, self.NUM_LEDS)
         
         self.np = NeoPixel(Pin(self.PIN), self.NUM_LEDS)
-        self.ws_client = WSclient("Cudy-F810", "13022495", "tornado_espLed")
+        self.ws_client = WSclient("Cudy-F810", "13022495", "maze_espLed")
         
-        # Contrôle des threads
+        # Thread control
         self.current_animation = None
         self.stop_animation = False
         self.animation_lock = _thread.allocate_lock()
+        
+        # WebSocket reconnection control
+        self.last_reconnect_attempt = 0
+        self.reconnect_interval = 5000  # 5 seconds
         
         self.COLORS = {
             "orange": (220, 50, 0),
             "purple": (128, 0, 128),
             "blue_grey": (96, 125, 139),
             "blue": (50, 50, 255),
-            "yellow": (220, 210, 0),
+            "yellow": (55, 55, 0),
             "green": (0, 255, 0),
             "red": (255, 0, 0),
             "pink": (255, 192, 203),
             "cyan": (0, 150, 255),
             "magenta": (255, 0, 255),
-            "white": (255, 255, 255),
+            "white": (50, 50, 50),
             "black": (0, 0, 0),
             "teal": (0, 128, 128),
             "gold": (210, 160, 0),
@@ -93,6 +97,7 @@ class ESP32Controller:
         if self.stop_animation:
             return
             
+        start, end = zone
         for _ in range(pulse_count):
             if self.stop_animation:
                 return
@@ -179,66 +184,35 @@ class ESP32Controller:
             self.np.write()
             utime.sleep_ms(delay_ms)
 
-    # Séquences d'animation
-    def crystal_to_tornado_animation(self):
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_tornado#start")
+    def crystal_to_maze_animation(self):
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_maze#start")
         self.fill_animation(self.ZONE_GLOBAL, *self.COLORS["purple"], delay_ms=6, direction="start")
         if not self.stop_animation:
             self.pulse_animation(self.ZONE_TABLE, *self.COLORS["purple"])
         if not self.stop_animation:
             self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_tornado#end")
+        self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_maze#end")
 
-    def tornado_rfid_animation(self):
-        self.send_message("ambianceManager=>[ambianceManager]=>tornado_rfid#start")
+    def maze_rfid_animation(self):
+        self.send_message("ambianceManager=>[ambianceManager]=>maze_rfid#start")
         self.blink_animation(self.ZONE_TABLE, *self.COLORS["purple"], 3, 300)
         if not self.stop_animation:
             self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
-        self.send_message("ambianceManager=>[ambianceManager]=>tornado_rfid#end")
+        self.send_message("ambianceManager=>[ambianceManager]=>maze_rfid#end")
 
-    def tornado_finished_animation(self):
-        self.send_message("ambianceManager=>[ambianceManager]=>tornado_finished#start")
-        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["blue_grey"], 2, step=35)
+    def maze_finished_animation(self):
+        self.send_message("ambianceManager=>[ambianceManager]=>maze_finished#start")
+        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["gold"], 2, step=35)
         if not self.stop_animation:
-            self.set_color(self.ZONE_TABLE, *self.COLORS["blue_grey"])
-        self.send_message("ambianceManager=>[ambianceManager]=>tornado_finished#end")
+            self.set_color(self.ZONE_TABLE, *self.COLORS["gold"])
+        self.send_message("ambianceManager=>[ambianceManager]=>maze_finished#end")
 
-    def tornado_to_crystal_animation(self):
-        self.send_message("ambianceManager=>[ambianceManager]=>tornado_to_crystal#start")
-        self.fill_animation(self.ZONE_GROUND, *self.COLORS["blue_grey"], delay_ms=5, direction="end")
+    def maze_to_crystal_animation(self):
+        self.send_message("ambianceManager=>[ambianceManager]=>maze_to_crystal#start")
+        self.fill_animation(self.ZONE_GROUND, *self.COLORS["gold"], delay_ms=5, direction="end")
         if not self.stop_animation:
-            self.set_color(self.ZONE_GLOBAL, *self.COLORS["blue_grey"])
-        self.send_message("ambianceManager=>[ambianceManager]=>tornado_to_crystal#end")
-
-    def process_websocket_message(self, message):
-        if "led_tornado#on" in message:
-            print("led_on#true")
-            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 48, 48, 30))
-            self.send_message("ambianceManager=>[ambianceManager]=>led_on_tornado#true")
-            
-        elif "led_tornado#off" in message:
-            print("led_off#true")
-            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
-            self.send_message("ambianceManager=>[ambianceManager]=>led_off_tornado#true")
-            
-        elif message == "crystal_to_tornado#true":
-            print("Starting 'crystal_to_tornado' animation")
-            self.start_animation(self.crystal_to_tornado_animation)
-            
-        elif message == "rfid#tornado":
-            print("Starting 'tornado_rfid' animation")
-            self.start_animation(self.tornado_rfid_animation)
-            
-        elif message == "tornado_finished#true":
-            print("Starting 'tornado_finished' animation")
-            self.start_animation(self.tornado_finished_animation)
-            
-        elif message == "tornado_to_crystal#true":
-            print("Starting 'tornado_to_crystal' animation")
-            self.start_animation(self.tornado_to_crystal_animation)
-            
-        else:
-            print("Unknown message:", message)
+            self.set_color(self.ZONE_GLOBAL, *self.COLORS["gold"])
+        self.send_message("ambianceManager=>[ambianceManager]=>maze_to_crystal#end")
 
     def handle_websocket_messages(self):
         for ws_route, ws in self.ws_client.route_ws_map.items():
@@ -256,9 +230,39 @@ class ESP32Controller:
                             self.ws_client.process_message(ws, message)
 
             except OSError as e:
-                if e.args[0] != 11:
+                if e.args[0] != 11:  # 11 is EAGAIN (no data available)
                     print(f"Error on WebSocket route {ws_route}: {e}")
                     self.handle_websocket_error(ws_route, e)
+
+    def process_websocket_message(self, message):
+        if "led_maze#on" in message:
+            print("led_on#true")
+            self.set_color(self.ZONE_GLOBAL,55, 30, 0)
+            self.send_message("ambianceManager=>[ambianceManager]=>led_on_maze#true")
+            
+        elif "led_maze#off" in message:
+            print("led_off#true")
+            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
+            self.send_message("ambianceManager=>[ambianceManager]=>led_off_maze#true")
+            
+        elif message == "crystal_to_maze#true":
+            print("Starting 'crystal_to_maze' animation")
+            self.start_animation(self.crystal_to_maze_animation)
+            
+        elif message == "rfid#maze":
+            print("Starting 'maze_rfid' animation")
+            self.start_animation(self.maze_rfid_animation)
+            
+        elif message == "maze_finished#true":
+            print("Starting 'maze_finished' animation")
+            self.start_animation(self.maze_finished_animation)
+            
+        elif message == "maze_to_crystal#true":
+            print("Starting 'maze_to_crystal' animation")
+            self.start_animation(self.maze_to_crystal_animation)
+            
+        else:
+            print("Unknown message:", message)
 
     def handle_websocket_error(self, ws_route, error):
         if error.args[0] == 128:  # ENOTCONN
@@ -268,13 +272,17 @@ class ESP32Controller:
             print(f"Error on WebSocket route {ws_route}: {error}")
 
     def attempt_reconnect(self):
-        print("Attempting to reconnect WebSocket...")
-        if self.ws_client.connect_wifi():
-            print("WiFi reconnected successfully")
-            self.ws_client.connect_websockets()
-            print("WebSocket reconnection attempt completed")
-        else:
-            print("WiFi reconnection failed")
+        current_time = utime.ticks_ms()
+        if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
+            print("Attempting to reconnect WebSocket...")
+            self.last_reconnect_attempt = current_time
+
+            if self.ws_client.connect_wifi():
+                print("WiFi reconnected successfully")
+                self.ws_client.connect_websockets()
+                print("WebSocket reconnection attempt completed")
+            else:
+                print("WiFi reconnection failed")
 
     def send_message(self, msg):
         try:
@@ -297,13 +305,13 @@ class ESP32Controller:
 
         self.ws_client.connect_websockets()
         
-        # Démarrage du thread WebSocket
+        # Start WebSocket thread
         _thread.start_new_thread(self.websocket_thread, ())
         
-        # Boucle principale
+        # Main loop
         while True:
             utime.sleep(1)
 
-# Création et démarrage du contrôleur
+# Create and start controller
 controller = ESP32Controller()
 controller.start()

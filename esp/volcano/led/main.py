@@ -217,7 +217,7 @@ class ESP32Controller:
     def process_websocket_message(self, message):
         if "led_volcano#on" in message:
             print("led_on#true")
-            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 150, 150, 150))
+            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 148, 25, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_volcano#true")
             
         elif "led_volcano#off" in message:

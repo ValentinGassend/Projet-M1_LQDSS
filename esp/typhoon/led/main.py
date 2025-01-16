@@ -27,7 +27,7 @@ class ESP32Controller:
             "orange": (220, 50, 0),
             "purple": (128, 0, 128),
             "blue_grey": (96, 125, 139),
-            "blue": (50, 50, 255),
+            "blue": (25, 25, 255),
             "yellow": (220, 210, 0),
             "green": (0, 255, 0),
             "red": (255, 0, 0),
@@ -217,7 +217,7 @@ class ESP32Controller:
     def process_websocket_message(self, message):
         if "led_typhoon#on" in message:
             print("led_on#true")
-            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 150, 150, 150))
+            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 48))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_typhoon#true")
             
         elif "led_typhoon#off" in message:
