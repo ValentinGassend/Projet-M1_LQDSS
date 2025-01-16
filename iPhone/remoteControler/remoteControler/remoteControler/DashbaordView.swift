@@ -132,23 +132,42 @@ struct DashboardView: View {
     }
     
     // MARK: - Filtering Logic
-    
+    private func normalizeDeviceName(_ deviceName: String) -> String {
+        if deviceName.lowercased().contains("esp") {
+            return "esp"
+        } else if deviceName.lowercased().contains("iphone") {
+            return "iphone"
+        }
+        else if deviceName.lowercased().contains("rpi") {
+            return "rpi"
+        }
+        return deviceName
+    }
     /// Apply filters to the devices list
     private func applyFilters(to devices: [Device]) -> [Device] {
         devices.filter { device in
+            let normalizedDeviceName = normalizeDeviceName(device.device)
             let matchesTheme = selectedTheme == nil || device.device.lowercased().contains(selectedTheme!.lowercased())
-            let matchesDeviceType = selectedDeviceType == nil || device.device.lowercased().contains(selectedDeviceType!.lowercased())
+
+            let matchesDeviceType = selectedDeviceType == nil || normalizedDeviceName.lowercased().contains(selectedDeviceType!.lowercased())
+            
+            print("Device: \(device.device), Theme Match: \(matchesTheme), Device Type Match: \(matchesDeviceType)")
+            
             return matchesTheme && matchesDeviceType
         }
     }
+
     
     /// Extract unique themes from devices
     private func uniqueThemes() -> [String] {
-        Set(wsClient.connectedDevices.map { $0.device.components(separatedBy: "_").first ?? "" }).sorted()
+        Set(wsClient.connectedDevices.map { $0.device.components(separatedBy: "_").first ?? "" }.filter { !$0.isEmpty }).sorted()
     }
+
     
     /// Extract unique device types from devices
     private func uniqueDeviceTypes() -> [String] {
-        Set(wsClient.connectedDevices.map { $0.device.components(separatedBy: "_").last ?? "" }).sorted()
+        // Normalisez les noms d'appareils avant d'obtenir les types uniques
+        let normalizedDeviceTypes = wsClient.connectedDevices.map { normalizeDeviceName($0.device) }
+        return Set(normalizedDeviceTypes).sorted()
     }
 }

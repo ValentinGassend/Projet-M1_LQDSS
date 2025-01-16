@@ -25,7 +25,7 @@ class WebSockerServer {
     var deviceStates: [String: (type: String, isConnected: Bool)] = [
         "remoteController_iphone2": ("remoteController", false),
         "remoteController_iphone1": ("remoteController", false),
-        "tornado_rvr": ("tornado", false),
+        "tornado_rpix": ("tornado", false),
         "typhoon_esp": ("typhoon", false),
         "typhoon_iphone": ("typhoon", false),
         "typhoon_iphone1": ("typhoon", false),
