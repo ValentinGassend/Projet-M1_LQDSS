@@ -238,7 +238,7 @@ class ESP32Controller:
             print("Starting 'tornado_finished' animation")
             self.start_animation(self.tornado_finished_animation)
 
-        elif message == "tornado_to_crystal#true":
+        elif message == "tornado_to_crystal#true" or message == "tornado_finished#end":
             print("Starting 'tornado_to_crystal' animation")
             self.start_animation(self.tornado_to_crystal_animation)
 

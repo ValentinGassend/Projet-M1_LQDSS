@@ -230,7 +230,7 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_volcano#true")
 
-        elif message == "crystal_to_volcano#true":
+        elif message == "crystal_to_volcano#true" or message == "crystal_typhoon#end":
             print("Starting 'crystal_to_volcano' animation")
             self.start_animation(self.crystal_to_volcano_animation)
 
@@ -242,7 +242,7 @@ class ESP32Controller:
             print("Starting 'volcano_finished' animation")
             self.start_animation(self.volcano_finished_animation)
 
-        elif message == "volcano_to_crystal#true":
+        elif message == "volcano_to_crystal#true" or message == "volcano_finished#end":
             print("Starting 'volcano_to_crystal' animation")
             self.start_animation(self.volcano_to_crystal_animation)
 

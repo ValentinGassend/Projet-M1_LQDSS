@@ -59,14 +59,14 @@
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SDK/String+Utils.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SharedToyBox.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/SpheroConnectionSheetView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/SpheroConnectionSheetView.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/crystal/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/led/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/led/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/led/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/typhoon/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/typhoon/led/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/led/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/ContentView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/ContentView.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -155,7 +155,7 @@
       <workItem from="1735902368080" duration="14000" />
       <workItem from="1736467639227" duration="4861000" />
       <workItem from="1736722214304" duration="932000" />
-      <workItem from="1736878277341" duration="7848000" />
+      <workItem from="1736878277341" duration="8780000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />
@@ -204,8 +204,18 @@
     <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
+    <option name="OPEN_GENERIC_TABS">
+      <map>
+        <entry key="521872df-30cb-45ef-94d5-a29812336f5f" value="TOOL_WINDOW" />
+      </map>
+    </option>
     <option name="TAB_STATES">
       <map>
+        <entry key="521872df-30cb-45ef-94d5-a29812336f5f">
+          <value>
+            <State />
+          </value>
+        </entry>
         <entry key="MAIN">
           <value>
             <State />

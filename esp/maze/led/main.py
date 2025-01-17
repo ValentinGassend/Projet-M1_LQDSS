@@ -458,7 +458,7 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_maze#true")
 
-        elif message == "crystal_to_maze#true":
+        elif message == "crystal_to_maze#true" or message == "crystal_tornado#end":
             print("Starting 'crystal_to_maze' animation")
             self.start_animation(self.crystal_to_maze_animation)
 
@@ -484,7 +484,7 @@ class ESP32Controller:
             self.set_color(self.ZONE_BTN2, *self.COLORS["maze"])
             self.set_color(self.ZONE_BTN3, *self.COLORS["maze"])
         
-        elif message == "maze_to_crystal#true":
+        elif message == "maze_to_crystal#true" or message == "maze_finished#end":
             print("Starting 'maze_to_crystal' animation")
             self.start_animation(self.maze_to_crystal_animation)
         

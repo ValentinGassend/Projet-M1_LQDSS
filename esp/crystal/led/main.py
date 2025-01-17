@@ -242,27 +242,27 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_crystal#true")
             
-        elif message == "crystal#tornado":
+        elif message == "crystal#tornado" or message == "tornado_to_crystal#end":
             print("Démarrage de l'animation 'crystal_to_tornado'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#start")
             self.start_animation(self.tornado_animation)
             
-        elif message == "crystal#maze":
+        elif message == "crystal#maze" or message == "maze_to_crystal#end":
             print("Démarrage de l'animation 'crystal_maze'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#start")
             self.start_animation(self.maze_animation)
             
-        elif message == "crystal#typhoon":
+        elif message == "crystal#typhoon" or message == "typhoon_to_crystal#end":
             print("Démarrage de l'animation 'crystal_typhoon'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#start")
             self.start_animation(self.typhoon_animation)
             
-        elif message == "crystal#volcano":
+        elif message == "crystal#volcano" or message == "volcano_to_crystal#end":
             print("Démarrage de l'animation 'crystal_volcano'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#start")
             self.start_animation(self.volcano_animation)
             
-        elif message == "crystal#finished":
+        elif message == "crystal#finished" or message == "crystal_volcano#end":
             print("Démarrage de l'animation 'crystal_finished'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#start")
             self.start_animation(self.finish_animation)

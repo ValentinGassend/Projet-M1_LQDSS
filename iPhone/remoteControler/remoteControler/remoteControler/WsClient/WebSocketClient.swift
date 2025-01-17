@@ -312,28 +312,40 @@ extension WebSocketClient: WebSocketConnectionDelegate {
             
         }
         
-        private func routeMessage(_ message: String, for route: String) {
-            print("Route Message \(message) on route \(route)")
-            
-            guard let parsedMessage = parseMessage(message) else {
-                print("Failed to parse message: \(message)")
-                return
-            }
-            
-            // Traitement basé sur le composant
-            switch parsedMessage.component {
-            case "rfid":
-                handleRFIDMessage(parsedMessage)
-            case "relay1", "relay2", "relay3", "relay4":
-                handleRelayMessage(parsedMessage)
-            case "sphero1", "sphero2", "sphero3", "sphero4":
-                handleSpheroMessage(parsedMessage)
-            case "sphero":
-                handleSpheroConnectionMessage(parsedMessage)
-            default:
-                print("Unknown component: \(parsedMessage.component)")
+    
+    private func handleTyphoonRFID() {
+        // Liste des rôles pour lesquels appliquer la configuration
+        let roles: [SpheroRole] = [.handle1, .handle2]
+        let roleManager = SpheroRoleManager.instance
+        for role in roles {
+            // Récupérer la Sphero assignée au rôle
+            if let roleAssignment = roleManager.getRoleAssignment(for: role),
+               let sphero = roleAssignment.toy {
+                // Configurer les LEDs en jaune
+                sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 255/255, alpha: 1.0))
+                                sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 255/255, alpha: 1.0))
+                                
             }
         }
+    }
+    private func routeMessage(_ message: String, for route: String) {
+        print("Route Message \(message) on route \(route)")
+        
+        
+        
+        
+        // Traitement basé sur le composant
+        switch message {
+        case "rfid#typhoon":
+            handleTyphoonRFID()
+//        case "rfid#maze":
+//            handleMazeRFID()
+//        case "btn1#start":
+//            handleBtn1Start()
+        default:
+            print("Unknown component: \(message)")
+        }
+    }
         
         // Exemple de traitement pour RFID
     private func handleRFIDMessage(_ message: ParsedMessage) {

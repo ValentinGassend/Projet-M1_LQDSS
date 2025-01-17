@@ -269,7 +269,7 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_typhoon#true")
 
-        elif message == "crystal_to_typhoon#true":
+        elif message == "crystal_to_typhoon#true" or message == "crystal_maze#end":
             print("Starting 'crystal_to_typhoon' animation")
             self.start_animation(self.crystal_to_typhoon_animation)
 
@@ -285,7 +285,7 @@ class ESP32Controller:
             print("Starting 'typhoon_finished' animation")
             self.start_animation(self.typhoon_finished_animation)
 
-        elif message == "typhoon_to_crystal#true":
+        elif message == "typhoon_to_crystal#true" or message == "typhoon_finished#end":
             print("Starting 'typhoon_to_crystal' animation")
             self.start_animation(self.typhoon_to_crystal_animation)
 
