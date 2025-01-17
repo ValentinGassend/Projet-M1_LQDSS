@@ -8,29 +8,29 @@ class ESP32Controller:
     def __init__(self):
         self.NUM_LEDS = 300
         self.PIN = 5
-        
+
         self.ZONE_GROUND = (0, 120)
         self.ZONE_TABLE = (120, 300)
         self.ZONE_GLOBAL = (1, 205)
-        
+
         #self.ZONE_AIR = (175, 205)
         #self.ZONE_ELEC = (100, 175)
         #self.ZONE_WATER = (50, 100)
         #self.ZONE_FIRE = (1, 50)
-        
-        
+
+
         self.ZONE_AIR = (185, 205)
         self.ZONE_ELEC = (110, 185)
         self.ZONE_WATER = (60, 110)
         self.ZONE_FIRE = (1, 60)
-        
+
         self.np = NeoPixel(Pin(self.PIN), self.NUM_LEDS)
         self.ws_client = WSclient("Cudy-F810", "13022495", "crystal_espLed")
-        
+
         self.current_animation = None
         self.stop_animation = False
         self.animation_lock = _thread.allocate_lock()
-        
+
         self.COLORS = {
             "orange": (110, 25, 0),
             "purple": (255, 0, 255),
@@ -49,6 +49,10 @@ class ESP32Controller:
             "gold": (210, 160, 0),
             "lavender": (230, 230, 250),
             "turquoise": (64, 224, 208),
+            "maze": (220, 120, 0),
+            "typhoon": (0, 0, 255),
+            "tornado": (144, 144, 90),
+            "volcano": (222, 38, 0),
         }
 
     def stop_current_animation(self):
@@ -84,11 +88,11 @@ class ESP32Controller:
         for i in range(start, end):
             self.np[i] = (r, g, b)
         self.np.write()
-        
+
     def clear(self,zone):
         self.set_color(zone, 0, 0, 0)
 
-    
+
     def wheel(self,pos):
         if pos < 85:
             return (255 - pos * 3, pos * 3, 0)
@@ -98,7 +102,7 @@ class ESP32Controller:
         else:
             pos -= 170
             return (pos * 3, 0, 255 - pos * 3)
-        
+
     def pulse_animation(self, zone, r, g, b, pulse_count=3, pulse_speed_ms=2, step=20):
         """
         Anime une zone avec un effet de pulsation (variation d'intensité d'une couleur).
@@ -120,7 +124,7 @@ class ESP32Controller:
                 scaled_b = int(b * intensity / 255)
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
-            
+
             # Diminue progressivement l'intensité
             for intensity in range(255, -1, -step):
                 scaled_r = int(r * intensity / 255)
@@ -128,8 +132,8 @@ class ESP32Controller:
                 scaled_b = int(b * intensity / 255)
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
-    
-    
+
+
 
     def color_transition_pulse(self, zone, color1, color2, pulse_speed_ms=10, step=5):
         """
@@ -183,8 +187,8 @@ class ESP32Controller:
             self.set_color(zone, scaled_r, scaled_g, scaled_b)
             utime.sleep_ms(pulse_speed_ms)
 
-       
-        
+
+
     def blink_animation(self, zone, r, g, b, blink_count=5, blink_delay_ms=500):
         """
         Fait clignoter les LEDs d'une zone spécifique.
@@ -201,11 +205,11 @@ class ESP32Controller:
             # Allume les LEDs
             self.set_color(zone, r, g, b)
             utime.sleep_ms(blink_delay_ms)
-            
+
             # Éteint les LEDs
             self.clear(zone)
             utime.sleep_ms(blink_delay_ms)
-    
+
     def fill_animation(self, zone, r, g, b, delay_ms=50, direction="start"):
         """
         Remplit progressivement une zone spécifique du bandeau LED.
@@ -230,74 +234,135 @@ class ESP32Controller:
             self.np.write()
             utime.sleep_ms(delay_ms)
 
-   
+
     def process_websocket_message(self, message):
-        if "led_crystal#on" in message:
+        if "led_crystal#on" in message or "Hello" in message:
             print("led_on#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 128, 0, 128))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_crystal#true")
-            
+
         elif "led_crystal#off" in message:
             print("led_off#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_crystal#true")
-            
+
         elif message == "crystal#tornado" or message == "tornado_to_crystal#end":
             print("Démarrage de l'animation 'crystal_to_tornado'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#start")
             self.start_animation(self.tornado_animation)
-            
+
         elif message == "crystal#maze" or message == "maze_to_crystal#end":
             print("Démarrage de l'animation 'crystal_maze'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#start")
             self.start_animation(self.maze_animation)
-            
+
         elif message == "crystal#typhoon" or message == "typhoon_to_crystal#end":
             print("Démarrage de l'animation 'crystal_typhoon'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#start")
             self.start_animation(self.typhoon_animation)
-            
+
         elif message == "crystal#volcano" or message == "volcano_to_crystal#end":
             print("Démarrage de l'animation 'crystal_volcano'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#start")
             self.start_animation(self.volcano_animation)
-            
+
         elif message == "crystal#finished" or message == "crystal_volcano#end":
             print("Démarrage de l'animation 'crystal_finished'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#start")
             self.start_animation(self.finish_animation)
-            
+
         else:
             print("message inconnu :", message)
 
-    def tornado_animation(self):
+
+    def moving_section_animation(self, final_zone, color, blink_color=None):
+        """
+        Animation générique d'une section lumineuse qui se construit et se déplace
+
+        Args:
+            final_zone (tuple): Zone finale (start, end) où la section doit s'arrêter
+            color (tuple): Couleur RGB de la section en mouvement
+            blink_color (tuple, optional): Couleur pour le clignotement final. Si None, utilise color
+        """
         if not self.stop_animation:
-            self.blink_animation(self.ZONE_AIR, *self.COLORS["white"], 15, 100)
-        if not self.stop_animation:
-            self.fill_animation(self.ZONE_AIR, *self.COLORS["white"], delay_ms=5, direction="end")
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#end")
+            # Stocke les couleurs actuelles des LEDs
+            original_colors = []
+            for i in range(0, final_zone[1]):
+                original_colors.append(self.np[i])
+
+            section_length = final_zone[1] - final_zone[0]  # Longueur de la zone finale
+
+            # Phase 1 : Construction progressive de la section depuis la LED 0
+            for length in range(1, section_length + 1):
+                if self.stop_animation:
+                    break
+
+                # Allume les LEDs de 0 jusqu'à la longueur actuelle
+                for i in range(0, length):
+                    self.np[i] = color
+                self.np.write()
+                utime.sleep_ms(5)
+
+            # Phase 2 : Déplacement de la section complète jusqu'à sa position finale
+            for start_pos in range(1, final_zone[0] + 1):
+                if self.stop_animation:
+                    break
+
+                # Restaure la couleur d'origine de la LED précédente si elle n'est pas dans la zone finale
+                if start_pos - 1 < final_zone[0]:
+                    self.np[start_pos - 1] = original_colors[start_pos - 1]
+                else:
+                    self.np[start_pos - 1] = color  # Si dans la zone finale, garde la couleur
+
+                # Allume uniquement la nouvelle LED à la fin de la section
+                self.np[start_pos + section_length - 1] = color
+
+                self.np.write()
+                utime.sleep_ms(5)
 
     def maze_animation(self):
         if not self.stop_animation:
-            self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
+            # Appelle l'animation générique avec les couleurs pour maze
+            self.moving_section_animation(
+                final_zone=self.ZONE_ELEC,
+                color=self.COLORS["maze"],
+            )
+            # Envoie le message seulement après que l'animation soit terminée
+            if not self.stop_animation:
+                self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#end")
+
+    def tornado_animation(self):
         if not self.stop_animation:
-            self.fill_animation(self.ZONE_ELEC, *self.COLORS["yellow"], delay_ms=5, direction="end")
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#end")
+            # Appelle l'animation générique avec les couleurs pour tornado
+            self.moving_section_animation(
+                final_zone=self.ZONE_AIR,
+                color=self.COLORS["tornado"],
+            )
+            # Envoie le message seulement après que l'animation soit terminée
+            if not self.stop_animation:
+                self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#end")
 
     def typhoon_animation(self):
         if not self.stop_animation:
-            self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
-        if not self.stop_animation:
-            self.fill_animation(self.ZONE_WATER, *self.COLORS["blue"], delay_ms=5, direction="end")
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#end")
+            # Appelle l'animation générique avec les couleurs pour typhoon
+            self.moving_section_animation(
+                final_zone=self.ZONE_WATER,
+                color=self.COLORS["typhoon"],
+            )
+            # Envoie le message seulement après que l'animation soit terminée
+            if not self.stop_animation:
+                self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#end")
 
     def volcano_animation(self):
         if not self.stop_animation:
-            self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
-        if not self.stop_animation:
-            self.fill_animation(self.ZONE_FIRE, *self.COLORS["orange"], delay_ms=5, direction="end")
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#end")
-
+            # Appelle l'animation générique avec les couleurs pour volcano
+            self.moving_section_animation(
+                final_zone=self.ZONE_FIRE,
+                color=self.COLORS["volcano"],
+            )
+            # Envoie le message seulement après que l'animation soit terminée
+            if not self.stop_animation:
+                self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#end")
     def finish_animation(self):
         if not self.stop_animation:
             self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
@@ -316,12 +381,12 @@ class ESP32Controller:
             return
 
         self.ws_client.connect_websockets()
-        
+
         _thread.start_new_thread(self.websocket_thread, ())
-        
+
         while True:
             utime.sleep(1)
-            
+
     def handle_websocket_messages(self):
         """Gère la réception des messages WebSocket"""
         for ws_route, ws in self.ws_client.route_ws_map.items():
@@ -354,7 +419,7 @@ class ESP32Controller:
     def attempt_reconnect(self):
         """Tente de se reconnecter au WebSocket"""
         print("Attempting to reconnect WebSocket...")
-        
+
         if self.ws_client.connect_wifi():
             print("WiFi reconnected successfully")
             self.ws_client.connect_websockets()
