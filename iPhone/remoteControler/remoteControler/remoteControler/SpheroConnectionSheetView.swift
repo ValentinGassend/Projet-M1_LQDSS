@@ -113,13 +113,33 @@ class SpheroRoleManager: ObservableObject {
                 if let existingIndex = roleAssignments.firstIndex(where: { $0.role == role }) {
                     roleAssignments[existingIndex].role = .unassigned
                 }
+                
             }
             roleAssignments[index].role = role
         } else {
             roleAssignments.append(SpheroRoleAssignment(spheroName: spheroName, role: role, toy: toy))
         }
+        if let sphero = toy {
+            switch role {
+            case .handle1, .handle2, .handle3, .handle4:
+                sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
+                sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
+                
+            case .maze:
+                // Configurer la LED en jaune
+                sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
+                sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
+                
+                // Envoyer le motif d'éclair
+                SpheroPresetManager.shared.sendLightningPreset(to: sphero)
+                
+            default:
+                break
+            }
+        }
         sendRoleAssignmentMessage(spheroName: spheroName, role: role)
     }
+    
     
     private func sendRoleAssignmentMessage(spheroName: String, role: SpheroRole) {
         let routeOrigin = "maze_iphone"

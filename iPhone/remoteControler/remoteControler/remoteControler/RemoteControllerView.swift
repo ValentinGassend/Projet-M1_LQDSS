@@ -96,7 +96,7 @@ struct MazeView: View {
         
         
         "ambianceManager=>[ambianceManager]=>crystal_to_maze#true",
-        "ambianceManager=>[ambianceManager]=>rfid#maze",
+        "ambianceManager=>[ambianceManager,remoteController_iphone1,remoteController_iphone2]=>rfid#maze",
         "ambianceManager=>[ambianceManager]=>maze_finished#true",
         "ambianceManager=>[ambianceManager]=>maze_to_crystal#true",
         "ambianceManager=>[ambianceManager]=>led_maze#off",
@@ -329,7 +329,7 @@ struct TyphoonView: View {
     
     private let commands = [
         "ambianceManager=>[typhoon_esp,ambianceManager]=>crystal_to_typhoon#true",
-        "ambianceManager=>[ambianceManager]=>rfid#typhoon",
+        "ambianceManager=>[ambianceManager,remoteController_iphone1,remoteController_iphone2]=>rfid#typhoon",
         "ambianceManager=>[typhoon_esp,ambianceManager]=>typhoon_finished#true",
         "ambianceManager=>[typhoon_esp,ambianceManager]=>typhoon_to_crystal#true",
         "ambianceManager=>[typhoon_esp,ambianceManager]=>led_typhoon#off",

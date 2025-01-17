@@ -109,7 +109,7 @@ class WebSockerServer {
                         }
                     }
                 }
-                else if routeInfos.routeName == "remoteController_iphone1Dashboard" {
+                else if routeInfos.routeName == "©Dashboard" {
                                     print("Message received on remoteController_iphone1Dashboard: \(text)")
                                     if text == "getDevices" {
                                         self.audioPlayer.playSound()

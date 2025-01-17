@@ -20,7 +20,7 @@ class WebSocketClient:ObservableObject {
     
     var routes = [String:NWWebSocket]()
     var ipAddress = "192.168.10.146:8080/"
-    
+//    @StateObject var roleManager:SpheroRoleManager = SpheroRoleManager.instance
     @Published var messageReceive:String = ""
     @Published var isRFIDDetectedForMaze:Bool = false
     @Published var isRFIDDetectedForTyphoon:Bool = false
@@ -309,51 +309,82 @@ extension WebSocketClient: WebSocketConnectionDelegate {
             
             
         }
-        
+    private func handleMazeRFID() {
+        // Liste des rôles pour lesquels appliquer la configuration
+        let roles: [SpheroRole] = [.maze]
+        let roleManager = SpheroRoleManager.instance
+        for role in roles {
+            // Récupérer la Sphero assignée au rôle
+            if let roleAssignment = roleManager.getRoleAssignment(for: role),
+               let sphero = roleAssignment.toy {
+                sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
+                sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
+                SpheroPresetManager.shared.sendLightningPreset(
+                    to: sphero,
+                    defaultColor: .black,
+                    presetColor: UIColor(red: 48/255, green: 48/255, blue: 30/255, alpha: 1.0)
+                )
+            }
+        }
+    }
+    private func handleBtn1Start() {
+        // Liste des rôles pour lesquels appliquer la configuration
+        let roles: [SpheroRole] = [.maze]
+        let roleManager = SpheroRoleManager.instance
+        for role in roles {
+            // Récupérer la Sphero assignée au rôle
+            if let roleAssignment = roleManager.getRoleAssignment(for: role),
+               let sphero = roleAssignment.toy {
+                // Configurer les LEDs en jaune
+                sphero.setFrontLed(color: UIColor(red: 110/255, green: 60/255, blue: 0/255, alpha: 1.0))
+                                sphero.setBackLed(color: UIColor(red: 110/255, green: 60/255, blue: 0/255, alpha: 1.0))
+                                
+                // Envoyer le motif d'éclair (commenté pour l'instant)
+                SpheroPresetManager.shared.sendLightningPreset(
+                                    to: sphero,
+                                    defaultColor: .black,
+                                    presetColor: UIColor(red: 55/255, green: 30/255, blue: 0/255, alpha: 1.0)
+                                )            }
+        }
+    }
+    private func handleTyphoonRFID() {
+        // Liste des rôles pour lesquels appliquer la configuration
+        let roles: [SpheroRole] = [.handle3, .handle4]
+        let roleManager = SpheroRoleManager.instance
+        for role in roles {
+            // Récupérer la Sphero assignée au rôle
+            if let roleAssignment = roleManager.getRoleAssignment(for: role),
+               let sphero = roleAssignment.toy {
+                // Configurer les LEDs en jaune
+                sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 255/255, alpha: 1.0))
+                                sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 255/255, alpha: 1.0))
+                                
+            }
+        }
+    }
+    
         private func routeMessage(_ message: String, for route: String) {
             print("Route Message \(message) on route \(route)")
             
-            guard let parsedMessage = parseMessage(message) else {
-                print("Failed to parse message: \(message)")
-                return
-            }
+            
+            
             
             // Traitement basé sur le composant
-            switch parsedMessage.component {
-            case "rfid":
-                handleRFIDMessage(parsedMessage)
-            case "relay1", "relay2", "relay3", "relay4":
-                handleRelayMessage(parsedMessage)
-            case "sphero1", "sphero2", "sphero3", "sphero4":
-                handleSpheroMessage(parsedMessage)
-            case "sphero":
-                handleSpheroConnectionMessage(parsedMessage)
+            switch message {
+            case "rfid#typhoon":
+                handleTyphoonRFID()
+            case "rfid#maze":
+                handleMazeRFID()
+            case "btn1#start":
+                handleBtn1Start()
             default:
-                print("Unknown component: \(parsedMessage.component)")
+                print("Unknown component: \(message)")
             }
         }
-        
+    
+
         // Exemple de traitement pour RFID
-    private func handleRFIDMessage(_ message: ParsedMessage) {
-        print("component: \(message.component) data: \(message.data)")
-        
-        if message.data == "typhoon" {
-            print("RFID message for typhoon")
-            print("RFID detected")
-            DispatchQueue.main.async {
-                self.isRFIDDetectedForTyphoon = true
-                print("isRFIDDetectedForTyphoon is now: \(self.isRFIDDetectedForTyphoon)")
-            }
-        }
-        else if message.data == "maze" {
-            print("RFID message for maze")
-            print("RFID detected")
-            isRFIDDetectedForMaze = true
-        }
-        else {
-            print("RFID not detected")
-        }
-    }
+    
         func updateDevicesFromJson(_ jsonString: String) {
             guard let jsonData = jsonString.data(using: .utf8) else {
                 print("Error: Cannot convert string to data")
@@ -391,7 +422,7 @@ extension WebSocketClient: WebSocketConnectionDelegate {
                     print("maze sphero connection received")
                     // Add a delay to allow for role assignment to be properly registered
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                        guard let self = self else { return }
+                        guard self != nil else { return }
                         let roleManager = SpheroRoleManager.instance
                         
                         // First, ensure there's a Sphero assigned to the maze role
