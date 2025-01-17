@@ -453,7 +453,7 @@ class ESP32Controller:
             self.start_animation(self.inside_progressive_animation)
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_maze#true")
 
-        elif "led_maze#off" in message:
+        elif "led_maze#off" in message or "Hello" in message:
             print("led_off#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_maze#true")

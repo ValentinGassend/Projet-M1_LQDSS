@@ -94,7 +94,7 @@ class WebSockerServer {
     // Dictionary to store message-related sessions
     var messageSessions: [String: (session: WebSocketSession, isConnected: Bool)] = [:]
     
-        let audioPlayer = AudioPlayer.shared
+    let audioPlayer = AudioPlayer.shared
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
             text: { session, text in
@@ -110,29 +110,29 @@ class WebSockerServer {
                     }
                 }
                 else if routeInfos.routeName == "remoteController_iphone1Dashboard" {
-                                    print("Message received on remoteController_iphone1Dashboard: \(text)")
-                                    if text == "getDevices" {
-                                        self.audioPlayer.playSound()
-                                        self.sessionQueue.async {
-                                            let allDevices = self.deviceStates.mapValues { state in
-                                                [
-                                                    "type": state.type,
-                                                    "isConnected": state.isConnected
-                                                ]
-                                            }
-                                            
-                                            do {
-                                                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                                                if let jsonString = String(data: jsonData, encoding: .utf8) {
-                                                    session.writeText(jsonString)
-                                                    print("Sent device states to dashboard: \(jsonString)")
-                                                }
-                                            } catch {
-                                                print("Error generating JSON: \(error)")
-                                            }
-                                        }
-                                    }
+                    print("Message received on remoteController_iphone1Dashboard: \(text)")
+                    if text == "getDevices" {
+                        self.audioPlayer.playSound()
+                        self.sessionQueue.async {
+                            let allDevices = self.deviceStates.mapValues { state in
+                                [
+                                    "type": state.type,
+                                    "isConnected": state.isConnected
+                                ]
+                            }
+                            
+                            do {
+                                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
+                                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                                    session.writeText(jsonString)
+                                    print("Sent device states to dashboard: \(jsonString)")
                                 }
+                            } catch {
+                                print("Error generating JSON: \(error)")
+                            }
+                        }
+                    }
+                }
                 else if routeInfos.routeName.contains("Message") {
                     print("Text received: \(text) from route: /\(routeInfos.routeName)")
                     if let parsedMessage = self.parseMessage(text) {
@@ -169,8 +169,8 @@ class WebSockerServer {
             connected: { session in
                 print("Client connected to route: /\(routeInfos.routeName)")
                 if routeInfos.routeName.contains("iphone") {
-                                    self.handleIPhoneConnection(routeName: routeInfos.routeName, session: session)
-                                }
+                    self.handleIPhoneConnection(routeName: routeInfos.routeName, session: session)
+                }
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
                     let deviceName = self.normalizeDeviceName(routeName: routeInfos.routeName)
@@ -179,7 +179,7 @@ class WebSockerServer {
                         switch deviceName {
                         case "remoteController_iphone1":
                             self.remoteController_iphone1Session = session
-                                                
+                            
                         default:
                             break
                         }
@@ -418,62 +418,139 @@ extension WebSockerServer {
         }
     }
     private func handleIPhoneConnection(routeName: String, session: WebSocketSession) {
-            let deviceName = normalizeDeviceName(routeName: routeName)
-            
-            switch deviceName {
-            case "remoteController_iphone1":
-                self.remoteController_iphone1Session = session
-                // Register message session
-                if routeName.contains("Message") {
-                    registerMessageSession(routeName: routeName, session: session)
-                }
-                // Update device state
-                updateDeviceState(routeName: deviceName, isConnected: true)
-                
-            case "remoteController_iphone2":
-                self.remoteController_iphone2Session = session
-                if routeName.contains("Message") {
-                    registerMessageSession(routeName: routeName, session: session)
-                }
-                updateDeviceState(routeName: deviceName, isConnected: true)
-                
-            default:
-                break
+        let deviceName = normalizeDeviceName(routeName: routeName)
+        
+        switch deviceName {
+        case "remoteController_iphone1":
+            self.remoteController_iphone1Session = session
+            // Register message session
+            if routeName.contains("Message") {
+                registerMessageSession(routeName: routeName, session: session)
             }
+            // Update device state
+            updateDeviceState(routeName: deviceName, isConnected: true)
+            
+        case "remoteController_iphone2":
+            self.remoteController_iphone2Session = session
+            if routeName.contains("Message") {
+                registerMessageSession(routeName: routeName, session: session)
+            }
+            updateDeviceState(routeName: deviceName, isConnected: true)
+            
+        default:
+            break
         }
+    }
     func updateDeviceState(routeName: String, isConnected: Bool) {
-            let deviceName = normalizeDeviceName(routeName: routeName)
-            // Don't process dashboard routes
-            if deviceName.contains("Dashboard") {
-                return
-            }
-            
-            sessionQueue.async {
-                if var state = self.deviceStates[deviceName] {
-                    state.isConnected = isConnected
-                    self.deviceStates[deviceName] = state
-                    print("Updated state for \(deviceName): isConnected = \(isConnected)")
-                    
-                    // Notify dashboard of state change
-                    if let dashboardSession = self.remoteController_iphone1Session {
-                        do {
-                            let allDevices = self.deviceStates.mapValues { state in
-                                [
-                                    "type": state.type,
-                                    "isConnected": state.isConnected
-                                ]
-                            }
-                            let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                                dashboardSession.writeText(jsonString)
-                            }
-                        } catch {
-                            print("Error sending update to dashboard: \(error)")
+        let deviceName = normalizeDeviceName(routeName: routeName)
+        // Don't process dashboard routes
+        if deviceName.contains("Dashboard") {
+            return
+        }
+        
+        sessionQueue.async {
+            if var state = self.deviceStates[deviceName] {
+                state.isConnected = isConnected
+                self.deviceStates[deviceName] = state
+                print("Updated state for \(deviceName): isConnected = \(isConnected)")
+                
+                // Notify dashboard of state change
+                if let dashboardSession = self.remoteController_iphone1Session {
+                    do {
+                        let allDevices = self.deviceStates.mapValues { state in
+                            [
+                                "type": state.type,
+                                "isConnected": state.isConnected
+                            ]
                         }
+                        let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
+                        if let jsonString = String(data: jsonData, encoding: .utf8) {
+                            dashboardSession.writeText(jsonString)
+                        }
+                    } catch {
+                        print("Error sending update to dashboard: \(error)")
                     }
                 }
             }
         }
+    }
+    func handleSoundMessage(_ message: String) {
+        switch message {
+        case "":
+            print("")
+            
+            
+            // tornado
+        case "rfid#tornado":
+            print("(=son1)")
+            print("(=musique2)")  // end on tornado_to_crystal#end
+            
+        case "tornado_finished#true":
+            print("(=son2)")
+            
+            
+            
+            
+            
+            // maze
+        case "rfid#maze":
+            print("(=son1)")
+            print("(=musique3)")  // end on maze_to_crystal#end
+        case "btn2#true":
+            print("(=son5)")
+        case "btn3#true":
+            print("(=son5)")
+        case "btn1#end":
+            print("(=son2)")
+            print("(=son6)") // end on crystal_maze#end
+            
+            
+            
+            
+            // typhoon
+        case "rfid#typhoon":
+            print("(=son1)")
+            print("(=musique4)")  // end on typhoon_to_crystal#end
+        case "typhoon_finished#true":
+            print("(=son2)")
+            
+            
+            
+            
+            
+            
+            
+            // volcano
+        case "rfid#volcano":
+            print("(=son1)")
+            print("(=musique5)")  // end on volcano_to_crystal#end
+            
+        case "volcano_finished#true":
+            print("(=son2)")
+            print("(=son7)")
+            
+            // crystal
+        case "crystal_tornado#start":
+            print("(=son3)")
+        case "crystal_maze#start":
+            print("(=son3)")
+        case "crystal_typhoon#start":
+            print("(=son3)")
+        case "crystal_volcano#start":
+            print("(=son3)")
+        case "crystal_finish#end":
+            print("(=son4)") // add delay
+            
+            
+            // DEBUT EXPÉRIENCE CRYSTAL /!\ élément manquant
+//            - Son ambiance crystal, déclencher dès le début de l’expérience (=musique1)
+//            - Son court de “déblocage” (=son1) lors de la pose des 4 amulettes
+            
+            
+        default:
+            print("no sound")
+        }
+    }
     func sendMessage(from: String, to: [String], component: String, data: String) {
         let message = "\(component)#\(data)"
         print("Sending message: \(message) to routes: \(to)")
@@ -490,7 +567,11 @@ extension WebSockerServer {
         var updatedTo = to
         
         if to.contains("ambianceManager") {
-            print("Message destiné à ambianceManager, redirection vers tous les appareils LED")
+            
+            handleSoundMessage(message)
+            
+            
+            
             updatedTo.append(contentsOf: ledDevices)
             // Retirer ambianceManager de la liste pour éviter le double envoi
             updatedTo.removeAll { $0 == "ambianceManager" }

@@ -201,13 +201,7 @@ class ESP32Controller:
 
     def typhoon_rfid_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_rfid#start")
-        self.start_animation(self.pulse_animation, (self.ZONE_TABLE, 
-                                                  purple[0], purple[1], purple[2],
-                                                  2,    # pulse_count
-                                                  20,  # pulse_speed_ms
-                                                  35))  # step
-        if not self.stop_animation:
-            self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
+
         self.send_message("ambianceManager=>[ambianceManager]=>typhoon_rfid#end")
 
     def typhoon_finished_animation(self):
@@ -264,7 +258,7 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 96, 0, 96))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_typhoon#true")
 
-        elif "led_typhoon#off" in message:
+        elif "led_typhoon#off" in message or "Hello" in message:
             print("led_off#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_typhoon#true")

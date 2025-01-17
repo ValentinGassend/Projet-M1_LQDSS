@@ -26,7 +26,7 @@ class ESP32Controller:
 
         self.COLORS = {
             "orange": (110, 25, 0),
-            "purple": (64, 0, 64),
+            "purple": (96, 0, 96),
             "blue_grey": (96, 125, 139),
             "blue": (50, 50, 255),
             "yellow": (110, 105, 0),
@@ -97,32 +97,35 @@ class ESP32Controller:
 
     # Animation methods with thread safety
     def pulse_animation(self, zone, r, g, b, pulse_count=3, pulse_speed_ms=2, step=20):
-        if self.stop_animation:
-            return
-
         start, end = zone
-        for _ in range(pulse_count):
-            if self.stop_animation:
+        current_pulse = 0
+
+        while current_pulse < pulse_count:
+            # Fondu d'entrée (fade in)
+            for intensity in range(0, 256, step):
+                scaled_r = min(r, int(r * intensity / 255))
+                scaled_g = min(g, int(g * intensity / 255))
+                scaled_b = min(b, int(b * intensity / 255))
+                self.set_color(zone, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(pulse_speed_ms)
+
+            # Pause à l'intensité maximale
+            utime.sleep_ms(200)  # Pause plus longue au maximum
+
+            # Si c'est la dernière pulsation ou si on doit arrêter, on reste au maximum
+            if current_pulse == pulse_count - 1 or self.stop_animation:
+                self.set_color(zone, r, g, b)
                 return
 
-            for intensity in range(0, 256, step):
-                if self.stop_animation:
-                    return
-                scaled_r = int(r * intensity / 255)
-                scaled_g = int(g * intensity / 255)
-                scaled_b = int(b * intensity / 255)
-                self.set_color(zone, scaled_r, scaled_g, scaled_b)
-                utime.sleep_ms(pulse_speed_ms)
-
+            # Sinon, on continue avec le fade out
             for intensity in range(255, -1, -step):
-                if self.stop_animation:
-                    return
-                scaled_r = int(r * intensity / 255)
-                scaled_g = int(g * intensity / 255)
-                scaled_b = int(b * intensity / 255)
+                scaled_r = min(r, int(r * intensity / 255))
+                scaled_g = min(g, int(g * intensity / 255))
+                scaled_b = min(b, int(b * intensity / 255))
                 self.set_color(zone, scaled_r, scaled_g, scaled_b)
                 utime.sleep_ms(pulse_speed_ms)
 
+            current_pulse += 1
     def color_transition_pulse(self, zone, color1, color2, pulse_speed_ms=10, step=5):
         if self.stop_animation:
             return
@@ -192,22 +195,52 @@ class ESP32Controller:
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_volcano#start")
         self.fill_animation(self.ZONE_GLOBAL, *self.COLORS["purple"], delay_ms=6, direction="start")
         if not self.stop_animation:
-            self.pulse_animation(self.ZONE_TABLE, *self.COLORS["purple"])
+            self.pulse_animation(self.ZONE_TABLE, *self.COLORS["purple"], 2)
         if not self.stop_animation:
             self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
         self.send_message("ambianceManager=>[ambianceManager]=>crystal_to_volcano#end")
 
     def volcano_rfid_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_rfid#start")
-        self.blink_animation(self.ZONE_TABLE, *self.COLORS["purple"], 3, 300)
-        if not self.stop_animation:
-            self.set_color(self.ZONE_GLOBAL, *self.COLORS["purple"])
+
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_rfid#end")
 
     def volcano_finished_animation(self):
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_finished#start")
-        self.color_transition_pulse(self.ZONE_TABLE, self.COLORS["purple"], self.COLORS["volcano"], 2, step=35)
+        # Remplissage rapide depuis la fin
+        start, end = self.ZONE_TABLE
+        for i in range(end - 1, start - 1, -1):  # Parcours du dernier LED au premier
+            if self.stop_animation:
+                return
+            self.np[i] = self.COLORS["volcano"]
+            self.np.write()
+            utime.sleep_ms(1)  # Délai très court pour un remplissage rapide
+
+        # Une seule pulsation en typhon
         if not self.stop_animation:
+            # Augmentation de l'intensité
+            for intensity in range(0, 256, 35):
+                if self.stop_animation:
+                    return
+                r, g, b = self.COLORS["volcano"]
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(self.ZONE_TABLE, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(2)
+
+            # Diminution de l'intensité
+            for intensity in range(255, -1, -35):
+                if self.stop_animation:
+                    return
+                r, g, b = self.COLORS["volcano"]
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(self.ZONE_TABLE, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(2)
+
+            # Retour à la couleur typhon pleine
             self.set_color(self.ZONE_TABLE, *self.COLORS["volcano"])
         self.send_message("ambianceManager=>[ambianceManager]=>volcano_finished#end")
 
@@ -225,7 +258,7 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 148, 25, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_volcano#true")
 
-        elif "led_volcano#off" in message:
+        elif "led_volcano#off" in message or "Hello" in message:
             print("led_off#true")
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_volcano#true")
@@ -236,7 +269,12 @@ class ESP32Controller:
 
         elif message == "rfid#volcano":
             print("Starting 'volcano_rfid' animation")
-            self.start_animation(self.volcano_rfid_animation)
+            purple = self.COLORS["purple"]
+            self.start_animation(self.pulse_animation, (self.ZONE_TABLE,
+                                                        purple[0], purple[1], purple[2],
+                                                        2,  # pulse_count
+                                                        20,  # pulse_speed_ms
+                                                        35))  # step
 
         elif message == "volcano_finished#true":
             print("Starting 'volcano_finished' animation")
