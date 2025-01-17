@@ -49,8 +49,8 @@ struct MazeSpheroControlView: View {
                             sphero.setFrontLed(color: UIColor(red: 55/255, green: 30/255, blue: 0/255, alpha: 1.0))
                             sphero.setBackLed(color: UIColor(red: 55/255, green: 30/255, blue: 0/255, alpha: 1.0))
                             SpheroPresetManager.shared.sendLightningPreset(to: sphero)
-                            sphero.setFrontLed(color: UIColor(red: 110/255, green: 60/255, blue: 0/255, alpha: 1.0))
-                            sphero.setBackLed(color: UIColor(red: 110/255, green: 60/255, blue: 0/255, alpha: 1.0))
+//                            sphero.setFrontLed(color: UIColor(red: 110/255, green: 60/255, blue: 0/255, alpha: 1.0))
+//                            sphero.setBackLed(color: UIColor(red: 110/255, green: 60/255, blue: 0/255, alpha: 1.0))
                         }
                     }) {
                         HStack {

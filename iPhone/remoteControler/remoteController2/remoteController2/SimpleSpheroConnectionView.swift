@@ -13,7 +13,7 @@ struct SimpleSpheroConnectionView: View {
     @State private var searchTask: Task<Void, Never>? = nil
     @State private var timeoutTask: Task<Void, Never>? = nil
     @State private var retryCount: Int = 0
-    private let targetSpheros = ["SB-5D1C","SB-92B2","SB-F682"]
+    private let targetSpheros = ["SB-5D1C","SB-F682"]
     private let maxRetries = 3
     
     private func connectToSpecificSpheros() {
@@ -25,11 +25,11 @@ struct SimpleSpheroConnectionView: View {
                         roleManager.assignRole(to: targetSpheros[0], role: .handle4, toy: firstToy)
                     }
                     if let secondToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[1] }) {
-                        roleManager.assignRole(to: targetSpheros[1], role: .unassigned, toy: secondToy)
+                        roleManager.assignRole(to: targetSpheros[1], role: .handle3, toy: secondToy)
                     }
-                    if let thirdToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[2] }) {
-                        roleManager.assignRole(to: targetSpheros[2], role: .maze, toy: thirdToy)
-                    }
+//                    if let thirdToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[2] }) {
+//                        roleManager.assignRole(to: targetSpheros[2], role: .handle3, toy: thirdToy)
+//                    }
                 }
         }
     
