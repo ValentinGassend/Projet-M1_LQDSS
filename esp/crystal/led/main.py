@@ -6,7 +6,7 @@ from neopixel import NeoPixel
 
 class ESP32Controller:
     def __init__(self):
-        self.NUM_LEDS = 300
+        self.NUM_LEDS = 205
         self.PIN = 5
 
         self.ZONE_GROUND = (0, 120)
@@ -363,16 +363,37 @@ class ESP32Controller:
             # Envoie le message seulement après que l'animation soit terminée
             if not self.stop_animation:
                 self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#end")
+
     def finish_animation(self):
-        if not self.stop_animation:
-            self.blink_animation(self.ZONE_FIRE, *self.COLORS["orange"], 15, 100)
-        if not self.stop_animation:
-            self.blink_animation(self.ZONE_WATER, *self.COLORS["blue"], 15, 100)
-        if not self.stop_animation:
-            self.blink_animation(self.ZONE_AIR, *self.COLORS["white"], 15, 100)
-        if not self.stop_animation:
-            self.blink_animation(self.ZONE_ELEC, *self.COLORS["gold"], 15, 100)
-        self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#end")
+        sections = [
+            (self.COLORS["volcano"], self.ZONE_FIRE[1] - self.ZONE_FIRE[0]),
+            (self.COLORS["typhoon"], self.ZONE_WATER[1] - self.ZONE_WATER[0]),
+            (self.COLORS["maze"], self.ZONE_ELEC[1] - self.ZONE_ELEC[0]),
+            (self.COLORS["tornado"], self.ZONE_AIR[1] - self.ZONE_AIR[0])
+        ]
+
+        pattern_length = self.NUM_LEDS - 1
+
+        while not self.stop_animation:  # Ajout de la condition de boucle
+            for offset in range(pattern_length):
+                if self.stop_animation:  # Vérification de l'arrêt à chaque itération
+                    break
+
+                # Réinitialise toutes les LEDs
+                for i in range(1, self.NUM_LEDS):
+                    self.np[i] = (0, 0, 0)
+
+                current_pos = 1
+                for (color, length) in sections:
+                    for i in range(length):
+                        pos = (offset + current_pos + i) % self.NUM_LEDS
+                        if 1 <= pos < self.NUM_LEDS:
+                            self.np[pos] = color
+                    current_pos += length
+
+                self.np.write()
+                utime.sleep_ms(2)  # Animation plus rapide
+
 
     def start(self):
         print("Starting controller...")
