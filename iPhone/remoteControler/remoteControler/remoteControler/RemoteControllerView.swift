@@ -114,13 +114,6 @@ struct MazeView: View {
 
 import SwiftUI
 
-struct SpheroRotationData {
-    var totalRotations: Double = 0.0
-    var currentRotationSpeed: Double = 0.0
-    var lastGyroZ: Double = 0.0
-    var isCapturing: Bool = false
-    var hasReachedTarget: Bool = false
-}
 
 struct TyphoonView: View {
     @StateObject private var wsClient = WebSocketClient.instance
@@ -436,9 +429,4 @@ struct ActionButton: View {
             .foregroundColor(.white)
             .cornerRadius(8)
     }
-}
-
-struct SpheroBoltState {
-    var speed: Double = 0
-    var heading: Double = 0
 }

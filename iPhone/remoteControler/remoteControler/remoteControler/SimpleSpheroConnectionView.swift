@@ -13,7 +13,7 @@ struct SimpleSpheroConnectionView: View {
     @State private var searchTask: Task<Void, Never>? = nil
     @State private var timeoutTask: Task<Void, Never>? = nil
     @State private var retryCount: Int = 0
-    private let targetSpheros = ["SB-808F", "SB-0994"]
+    private let targetSpheros = ["SB-92B2", "SB-0994"]
     private let maxRetries = 3
     
     private func connectToSpecificSpheros() {

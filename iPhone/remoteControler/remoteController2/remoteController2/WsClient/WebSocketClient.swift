@@ -39,9 +39,7 @@ class WebSocketClient:ObservableObject {
             createMessageRoute(for: route)
             createPingRoute(for: route)
             
-            if route == .remoteController_iphone1Connect {
-                createDashboardRoute(for: route)
-            }
+            
         }
     }
     
@@ -249,7 +247,7 @@ extension WebSocketClient: WebSocketConnectionDelegate {
             let formattedMessage = "\(origin)=>[\(targetString)]=>\(component)#\(data)"
             let originMessage = origin+"Message"
             
-                self.sentToMessageRoute(route: IdentificationRoute.remoteController_iphone1Connect, msg: formattedMessage)
+                self.sentToMessageRoute(route: IdentificationRoute.remoteController_iphone2Connect, msg: formattedMessage)
               
         }
         func processReceivedMessage(connection: NWWebSocket, string: String) {
