@@ -25,7 +25,7 @@ class WebSockerServer {
     var deviceStates: [String: (type: String, isConnected: Bool)] = [
         "remoteController_iphone2": ("remoteController", false),
         "remoteController_iphone1": ("remoteController", false),
-        "tornado_rpix": ("tornado", false),
+        "tornado_rpi": ("tornado", false),
         "typhoon_esp": ("typhoon", false),
         "typhoon_iphone": ("typhoon", false),
         "typhoon_iphone1": ("typhoon", false),
@@ -109,7 +109,7 @@ class WebSockerServer {
                         }
                     }
                 }
-                else if routeInfos.routeName == "©Dashboard" {
+                else if routeInfos.routeName == "remoteController_iphone1Dashboard" {
                                     print("Message received on remoteController_iphone1Dashboard: \(text)")
                                     if text == "getDevices" {
                                         self.audioPlayer.playSound()
