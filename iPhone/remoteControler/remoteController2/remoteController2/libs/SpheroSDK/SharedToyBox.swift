@@ -38,6 +38,7 @@ class SharedToyBox {
             // Assuming the ToyBox itself manages the disconnection of connected toys
         for toy in bolts {
             box.disconnect(toy: toy)
+            box.putAway(toy: toy)
         }
             bolts.removeAll() // Clear the list of connected bolts
         }

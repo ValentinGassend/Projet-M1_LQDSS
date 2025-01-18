@@ -264,7 +264,7 @@ class ESP32Controller:
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_tornado#true")
 
-        elif message == "crystal_to_tornado#true":
+        elif message == "crystal_to_tornado#true" or message == "crystal_started#true":
             print("Starting 'crystal_to_tornado' animation")
             self.start_animation(self.crystal_to_tornado_animation)
 

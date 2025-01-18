@@ -4,6 +4,7 @@ from WSclient import WSclient
 from libs.WebSocketClient import WebSocketClient
 from DoubleRfid import RFIDController
 
+
 class ESP32Controller:
     def __init__(self):
         # RFID Controller
@@ -14,23 +15,37 @@ class ESP32Controller:
 
         self.last_reconnect_attempt = 0
         self.reconnect_interval = 1
+
+        self.badge_states = {"maze": False, "volcano": False, "typhoon": False, "tornado": False}
     def handle_entrance_tag(self, card_id):
         if card_id == 323235155:
-            msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>crystal_to_volcano#true"
+            self.badge_states["volcano"] = True
+            msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>rfid_crystal_volcano#true"
+
+            self.check_crystal_start()
             print(f"Sending RFID entrance message: {msg}")
+
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")
 
     def handle_exit_tag(self, card_id):
         if card_id == 322763907:
-            msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>crystal_to_maze#true"
+            self.badge_states["maze"] = True
+            msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>rfid_crystal_maze#true"
+
+            self.check_crystal_start()
             print(f"Sending RFID exit message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")
 
-        
+    def check_crystal_start(self):
+        if all(self.badge_states.values()):
+            msg = f"crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>crystal_started#true"
+            print(f"Sending message: {msg}")
+            self.ws_client.route_ws_map.get("message", None).send(msg)
+
     def handle_websocket_messages(self):
         for ws_route, ws in self.ws_client.route_ws_map.items():
             try:
@@ -41,16 +56,24 @@ class ESP32Controller:
                     message = ws.receive(first_byte=data)
                     if message:
                         print(f"Message received on route {ws_route}: {message}")
-                        
+                        self.process_message(message)
                         # Check if message contains "ping"
                         if "ping" in message.lower():
                             # Forward ping messages directly to process_message
                             self.ws_client.process_message(ws, message)
-                        
+
             except OSError as e:
                 if e.args[0] != 11:
                     print(f"Error on WebSocket route {ws_route}: {e}")
                     self.handle_websocket_error(ws_route, e)
+
+    def process_message(self, message):
+        if "rfid_crystal_typhoon#true" in message:
+            self.badge_states["typhoon"] = True
+            self.check_crystal_start()
+        elif "rfid_crystal_tornado#true" in message:
+            self.badge_states["tornado"] = True
+            self.check_crystal_start()
 
     def attempt_reconnect(self):
         """Attempt to reconnect WebSocket connections"""
@@ -58,7 +81,7 @@ class ESP32Controller:
         if utime.ticks_diff(current_time, self.last_reconnect_attempt) > self.reconnect_interval:
             print("Attempting to reconnect WebSocket...")
             self.last_reconnect_attempt = current_time
-            
+
             # Reinitialize WiFi connection
             if self.ws_client.connect_wifi():
                 print("WiFi reconnected successfully")
@@ -75,6 +98,7 @@ class ESP32Controller:
             self.attempt_reconnect()
         else:
             print(f"Error on WebSocket route {ws_route}: {error}")
+
     def start(self):
         print("Démarrage du contrôleur...")
 
@@ -99,6 +123,8 @@ class ESP32Controller:
                 self.__init__()
                 self.start()
 
+
 if __name__ == "__main__":
     controller = ESP32Controller()
     controller.start()
+
