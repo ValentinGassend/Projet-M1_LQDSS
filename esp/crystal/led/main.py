@@ -234,39 +234,103 @@ class ESP32Controller:
             self.np.write()
             utime.sleep_ms(delay_ms)
 
+    def heartbeat_animation(self, zone):
+        """
+        Crée un effet de battement cardiaque avec deux creux rapprochés simulant les bruits B1 et B2.
+        Le premier creux (B1) descend à 50% d'intensité, le second (B2) à 70%.
+        """
+        r, g, b = 128, 0, 128  # Violet
+        start, end = zone
+
+        # Définit la couleur initiale à intensité maximale
+        self.set_color(zone, r, g, b)
+
+        while not self.stop_animation:
+            # Maintient la luminosité maximale
+            utime.sleep_ms(1250)  # Pause d'une seconde entre les cycles
+
+            # Premier creux - B1 (descend à 50%)
+            for intensity in range(255, 127, -32):  # Accélération de la descente
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(zone, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(1)
+
+            # Remonte rapidement du premier creux
+            for intensity in range(127, 256, 32):  # Accélération de la montée
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(zone, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(1)
+
+            # Pause très courte entre B1 et B2
+            utime.sleep_ms(10)  # Réduit de 10ms à 5ms
+
+            # Deuxième creux - B2 (descend à 70%)
+            for intensity in range(255, 178, -26):  # Accélération de la descente
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(zone, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(1)
+
+            # Remonte rapidement du second creux
+            for intensity in range(178, 256, 26):  # Accélération de la montée
+                scaled_r = int(r * intensity / 255)
+                scaled_g = int(g * intensity / 255)
+                scaled_b = int(b * intensity / 255)
+                self.set_color(zone, scaled_r, scaled_g, scaled_b)
+                utime.sleep_ms(1)
 
     def process_websocket_message(self, message):
         if "led_crystal#on" in message or "Hello" in message:
+            self.stop_animation = True
+
             print("led_on#true")
-            self.start_animation(self.set_color, (self.ZONE_GLOBAL, 128, 0, 128))
+            # self.start_animation(self.set_color, (self.ZONE_GLOBAL, 128, 0, 128))
+
+            self.start_animation(self.heartbeat_animation, (self.ZONE_GLOBAL,))
             self.send_message("ambianceManager=>[ambianceManager]=>led_on_crystal#true")
 
         elif "led_crystal#off" in message:
             print("led_off#true")
+            self.stop_animation = True
+
             self.start_animation(self.set_color, (self.ZONE_GLOBAL, 0, 0, 0))
             self.send_message("ambianceManager=>[ambianceManager]=>led_off_crystal#true")
 
         elif message == "crystal#tornado" or message == "tornado_to_crystal#end":
+            self.stop_animation = True
+
             print("Démarrage de l'animation 'crystal_to_tornado'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_tornado#start")
             self.start_animation(self.tornado_animation)
 
         elif message == "crystal#maze" or message == "maze_to_crystal#end":
+            self.stop_animation = True
+
             print("Démarrage de l'animation 'crystal_maze'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_maze#start")
             self.start_animation(self.maze_animation)
 
         elif message == "crystal#typhoon" or message == "typhoon_to_crystal#end":
+
+            self.stop_animation = True
             print("Démarrage de l'animation 'crystal_typhoon'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_typhoon#start")
             self.start_animation(self.typhoon_animation)
 
         elif message == "crystal#volcano" or message == "volcano_to_crystal#end":
+            self.stop_animation = True
             print("Démarrage de l'animation 'crystal_volcano'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_volcano#start")
             self.start_animation(self.volcano_animation)
 
         elif message == "crystal#finished" or message == "crystal_volcano#end":
+            self.stop_animation = True
+
             print("Démarrage de l'animation 'crystal_finished'")
             self.send_message("ambianceManager=>[ambianceManager]=>crystal_finish#start")
             self.start_animation(self.finish_animation)
