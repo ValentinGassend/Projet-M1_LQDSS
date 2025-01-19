@@ -343,7 +343,7 @@ extension WebSocketClient: WebSocketConnectionDelegate {
                 SpheroPresetManager.shared.sendLightningPreset(
                                     to: sphero,
                                     defaultColor: .black,
-                                    presetColor: UIColor(red: 55/255, green: 30/255, blue: 0/255, alpha: 1.0)
+                                    presetColor: UIColor(red: 110/255, green: 110/255, blue: 0/255, alpha: 1.0)
                                 )            }
         }
     }

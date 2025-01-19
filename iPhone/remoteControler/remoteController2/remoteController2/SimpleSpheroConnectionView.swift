@@ -23,7 +23,7 @@ struct SimpleSpheroConnectionView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
                     // Assign roles based on the order in targetSpheros array
                     if let firstToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[0] }) {
-                        roleManager.assignRole(to: targetSpheros[0], role: .handle4, toy: firstToy)
+                        roleManager.assignRole(to: targetSpheros[0], role: .maze, toy: firstToy)
                     }
 //                    if let secondToy = SharedToyBox.instance.bolts.first(where: { $0.peripheral?.name == targetSpheros[1] }) {
 //                        roleManager.assignRole(to: targetSpheros[1], role: .handle3, toy: secondToy)

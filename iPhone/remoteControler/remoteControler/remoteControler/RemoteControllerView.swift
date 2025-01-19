@@ -101,10 +101,11 @@ struct MazeView: View {
         "ambianceManager=>[ambianceManager]=>maze_to_crystal#true",
         "ambianceManager=>[ambianceManager]=>led_maze#off",
         "ambianceManager=>[ambianceManager]=>led_maze#on",
-        "maze_esp=>[maze_iphone,ambianceManager]=>btn1#true",
+        "maze_esp=>[maze_iphone,ambianceManager,remoteController_iphone1,remoteController_iphone2]=>btn1#start",
         "maze_esp=>[maze_iphone]=>btn1#false",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn2#true",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn3#true",
+        "maze_esp=>[maze_iphone,ambianceManager]=>btn1#end",
     ]
     
     var body: some View {
