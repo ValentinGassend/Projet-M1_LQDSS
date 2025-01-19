@@ -179,6 +179,8 @@ class WebSockerServer {
                         switch deviceName {
                         case "remoteController_iphone1":
                             self.remoteController_iphone1Session = session
+                        case "remoteController_iphone2":
+                            self.remoteController_iphone2Session = session
                             
                         default:
                             break
@@ -215,17 +217,21 @@ class WebSockerServer {
             },
             disconnected: { session in
                 print("Client disconnected from route: /\(routeInfos.routeName)")
+                
+                // Gérer la déconnexion iPhone si nécessaire
+                if routeInfos.routeName.contains("iphone") {
+                    self.handleIPhoneDisconnection(routeName: routeInfos.routeName, session: session)
+                }
+                
                 routeInfos.disconnectedCode?(session)
                 self.updateDeviceState(routeName: routeInfos.routeName, isConnected: false)
                 
                 if let pingableSession = self.pingableSessions[routeInfos.routeName] {
                     if pingableSession.isConnected {
-                        
-                        if (routeInfos.routeName.contains("Connect")){
+                        if (routeInfos.routeName.contains("Connect")) {
                             print("Client disconnected from route: /\(routeInfos.routeName)")
                         }
                         else if routeInfos.routeName.contains("Ping") {
-                            
                             self.cleanupPingSession(for: routeInfos.routeName)
                             print("Route with 'Ping' suffix is disconnected")
                         }
@@ -441,6 +447,40 @@ extension WebSockerServer {
             break
         }
     }
+    private func handleIPhoneDisconnection(routeName: String, session: WebSocketSession) {
+            let deviceName = normalizeDeviceName(routeName: routeName)
+            sessionQueue.async {
+                // Nettoyer les sessions de message
+                if let messageSession = self.messageSessions[deviceName] {
+                    print("Cleaning up message session for \(deviceName)")
+                    self.messageSessions.removeValue(forKey: deviceName)
+                }
+                
+                // Nettoyer les sessions de ping
+                let pingRouteName = deviceName + "Ping"
+                if let pingSession = self.pingableSessions[pingRouteName] {
+                    print("Cleaning up ping session for \(pingRouteName)")
+                    self.pingableSessions.removeValue(forKey: pingRouteName)
+                }
+                
+                // Mettre à jour l'état du device
+                self.updateDeviceState(routeName: deviceName, isConnected: false)
+                
+                // Nettoyer les sessions spécifiques selon le device
+                switch deviceName {
+                case "remoteController_iphone1":
+                    if self.remoteController_iphone1Session?.socket.hashValue == session.socket.hashValue {
+                        self.remoteController_iphone1Session = nil
+                    }
+                case "remoteController_iphone2":
+                    if self.remoteController_iphone2Session?.socket.hashValue == session.socket.hashValue {
+                        self.remoteController_iphone2Session = nil
+                    }
+                default:
+                    break
+                }
+            }
+        }
     func updateDeviceState(routeName: String, isConnected: Bool) {
         let deviceName = normalizeDeviceName(routeName: routeName)
         // Don't process dashboard routes

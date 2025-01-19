@@ -59,10 +59,7 @@
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SDK/String+Utils.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SharedToyBox.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/crystal/esp1/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/esp1/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/crystal/esp2/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/esp2/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/tornado/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/led/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/crystal/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/crystal/led/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/ContentView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/ContentView.swift" afterDir="false" />
@@ -157,7 +154,7 @@
       <workItem from="1736467639227" duration="4861000" />
       <workItem from="1736722214304" duration="932000" />
       <workItem from="1736878277341" duration="12728000" />
-      <workItem from="1737132693703" duration="12402000" />
+      <workItem from="1737132693703" duration="20112000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />
