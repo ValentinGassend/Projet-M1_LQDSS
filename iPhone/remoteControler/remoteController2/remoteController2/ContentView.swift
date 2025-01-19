@@ -13,12 +13,24 @@ struct ContentView: View {
     @State private var showConnectSheet = false
     @State private var spheroStates: [String: SpheroBoltState] = [:]
     @State private var connectedSpheros: [String: BoltToy] = [:]
-    
+    @State private var refreshTrigger = false
+
     private var spheroIds: [String] {
         return getHandleAssignments()
             .compactMap { $0.spheroName }
     }
-    
+    private func updateConnectedSpheros() {
+            connectedSpheros.removeAll()
+            spheroStates.removeAll()
+            
+            // Mettre à jour avec tous les Bolts actuellement connectés
+            for bolt in SharedToyBox.instance.bolts {
+                if let name = bolt.peripheral?.name {
+                    spheroStates[name] = SpheroBoltState()
+                    connectedSpheros[name] = bolt
+                }
+            }
+        }
     private func getHandleNumber(for spheroId: String) -> String? {
         for role in [SpheroRole.handle1, .handle2, .handle3, .handle4] {
             if let assignment = roleManager.getRoleAssignment(for: role),
@@ -108,9 +120,15 @@ struct ContentView: View {
             }
         }
         .padding()
-        .sheet(isPresented: $showConnectSheet) {
+        .sheet(isPresented: $showConnectSheet, onDismiss: {
+            refreshTrigger.toggle()
+        }) {
             SimpleSpheroConnectionView()
         }
+        .onChange(of: refreshTrigger) { _ in
+                    // Force la mise à jour des vues qui dépendent des Spheros connectées
+                    updateConnectedSpheros()
+                }
         .onAppear {
             wsClient.connectForIdentification(route: .remoteController_iphone2Connect)
         }
