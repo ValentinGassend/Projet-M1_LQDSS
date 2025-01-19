@@ -83,7 +83,7 @@ let newRoutes: [RouteInfos] = [
 //        print("message received on remoteController_iphone1Dashboard: \(receivedText)")
         if receivedText == "getDevices" {
             let audioPlayer = AudioPlayer.shared
-            audioPlayer.playSound()
+//            audioPlayer.playSound()
             let server = WebSockerServer.instance
             // Create a dictionary of all available sessions and their states
             let allDevices = server.deviceStates.mapValues { state in

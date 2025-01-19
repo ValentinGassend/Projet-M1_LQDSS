@@ -60,7 +60,7 @@ struct RemoteControllerView: View {
                 .tabItem {
                     Label("Crystal", systemImage: "sparkles")
                 }
-            }.onAppear {
+        }.onAppear {
             
             startAutoRefresh()
         }.onDisappear() {
@@ -73,9 +73,10 @@ struct RemoteControllerView: View {
         timer?.invalidate()
         
         // Create new timer that fires every 6 seconds
-        timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-            refreshDevices()
-        }
+        timer = Timer
+            .scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+                refreshDevices()
+            }
     }
     
     private func stopAutoRefresh() {
@@ -84,7 +85,11 @@ struct RemoteControllerView: View {
     }
     
     private func refreshDevices() {
-        wsClient.sendToDashboardroute(route: .remoteController_iphone1Connect, msg: "getDevices")
+        wsClient
+            .sendToDashboardroute(
+                route: .remoteController_iphone1Connect,
+                msg: "getDevices"
+            )
     }
 }
 // vent / electricité / eau / feu
@@ -93,10 +98,10 @@ struct VolcanoView: View {
     let wsClient: WebSocketClient
     
     private let commands = [
-        "volcano_esp1=>[ambianceManager]=>rfid#volcano",
-//        "crystal_esp1=>[ambianceManager]=>set_zone_color#true",
+        //        "crystal_esp1=>[ambianceManager]=>set_zone_color#true",
         "crystal_esp1=>[ambianceManager]=>crystal_to_volcano#true",
         
+        "volcano_esp1=>[ambianceManager]=>rfid#volcano",
         "crystal_esp1=>[ambianceManager]=>volcano_finished#true",
         "crystal_esp1=>[ambianceManager]=>volcano_to_crystal#true",
         
@@ -140,9 +145,9 @@ struct MazeView: View {
     var body: some View {
         VStack {
 
-        DeviceStatusView(devicePrefix: "maze")
-        CommandListView(commands: commands, wsClient: wsClient)
-    }
+            DeviceStatusView(devicePrefix: "maze")
+            CommandListView(commands: commands, wsClient: wsClient)
+        }
     }
 }
 
@@ -174,7 +179,8 @@ struct TyphoonView: View {
         for role in [SpheroRole.handle1, .handle2, .handle3, .handle4] {
             if let assignment = roleManager.getRoleAssignment(for: role),
                assignment.spheroName == spheroId {
-                return role.rawValue.replacingOccurrences(of: "Handle ", with: "")
+                return role.rawValue
+                    .replacingOccurrences(of: "Handle ", with: "")
             }
         }
         return nil
@@ -193,7 +199,8 @@ struct TyphoonView: View {
             rotationData[spheroId] = SpheroRotationData()
         }
         
-        sphero.sensorControl.enable(sensors: SensorMask(arrayLiteral: .accelerometer, .gyro))
+        sphero.sensorControl
+            .enable(sensors: SensorMask(arrayLiteral: .accelerometer, .gyro))
         sphero.sensorControl.interval = 1
         sphero.setStabilization(state: .off)
         
@@ -217,7 +224,13 @@ struct TyphoonView: View {
         let routeTarget = ["typhoon_esp"]
         let component = "sphero\(handleNumber)"
         let data = "\(isRotating)"
-        wsClient.sendMessage(from: routeOrigin, to: routeTarget, component: component, data: data)
+        wsClient
+            .sendMessage(
+                from: routeOrigin,
+                to: routeTarget,
+                component: component,
+                data: data
+            )
     }
     
     private func sendCompletionMessage(handleNumber: String) {
@@ -225,13 +238,21 @@ struct TyphoonView: View {
         let routeTarget = ["typhoon_esp"]
         let component = "sphero\(handleNumber)"
         let data = "completed"
-        wsClient.sendMessage(from: routeOrigin, to: routeTarget, component: component, data: data)
+        wsClient
+            .sendMessage(
+                from: routeOrigin,
+                to: routeTarget,
+                component: component,
+                data: data
+            )
     }
     
     private func handleSensorData(data: SensorData, spheroId: String) {
         DispatchQueue.main.async {
             guard rotationData[spheroId]?.isCapturing == true,
-                  let handleNumber = getHandleNumber(for: spheroId) else { return }
+                  let handleNumber = getHandleNumber(for: spheroId) else {
+                return
+            }
             
             if let gyro = data.gyro?.rotationRate {
                 let gyroZ = abs(Int(gyro.z ?? 0))
@@ -252,7 +273,10 @@ struct TyphoonView: View {
                         updatedRotationData[spheroId] = spheroData
                         
                         if wasRotating != isNowRotating {
-                            sendRotationMessage(handleNumber: handleNumber, isRotating: isNowRotating)
+                            sendRotationMessage(
+                                handleNumber: handleNumber,
+                                isRotating: isNowRotating
+                            )
                         }
                         
                         // Condition pour atteindre l'objectif
@@ -288,59 +312,72 @@ struct TyphoonView: View {
     var body: some View {
         VStack {
 
-        DeviceStatusView(devicePrefix: "Typhoon")
+            DeviceStatusView(devicePrefix: "Typhoon")
 
-        VStack(spacing: 20) {
-            ScrollView {
-                VStack {
-                    Button("Config") {
+            VStack(spacing: 20) {
+                ScrollView {
+                    VStack {
+                        Button("Config") {
                         
-                        configureBolts()
-                    }
-                    ForEach(spheroIds, id: \.self) { spheroId in
-                        VStack {
-                            HStack {
-                                Text(spheroId)
-                                Text(connectedSpheros[spheroId] != nil ? "Connected" : "Not Connected")
-                                    .foregroundColor(connectedSpheros[spheroId] != nil ? .green : .red)
-                            }
-                            
-                            if let _ = connectedSpheros[spheroId] {
+                            configureBolts()
+                        }
+                        ForEach(spheroIds, id: \.self) { spheroId in
+                            VStack {
                                 HStack {
-                                    Button(rotationData[spheroId]?.isCapturing == true ? "Stop Capture" : "Start Capture") {
-                                        if rotationData[spheroId]?.isCapturing == true {
-                                            stopDataCapture(for: spheroId)
-                                        } else {
-                                            startDataCapture(for: spheroId)
+                                    Text(spheroId)
+                                    Text(
+                                        connectedSpheros[spheroId] != nil ? "Connected" : "Not Connected"
+                                    )
+                                    .foregroundColor(
+                                        connectedSpheros[spheroId] != nil ? .green : .red
+                                    )
+                                }
+                            
+                                if let _ = connectedSpheros[spheroId] {
+                                    HStack {
+                                        Button(
+                                            rotationData[spheroId]?.isCapturing == true ? "Stop Capture" : "Start Capture"
+                                        ) {
+                                            if rotationData[spheroId]?.isCapturing == true {
+                                                stopDataCapture(for: spheroId)
+                                            } else {
+                                                startDataCapture(for: spheroId)
+                                            }
+                                        }
+                                        .padding()
+                                        .background(
+                                            rotationData[spheroId]?.isCapturing == true ? Color.red : Color.green
+                                        )
+                                        .foregroundColor(.white)
+                                        .cornerRadius(10)
+                                    }
+                                
+                                    if let rotationInfo = rotationData[spheroId] {
+                                        VStack {
+                                            Text(
+                                                "Total Rotations: \(String(format: "%.2f", rotationInfo.totalRotations))"
+                                            )
+                                            Text(
+                                                "Current Speed: \(String(format: "%.2f", rotationInfo.currentRotationSpeed))"
+                                            )
                                         }
                                     }
-                                    .padding()
-                                    .background(rotationData[spheroId]?.isCapturing == true ? Color.red : Color.green)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                }
-                                
-                                if let rotationInfo = rotationData[spheroId] {
-                                    VStack {
-                                        Text("Total Rotations: \(String(format: "%.2f", rotationInfo.totalRotations))")
-                                        Text("Current Speed: \(String(format: "%.2f", rotationInfo.currentRotationSpeed))")
-                                    }
                                 }
                             }
+                            .padding()
+                            .background(RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.gray, lineWidth: 1))
+                            .padding(.horizontal)
                         }
-                        .padding()
-                        .background(RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray, lineWidth: 1))
-                        .padding(.horizontal)
                     }
+                    Divider()
+                    CommandListView(commands: commands, wsClient: wsClient)
+                        .frame(height: 400)
                 }
-                Divider()
-                CommandListView(commands: commands, wsClient: wsClient).frame(height: 400)
+                .padding()
+            
+            
             }
-            .padding()
-            
-            
-        }
         }
         .onDisappear {
             for (spheroId, _) in connectedSpheros {
@@ -402,20 +439,20 @@ struct TornadoView: View {
         "tornado_esp=>[tornado_rpi,ambianceManager]=>mic3#false",
         "tornado_esp=>[tornado_rpi,ambianceManager]=>mic4#true",
         "tornado_esp=>[tornado_rpi,ambianceManager]=>mic4#false",
-//        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#first",
-//        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#second",
-//        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#third",
-//        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#fourth"
+        //        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#first",
+        //        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#second",
+        //        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#third",
+        //        "tornado_rpi=>[tornado_esp,ambianceManager]=>rvr#fourth"
         
     ]
     
     var body: some View {
         VStack {
 
-        DeviceStatusView(devicePrefix: "tornado")
+            DeviceStatusView(devicePrefix: "tornado")
 
-        CommandListView(commands: commands, wsClient: wsClient)
-    }
+            CommandListView(commands: commands, wsClient: wsClient)
+        }
     }
 }
 
@@ -439,10 +476,10 @@ struct CrystalView: View {
     var body: some View {
         VStack {
 
-        DeviceStatusView(devicePrefix: "crystal")
+            DeviceStatusView(devicePrefix: "crystal")
 
-        CommandListView(commands: commands, wsClient: wsClient)
-    }
+            CommandListView(commands: commands, wsClient: wsClient)
+        }
     }
 }
 
@@ -452,17 +489,26 @@ struct CommandListView: View {
     
     var body: some View {
         List(commands, id: \ .self) { command in
-            Button(action: {
-                if let messageParsed = wsClient.parseSendedMessage(command) {
-                    wsClient.sendMessage(from: messageParsed.routeOrigin, to: messageParsed.routeTargets, component: messageParsed.component, data: messageParsed.data)
+            Button(
+                action: {
+                    if let messageParsed = wsClient.parseSendedMessage(
+                        command
+                    ) {
+                        wsClient
+                            .sendMessage(
+                                from: messageParsed.routeOrigin,
+                                to: messageParsed.routeTargets,
+                                component: messageParsed.component,
+                                data: messageParsed.data
+                            )
+                    }
+                }) {
+                    Text(command)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
                 }
-            }) {
-                Text(command)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-            }
         }
     }
 }

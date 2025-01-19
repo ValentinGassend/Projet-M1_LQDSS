@@ -18,7 +18,9 @@ class WebSockerServer {
     
     private let pingInterval: TimeInterval = 3.0
     private let pingTimeout: TimeInterval = 6.0
-    private let sessionQueue = DispatchQueue(label: "WebSocketServer.SessionQueue")
+    private let sessionQueue = DispatchQueue(
+        label: "WebSocketServer.SessionQueue"
+    )
     
     static let instance = WebSockerServer()
     let server = HttpServer()
@@ -97,7 +99,9 @@ class WebSockerServer {
     let audioPlayer = AudioPlayer.shared
     func setupWithRoutesInfos(routeInfos: RouteInfos) {
         server["/" + routeInfos.routeName] = websocket(
-            text: { session, text in
+            text: {
+                session,
+                text in
                 if text == "pong" {
                     // print("Received pong from route: \(routeInfos.routeName)")
                     self.sessionQueue.async {
@@ -110,9 +114,9 @@ class WebSockerServer {
                     }
                 }
                 else if routeInfos.routeName == "remoteController_iphone1Dashboard" {
-                    print("Message received on remoteController_iphone1Dashboard: \(text)")
+                    //                    print("Message received on remoteController_iphone1Dashboard: \(text)")
                     if text == "getDevices" {
-                        self.audioPlayer.playSound()
+                        //                        self.audioPlayer.playSound()
                         self.sessionQueue.async {
                             let allDevices = self.deviceStates.mapValues { state in
                                 [
@@ -122,10 +126,16 @@ class WebSockerServer {
                             }
                             
                             do {
-                                let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                                if let jsonString = String(data: jsonData, encoding: .utf8) {
+                                let jsonData = try JSONSerialization.data(
+                                    withJSONObject: allDevices,
+                                    options: .prettyPrinted
+                                )
+                                if let jsonString = String(
+                                    data: jsonData,
+                                    encoding: .utf8
+                                ) {
                                     session.writeText(jsonString)
-                                    print("Sent device states to dashboard: \(jsonString)")
+                                    //                                    print("Sent device states to dashboard: \(jsonString)")
                                 }
                             } catch {
                                 print("Error generating JSON: \(error)")
@@ -134,7 +144,9 @@ class WebSockerServer {
                     }
                 }
                 else if routeInfos.routeName.contains("Message") {
-                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+                    print(
+                        "Text received: \(text) from route: /\(routeInfos.routeName)"
+                    )
                     if let parsedMessage = self.parseMessage(text) {
                         if let parsedMessageCode = routeInfos.parsedMessageCode {
                             parsedMessageCode(session, parsedMessage)
@@ -150,7 +162,9 @@ class WebSockerServer {
                     }
                 }
                 else {
-                    print("Text received: \(text) from route: /\(routeInfos.routeName)")
+                    print(
+                        "Text received: \(text) from route: /\(routeInfos.routeName)"
+                    )
                     
                     // Handle other route types
                     routeInfos.textCode(session, text)
@@ -158,22 +172,36 @@ class WebSockerServer {
                 
                 // Update last ping time for Ping routes
                 if routeInfos.routeName.hasSuffix("Ping") {
-                    self.updateLastPingTime(for: routeInfos.routeName, session: session)
+                    self.updateLastPingTime(
+                        for: routeInfos.routeName,
+                        session: session
+                    )
                 }
             },
-            binary: { session, binary in
+            binary: {
+                session,
+                binary in
                 let data = Data(binary)
-                print("Data received: \(data) from route: /\(routeInfos.routeName)")
+                print(
+                    "Data received: \(data) from route: /\(routeInfos.routeName)"
+                )
                 routeInfos.dataCode(session, Data(binary))
             },
             connected: { session in
-                print("Client connected to route: /\(routeInfos.routeName)")
+                if  !routeInfos.routeName.contains("Dashboard") {
+                    print("Client connected to route: /\(routeInfos.routeName)")
+                }
                 if routeInfos.routeName.contains("iphone") {
-                    self.handleIPhoneConnection(routeName: routeInfos.routeName, session: session)
+                    self.handleIPhoneConnection(
+                        routeName: routeInfos.routeName,
+                        session: session
+                    )
                 }
                 routeInfos.connectedCode?(session)
                 if (routeInfos.routeName.contains("Connect")){
-                    let deviceName = self.normalizeDeviceName(routeName: routeInfos.routeName)
+                    let deviceName = self.normalizeDeviceName(
+                        routeName: routeInfos.routeName
+                    )
                     
                     if routeInfos.routeName.contains("iphone") {
                         switch deviceName {
@@ -186,7 +214,10 @@ class WebSockerServer {
                             break
                         }
                     }
-                    self.updateDeviceState(routeName: routeInfos.routeName, isConnected: true)
+                    self.updateDeviceState(
+                        routeName: routeInfos.routeName,
+                        isConnected: true
+                    )
                     print("sending hello message to \(routeInfos.routeName)")
                     session.writeText("Hello from \(routeInfos.routeName)!")
                     
@@ -209,27 +240,41 @@ class WebSockerServer {
                 else if routeInfos.routeName.contains("Message") {
                     print("Message session connected: \(routeInfos.routeName)")
                     self.sessionQueue.async {
-                        let deviceName = self.normalizeDeviceName(routeName: routeInfos.routeName)
+                        let deviceName = self.normalizeDeviceName(
+                            routeName: routeInfos.routeName
+                        )
                         self.messageSessions[deviceName] = (session, true)
-                        print("Registered message session for \(deviceName): \(session)")
+                        print(
+                            "Registered message session for \(deviceName): \(session)"
+                        )
                     }
                 }
             },
             disconnected: { session in
-                print("Client disconnected from route: /\(routeInfos.routeName)")
+                print(
+                    "Client disconnected from route: /\(routeInfos.routeName)"
+                )
                 
                 // Gérer la déconnexion iPhone si nécessaire
                 if routeInfos.routeName.contains("iphone") {
-                    self.handleIPhoneDisconnection(routeName: routeInfos.routeName, session: session)
+                    self.handleIPhoneDisconnection(
+                        routeName: routeInfos.routeName,
+                        session: session
+                    )
                 }
                 
                 routeInfos.disconnectedCode?(session)
-                self.updateDeviceState(routeName: routeInfos.routeName, isConnected: false)
+                self.updateDeviceState(
+                    routeName: routeInfos.routeName,
+                    isConnected: false
+                )
                 
                 if let pingableSession = self.pingableSessions[routeInfos.routeName] {
                     if pingableSession.isConnected {
                         if (routeInfos.routeName.contains("Connect")) {
-                            print("Client disconnected from route: /\(routeInfos.routeName)")
+                            print(
+                                "Client disconnected from route: /\(routeInfos.routeName)"
+                            )
                         }
                         else if routeInfos.routeName.contains("Ping") {
                             self.cleanupPingSession(for: routeInfos.routeName)
@@ -271,16 +316,25 @@ class WebSockerServer {
             }
         }
     }
-    private func registerMessageSession(routeName: String, session: WebSocketSession) {
+    private func registerMessageSession(
+        routeName: String,
+        session: WebSocketSession
+    ) {
         let deviceName = normalizeDeviceName(routeName: routeName)
         sessionQueue.async {
-            self.messageSessions[deviceName] = (session: session, isConnected: true)
+            self.messageSessions[deviceName] = (
+                session: session,
+                isConnected: true
+            )
             print("Registered message session for \(deviceName)")
         }
     }
     
     // Handle device connections/disconnections (this logic remains unchanged)
-    private func handleDeviceConnections(_ routeInfos: RouteInfos, _ session: WebSocketSession) {
+    private func handleDeviceConnections(
+        _ routeInfos: RouteInfos,
+        _ session: WebSocketSession
+    ) {
         switch routeInfos.routeName {
         case "typhoon_espConnect": self.typhoonEspSession = session
         case "typhoon_espDisconnect": self.typhoonEspSession = nil
@@ -326,35 +380,53 @@ class WebSockerServer {
     }
     
     private func startPingRoutine() {
-        Timer.scheduledTimer(withTimeInterval: pingInterval, repeats: true) { _ in
-            self.sessionQueue.async {
-                for (route, sessionInfo) in self.pingableSessions {
-                    // Envoyer d'abord le ping
-                    sessionInfo.session.writeText("ping")
-                    // print("Ping sent to \(route)")
+        Timer
+            .scheduledTimer(
+                withTimeInterval: pingInterval,
+                repeats: true
+            ) { _ in
+                self.sessionQueue.async {
+                    for (route, sessionInfo) in self.pingableSessions {
+                        // Envoyer d'abord le ping
+                        sessionInfo.session.writeText("ping")
+                        // print("Ping sent to \(route)")
                     
-                    // Ensuite vérifier si le dernier pong a été reçu dans les temps
-                    if Date().timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {
-                        var updatedInfo = sessionInfo
-                        updatedInfo.consecutiveFailures += 1
-                        self.pingableSessions[route] = updatedInfo
+                        // Ensuite vérifier si le dernier pong a été reçu dans les temps
+                        if Date()
+                            .timeIntervalSince(sessionInfo.lastPingTime) > self.pingTimeout {
+                            var updatedInfo = sessionInfo
+                            updatedInfo.consecutiveFailures += 1
+                            self.pingableSessions[route] = updatedInfo
                         
-                        if updatedInfo.consecutiveFailures >= PingSessionInfo.maxFailures {
-                            print("Device \(route) failed to respond to ping \(PingSessionInfo.maxFailures) times. Disconnecting...")
-                            sessionInfo.session.socket.close()
-                            self.pingableSessions[route] = nil
-                            let nameRoute = self.normalizeDeviceName(routeName: route)
-                            self.updateDeviceState(routeName: route, isConnected: false)
-                            self.updateDeviceState(routeName: nameRoute, isConnected: false)
+                            if updatedInfo.consecutiveFailures >= PingSessionInfo.maxFailures {
+                                print(
+                                    "Device \(route) failed to respond to ping \(PingSessionInfo.maxFailures) times. Disconnecting..."
+                                )
+                                sessionInfo.session.socket.close()
+                                self.pingableSessions[route] = nil
+                                let nameRoute = self.normalizeDeviceName(
+                                    routeName: route
+                                )
+                                self.updateDeviceState(
+                                    routeName: route,
+                                    isConnected: false
+                                )
+                                self.updateDeviceState(
+                                    routeName: nameRoute,
+                                    isConnected: false
+                                )
+                            }
                         }
                     }
                 }
             }
-        }
     }
     
     
-    private func updateLastPingTime(for route: String, session: WebSocketSession) {
+    private func updateLastPingTime(
+        for route: String,
+        session: WebSocketSession
+    ) {
         self.sessionQueue.async {
             self.pingableSessions[route]?.lastPingTime = Date()
         }
@@ -370,7 +442,9 @@ class WebSockerServer {
         do {
             try server.start()
             self.startPingRoutine()
-            print("Server has started (port = \(try server.port())). Try to connect now...")
+            print(
+                "Server has started (port = \(try server.port())). Try to connect now..."
+            )
         } catch {
             print("Server failed to start: \(error.localizedDescription)")
         }
@@ -423,7 +497,10 @@ extension WebSockerServer {
             return nil
         }
     }
-    private func handleIPhoneConnection(routeName: String, session: WebSocketSession) {
+    private func handleIPhoneConnection(
+        routeName: String,
+        session: WebSocketSession
+    ) {
         let deviceName = normalizeDeviceName(routeName: routeName)
         
         switch deviceName {
@@ -447,40 +524,43 @@ extension WebSockerServer {
             break
         }
     }
-    private func handleIPhoneDisconnection(routeName: String, session: WebSocketSession) {
-            let deviceName = normalizeDeviceName(routeName: routeName)
-            sessionQueue.async {
-                // Nettoyer les sessions de message
-                if let messageSession = self.messageSessions[deviceName] {
-                    print("Cleaning up message session for \(deviceName)")
-                    self.messageSessions.removeValue(forKey: deviceName)
-                }
+    private func handleIPhoneDisconnection(
+        routeName: String,
+        session: WebSocketSession
+    ) {
+        let deviceName = normalizeDeviceName(routeName: routeName)
+        sessionQueue.async {
+            // Nettoyer les sessions de message
+            if let messageSession = self.messageSessions[deviceName] {
+                print("Cleaning up message session for \(deviceName)")
+                self.messageSessions.removeValue(forKey: deviceName)
+            }
                 
-                // Nettoyer les sessions de ping
-                let pingRouteName = deviceName + "Ping"
-                if let pingSession = self.pingableSessions[pingRouteName] {
-                    print("Cleaning up ping session for \(pingRouteName)")
-                    self.pingableSessions.removeValue(forKey: pingRouteName)
-                }
+            // Nettoyer les sessions de ping
+            let pingRouteName = deviceName + "Ping"
+            if let pingSession = self.pingableSessions[pingRouteName] {
+                print("Cleaning up ping session for \(pingRouteName)")
+                self.pingableSessions.removeValue(forKey: pingRouteName)
+            }
                 
-                // Mettre à jour l'état du device
-                self.updateDeviceState(routeName: deviceName, isConnected: false)
+            // Mettre à jour l'état du device
+            self.updateDeviceState(routeName: deviceName, isConnected: false)
                 
-                // Nettoyer les sessions spécifiques selon le device
-                switch deviceName {
-                case "remoteController_iphone1":
-                    if self.remoteController_iphone1Session?.socket.hashValue == session.socket.hashValue {
-                        self.remoteController_iphone1Session = nil
-                    }
-                case "remoteController_iphone2":
-                    if self.remoteController_iphone2Session?.socket.hashValue == session.socket.hashValue {
-                        self.remoteController_iphone2Session = nil
-                    }
-                default:
-                    break
+            // Nettoyer les sessions spécifiques selon le device
+            switch deviceName {
+            case "remoteController_iphone1":
+                if self.remoteController_iphone1Session?.socket.hashValue == session.socket.hashValue {
+                    self.remoteController_iphone1Session = nil
                 }
+            case "remoteController_iphone2":
+                if self.remoteController_iphone2Session?.socket.hashValue == session.socket.hashValue {
+                    self.remoteController_iphone2Session = nil
+                }
+            default:
+                break
             }
         }
+    }
     func updateDeviceState(routeName: String, isConnected: Bool) {
         let deviceName = normalizeDeviceName(routeName: routeName)
         // Don't process dashboard routes
@@ -492,7 +572,9 @@ extension WebSockerServer {
             if var state = self.deviceStates[deviceName] {
                 state.isConnected = isConnected
                 self.deviceStates[deviceName] = state
-                print("Updated state for \(deviceName): isConnected = \(isConnected)")
+                print(
+                    "Updated state for \(deviceName): isConnected = \(isConnected)"
+                )
                 
                 // Notify dashboard of state change
                 if let dashboardSession = self.remoteController_iphone1Session {
@@ -503,8 +585,14 @@ extension WebSockerServer {
                                 "isConnected": state.isConnected
                             ]
                         }
-                        let jsonData = try JSONSerialization.data(withJSONObject: allDevices, options: .prettyPrinted)
-                        if let jsonString = String(data: jsonData, encoding: .utf8) {
+                        let jsonData = try JSONSerialization.data(
+                            withJSONObject: allDevices,
+                            options: .prettyPrinted
+                        )
+                        if let jsonString = String(
+                            data: jsonData,
+                            encoding: .utf8
+                        ) {
                             dashboardSession.writeText(jsonString)
                         }
                     } catch {
@@ -522,11 +610,12 @@ extension WebSockerServer {
             
             // tornado
         case "rfid#tornado":
-            print("(=son1)")
-            print("(=musique2)")  // end on tornado_to_crystal#end
+            self.audioPlayer.playSound(name:"son1")
+            self.audioPlayer
+                .playSound(name:"musique2")  // end on tornado_to_crystal#end
             
         case "tornado_finished#true", "all_mics_active#true":
-            print("(=son2)")
+            self.audioPlayer.playSound(name:"son2")
             
             
             
@@ -534,25 +623,27 @@ extension WebSockerServer {
             
             // maze
         case "rfid#maze":
-            print("(=son1)")
-            print("(=musique3)")  // end on maze_to_crystal#end
+            self.audioPlayer.playSound(name:"son1")
+            self.audioPlayer
+                .playSound(name:"musique3")  // end on maze_to_crystal#end
         case "btn2#true":
-            print("(=son5)")
+            self.audioPlayer.playSound(name:"son5")
         case "btn3#true":
-            print("(=son5)")
+            self.audioPlayer.playSound(name:"son5")
         case "btn1#end":
-            print("(=son2)")
-            print("(=son6)") // end on crystal_maze#end
+            self.audioPlayer.playSound(name:"son2")
+            self.audioPlayer.playSound(name:"son6") // end on crystal_maze#end
             
             
             
             
             // typhoon
         case "rfid#typhoon":
-            print("(=son1)")
-            print("(=musique4)")  // end on typhoon_to_crystal#end
+            self.audioPlayer.playSound(name:"son1")
+            self.audioPlayer
+                .playSound(name:"musique4")  // end on typhoon_to_crystal#end
         case "typhoon_finished#true", "all_relays#completed":
-            print("(=son2)")
+            self.audioPlayer.playSound(name:"son2")
             
             
             
@@ -562,38 +653,43 @@ extension WebSockerServer {
             
             // volcano
         case "rfid#volcano":
-            print("(=son1)")
-            print("(=musique5)")
+            self.audioPlayer.playSound(name:"son1")
+            self.audioPlayer.playSound(name:"musique5")
             
         case "volcano_finished#true", "all_rifds#completed":
-            print("(=son2)")
-            print("(=son7)")
+            self.audioPlayer.playSound(name:"son2")
+            self.audioPlayer.playSound(name:"son7")
             
             // crystal
         case "crystal_started#true":
-            print("(=son1)")
+            self.audioPlayer.playSound(name:"son1")
         case "tornado_to_crystal#end", "crystal#tornado":
-            print("(=son3)")
+            self.audioPlayer.playSound(name:"son3")
         case "maze_to_crystal#end", "crystal#maze":
-            print("(=son3)")
+            self.audioPlayer.playSound(name:"son3")
         case "typhoon_to_crystal#end", "crystal#typhoon":
-            print("(=son3)")
+            self.audioPlayer.playSound(name:"son3")
         case "volcano_to_crystal#end", "crystal#volcano":
-            print("(=son3)")
-        case "crystal_volcano#end":
-            print("(=son4)") // add delay
-            print("(=musique6)") // add delay
+            self.audioPlayer.playSound(name:"son3")
+        case "crystal_volcano#end": 
+            self.audioPlayer.playSound(name:"son4") // add delay
+            self.audioPlayer.playSound(name:"musique6") // add delay
             
             
             // DEBUT EXPÉRIENCE CRYSTAL /!\ élément manquant
-//            - Son ambiance crystal, déclencher dès le début de l’expérience (=musique1)
+            //            - Son ambiance crystal, déclencher dès le début de l’expérience (=musique1)
             
             
         default:
             print("no sound")
         }
     }
-    func sendMessage(from: String, to: [String], component: String, data: String) {
+    func sendMessage(
+        from: String,
+        to: [String],
+        component: String,
+        data: String
+    ) {
         let message = "\(component)#\(data)"
         print("Sending message: \(message) to routes: \(to)")
         let ledDevices = [
@@ -645,7 +741,9 @@ extension WebSockerServer {
     func parseMessage(_ message: String) -> ParsedMessage? {
         let components = message.components(separatedBy: "=>")
         guard components.count == 3 else {
-            print("Invalid message format (wrong number of components): \(message)")
+            print(
+                "Invalid message format (wrong number of components): \(message)"
+            )
             return nil
         }
         

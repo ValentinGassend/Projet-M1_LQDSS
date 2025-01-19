@@ -11,24 +11,28 @@ class AudioPlayer {
     static let shared = AudioPlayer()
     private var audioPlayer: AVAudioPlayer?
     
-    func playSound() {
-        // Debug: Afficher tous les fichiers du bundle
-        if let resources = Bundle.main.urls(forResourcesWithExtension: "aiff", subdirectory: nil) {
-//            print("Available .aiff files in bundle:")
+    func playSound(name: String, type: String = "wav") -> Bool {
+        // Sous-dossier contenant les fichiers audio
+        let soundDirectory = "sound"
+
+        // Afficher les fichiers disponibles en mode debug
+        if let resources = Bundle.main.urls(
+            forResourcesWithExtension: type,
+            subdirectory: soundDirectory
+        ) {
+            print(
+                "Fichiers .\(type) disponibles dans le sous-dossier '\(soundDirectory)' :"
+            )
             resources.forEach { print($0.lastPathComponent) }
         }
         
-        // Debug: Vérifier le chemin exact
-        if let path = Bundle.main.path(forResource: "Bottle", ofType: "aiff") {
-            print("Found sound file at path: \(path)")
-        } else {
-            print("Debug bundle path: \(Bundle.main.bundlePath)")
-            print("Sound file 'Bottle.aiff' not found in bundle")
-        }
-        
-        guard let soundPath = Bundle.main.path(forResource: "Bottle", ofType: "aiff") else {
-            print("Sound file not found")
-            return
+        // Vérifier si le fichier existe dans le sous-dossier
+        guard let soundPath = Bundle.main.path(forResource: name, ofType: type, inDirectory: soundDirectory) else {
+            print(
+                "Fichier son '\(name).\(type)' non trouvé dans le sous-dossier '\(soundDirectory)'"
+            )
+            print("Chemin du bundle: \(Bundle.main.bundlePath)")
+            return false
         }
         
         let soundURL = URL(fileURLWithPath: soundPath)
@@ -37,8 +41,12 @@ class AudioPlayer {
             audioPlayer = try AVAudioPlayer(contentsOf: soundURL)
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
+            return true
         } catch {
-            print("Error playing sound: \(error.localizedDescription)")
+            print(
+                "Erreur lors de la lecture du son: \(error.localizedDescription)"
+            )
+            return false
         }
     }
 }
