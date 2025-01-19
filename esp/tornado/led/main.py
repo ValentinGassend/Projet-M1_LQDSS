@@ -277,7 +277,7 @@ class ESP32Controller:
                                                         20,  # pulse_speed_ms
                                                         35))  # step
 
-        elif message == "tornado_finished#true":
+        elif message == "tornado_finished#true" or message == "all_mics_active#true":
             print("Starting 'tornado_finished' animation")
             self.start_animation(self.tornado_finished_animation)
 

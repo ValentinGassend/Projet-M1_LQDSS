@@ -276,7 +276,7 @@ class ESP32Controller:
                                                         20,  # pulse_speed_ms
                                                         35))  # step
 
-        elif message == "volcano_finished#true":
+        elif message == "volcano_finished#true" or message == "all_rifds#completed":
             print("Starting 'volcano_finished' animation")
             self.start_animation(self.volcano_finished_animation)
 

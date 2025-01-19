@@ -275,7 +275,7 @@ class ESP32Controller:
                                                   2,    # pulse_count
                                                   20,  # pulse_speed_ms
                                                   35))  # step
-        elif message == "typhoon_finished#true":
+        elif message == "typhoon_finished#true" or message == "all_relays#completed":
             print("Starting 'typhoon_finished' animation")
             self.start_animation(self.typhoon_finished_animation)
 

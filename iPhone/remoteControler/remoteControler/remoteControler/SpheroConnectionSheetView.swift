@@ -75,7 +75,8 @@ class SpheroRoleManager: ObservableObject {
     @Published var roleAssignments: [SpheroRoleAssignment] = []
     private let wsClient: WebSocketClient
     static let instance = SpheroRoleManager(wsClient:WebSocketClient.instance)
-    
+    private let rotationManager: SpheroRotationManager = SpheroRotationManager.instance
+
     init(wsClient: WebSocketClient) {
         self.wsClient = wsClient
     }
@@ -124,14 +125,17 @@ class SpheroRoleManager: ObservableObject {
             case .handle1, .handle2, .handle3, .handle4:
                 sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
                 sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
-                
+                // Configure and start capture automatically for handle roles
+                                rotationManager.configureBolt(sphero: sphero, id: spheroName)
+                                let handleNumber = role.rawValue.replacingOccurrences(of: "Handle ", with: "")
+                                rotationManager.startDataCapture(for: spheroName, handleNumber: handleNumber)
             case .maze:
                 // Configurer la LED en jaune
                 sphero.setFrontLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
                 sphero.setBackLed(color: UIColor(red: 0/255, green: 0/255, blue: 0/255, alpha: 0.0))
                 
                 // Envoyer le motif d'éclair
-                SpheroPresetManager.shared.sendLightningPreset(to: sphero)
+//                SpheroPresetManager.shared.sendLightningPreset(to: sphero)
                 
             default:
                 break

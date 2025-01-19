@@ -525,7 +525,7 @@ extension WebSockerServer {
             print("(=son1)")
             print("(=musique2)")  // end on tornado_to_crystal#end
             
-        case "tornado_finished#true":
+        case "tornado_finished#true", "all_mics_active#true":
             print("(=son2)")
             
             
@@ -551,7 +551,7 @@ extension WebSockerServer {
         case "rfid#typhoon":
             print("(=son1)")
             print("(=musique4)")  // end on typhoon_to_crystal#end
-        case "typhoon_finished#true":
+        case "typhoon_finished#true", "all_relays#completed":
             print("(=son2)")
             
             
@@ -563,28 +563,30 @@ extension WebSockerServer {
             // volcano
         case "rfid#volcano":
             print("(=son1)")
-            print("(=musique5)")  // end on volcano_to_crystal#end
+            print("(=musique5)")
             
-        case "volcano_finished#true":
+        case "volcano_finished#true", "all_rifds#completed":
             print("(=son2)")
             print("(=son7)")
             
             // crystal
-        case "crystal_tornado#start":
+        case "crystal_started#true":
+            print("(=son1)")
+        case "tornado_to_crystal#end", "crystal#tornado":
             print("(=son3)")
-        case "crystal_maze#start":
+        case "maze_to_crystal#end", "crystal#maze":
             print("(=son3)")
-        case "crystal_typhoon#start":
+        case "typhoon_to_crystal#end", "crystal#typhoon":
             print("(=son3)")
-        case "crystal_volcano#start":
+        case "volcano_to_crystal#end", "crystal#volcano":
             print("(=son3)")
-        case "crystal_finish#end":
+        case "crystal_volcano#end":
             print("(=son4)") // add delay
+            print("(=musique6)") // add delay
             
             
             // DEBUT EXPÉRIENCE CRYSTAL /!\ élément manquant
 //            - Son ambiance crystal, déclencher dès le début de l’expérience (=musique1)
-//            - Son court de “déblocage” (=son1) lors de la pose des 4 amulettes
             
             
         default:

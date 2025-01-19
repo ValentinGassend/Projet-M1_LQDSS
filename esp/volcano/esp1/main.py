@@ -36,6 +36,7 @@ class ESP32Controller:
 
     def check_all_rfids_active(self):
         """Check if all RFID states are True"""
+
         return all(self.rfid_states.values())
 
     def activate_all_relays(self):
@@ -90,6 +91,8 @@ class ESP32Controller:
 
                     if self.check_all_rfids_active():
                         print("All RFIDs active - activating relays")
+                        msg = f"volcano_esp1=>[ambianceManager,volcano_esp1]=>all_rifds#completed"
+                        self.ws_client.route_ws_map.get("message", None).send(msg)
                         self.activate_all_relays()
                 
         except Exception as e:

@@ -46,20 +46,34 @@ class ESP32Controller:
             print(f"Error processing microphone message: {e}")
 
     def monitor_microphones(self):
-        
+
+        active_mics = 0
+        mic_states = []
         for index, mic in enumerate(self.microphones, start=1):
             try:
                 samples = mic.read_samples()
                 audio_info = mic.analyze_audio(samples)
                 current_state = "true" if audio_info['sound_detected'] else "false"
 
+                # Store the state for each microphone
+                mic_states.append(current_state)
+                if current_state == "true":
+                    active_mics += 1
+
+                # Send individual mic state changes as before
                 if current_state != mic.last_detection_state:
                     msg = f"tornado_esp=>[tornado_rpi]=>mic{index}#{current_state}"
                     print(f"Sending microphone message: {msg}")
                     self.ws_client.route_ws_map.get("message", None).send(msg)
                     mic.last_detection_state = current_state
+
             except Exception as e:
                 print(f"Error monitoring microphone {index}: {e}")
+
+        if active_mics == 4:
+            all_mics_msg = f"tornado_esp=>[tornado_rpi, ambianceManager]=>all_mics_active#true"
+            print(f"Sending all microphones active message: {all_mics_msg}")
+            self.ws_client.route_ws_map.get("message", None).send(all_mics_msg)
 
     def handle_websocket_messages(self):
         for ws_route, ws in self.ws_client.route_ws_map.items():

@@ -66,6 +66,7 @@ class ESP32Controller:
                             self.relays[relay_num].on()
                             self.relay_locked[relay_num] = True  # Verrouiller le relais
                             print(f"Relay {relay_num + 1} locked in active state")
+                            self.check_all_relays_completed()
         except Exception as e:
             print(f"Erreur traitement message sphero: {e}")
 
@@ -85,6 +86,19 @@ class ESP32Controller:
                 print(f"Relay {relay_num + 1} set to {state}")
             except Exception as e:
                 print(f"Error setting relay {relay_num + 1} state: {e}")
+
+    def check_all_relays_completed(self):
+        """Check if all relays are locked (completed) and notify server if true."""
+        if all(self.relay_locked):
+            try:
+                msg = f"typhoon_esp=>[ambianceManager, typhoon_esp]=>all_relays#completed"
+                if "message" in self.ws_client.route_ws_map:
+                    self.ws_client.route_ws_map["message"].send(msg)
+                    print("All relays completed notification sent")
+                else:
+                    print("WebSocket message route not available")
+            except Exception as e:
+                print(f"Error sending all relays completed message: {e}")
 
     def notify_relay_state(self, relay_num, state):
         """Send relay state update to server."""
