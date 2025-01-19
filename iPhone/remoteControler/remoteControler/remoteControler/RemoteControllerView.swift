@@ -32,16 +32,16 @@ class SpheroPresetManager {
         //        print("Preset Lightning envoyé au Sphero \(sphero.name ?? "Inconnu")")
     }
 }
-
 // Vue principale
 struct RemoteControllerView: View {
     @ObservedObject var wsClient = WebSocketClient.instance
-    
+    @State private var timer: Timer? = nil
+
     var body: some View {
         TabView {
-            VolcanoView(wsClient: wsClient)
+            TornadoView(wsClient: wsClient)
                 .tabItem {
-                    Label("Volcano", systemImage: "flame")
+                    Label("Tornado", systemImage: "wind")
                 }
             MazeView(wsClient: wsClient)
                 .tabItem {
@@ -49,17 +49,42 @@ struct RemoteControllerView: View {
                 }
             TyphoonView()
                 .tabItem {
-                    Label("Typhoon", systemImage: "tornado")
+                    Label("Typhoon", systemImage: "hurricane")
                 }
-            TornadoView(wsClient: wsClient)
+            
+            VolcanoView(wsClient: wsClient)
                 .tabItem {
-                    Label("Tornado", systemImage: "wind")
+                    Label("Volcano", systemImage: "flame")
                 }
             CrystalView(wsClient: wsClient)
                 .tabItem {
                     Label("Crystal", systemImage: "sparkles")
                 }
+            }.onAppear {
+            
+            startAutoRefresh()
+        }.onDisappear() {
+            stopAutoRefresh()
         }
+    }
+    
+    private func startAutoRefresh() {
+        // Cancel any existing timer
+        timer?.invalidate()
+        
+        // Create new timer that fires every 6 seconds
+        timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
+            refreshDevices()
+        }
+    }
+    
+    private func stopAutoRefresh() {
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private func refreshDevices() {
+        wsClient.sendToDashboardroute(route: .remoteController_iphone1Connect, msg: "getDevices")
     }
 }
 // vent / electricité / eau / feu
@@ -85,7 +110,11 @@ struct VolcanoView: View {
     ]
     
     var body: some View {
-        CommandListView(commands: commands, wsClient: wsClient)
+        VStack {
+            
+            DeviceStatusView(devicePrefix: "volcano")
+            CommandListView(commands: commands, wsClient: wsClient)
+        }
     }
 }
 
@@ -109,7 +138,11 @@ struct MazeView: View {
     ]
     
     var body: some View {
+        VStack {
+
+        DeviceStatusView(devicePrefix: "maze")
         CommandListView(commands: commands, wsClient: wsClient)
+    }
     }
 }
 
@@ -253,6 +286,10 @@ struct TyphoonView: View {
         sphero.setStabilization(state: .on)
     }
     var body: some View {
+        VStack {
+
+        DeviceStatusView(devicePrefix: "Typhoon")
+
         VStack(spacing: 20) {
             ScrollView {
                 VStack {
@@ -303,6 +340,7 @@ struct TyphoonView: View {
             .padding()
             
             
+        }
         }
         .onDisappear {
             for (spheroId, _) in connectedSpheros {
@@ -372,7 +410,12 @@ struct TornadoView: View {
     ]
     
     var body: some View {
+        VStack {
+
+        DeviceStatusView(devicePrefix: "tornado")
+
         CommandListView(commands: commands, wsClient: wsClient)
+    }
     }
 }
 
@@ -394,7 +437,12 @@ struct CrystalView: View {
     ]
     
     var body: some View {
+        VStack {
+
+        DeviceStatusView(devicePrefix: "crystal")
+
         CommandListView(commands: commands, wsClient: wsClient)
+    }
     }
 }
 
