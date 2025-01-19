@@ -445,6 +445,7 @@ class WebSockerServer {
             print(
                 "Server has started (port = \(try server.port())). Try to connect now..."
             )
+            self.audioPlayer.playMusic(name:"musique1")
         } catch {
             print("Server failed to start: \(error.localizedDescription)")
         }
@@ -610,10 +611,12 @@ extension WebSockerServer {
             
             // tornado
         case "rfid#tornado":
+            self.audioPlayer.stopMusic("musique1")
             self.audioPlayer.playSound(name:"son1")
             self.audioPlayer
-                .playSound(name:"musique2")  // end on tornado_to_crystal#end
-            
+                .playMusic(name:"musique2", type: "mp3")  // end on tornado_to_crystal#end
+        case "tornado_to_crystal#end":
+            self.audioPlayer.stopMusic("musique2")
         case "tornado_finished#true", "all_mics_active#true":
             self.audioPlayer.playSound(name:"son2")
             
@@ -625,23 +628,30 @@ extension WebSockerServer {
         case "rfid#maze":
             self.audioPlayer.playSound(name:"son1")
             self.audioPlayer
-                .playSound(name:"musique3")  // end on maze_to_crystal#end
+                .playMusic(name:"musique3")  // end on maze_to_crystal#end
+            
+    case "maze_to_crystal#end":
+        self.audioPlayer.stopMusic("musique3")
         case "btn2#true":
             self.audioPlayer.playSound(name:"son5")
         case "btn3#true":
             self.audioPlayer.playSound(name:"son5")
         case "btn1#end":
             self.audioPlayer.playSound(name:"son2")
-            self.audioPlayer.playSound(name:"son6") // end on crystal_maze#end
-            
-            
+            self.audioPlayer.playSound(name:"son6", loop: true) // end on crystal_maze#end
+        case "crystal_maze#end":
+            self.audioPlayer.stopSound(name:"son6")
+        
             
             
             // typhoon
         case "rfid#typhoon":
             self.audioPlayer.playSound(name:"son1")
             self.audioPlayer
-                .playSound(name:"musique4")  // end on typhoon_to_crystal#end
+                .playMusic(name:"musique4", type: "mp3")  // end on typhoon_to_crystal#end
+            
+    case "typhoon_to_crystal#end":
+        self.audioPlayer.stopMusic("musique4")
         case "typhoon_finished#true", "all_relays#completed":
             self.audioPlayer.playSound(name:"son2")
             
@@ -654,8 +664,10 @@ extension WebSockerServer {
             // volcano
         case "rfid#volcano":
             self.audioPlayer.playSound(name:"son1")
-            self.audioPlayer.playSound(name:"musique5")
+            self.audioPlayer.playMusic(name:"musique5")
             
+    case "volcano_to_crystal#end":
+        self.audioPlayer.stopMusic("musique5")
         case "volcano_finished#true", "all_rifds#completed":
             self.audioPlayer.playSound(name:"son2")
             self.audioPlayer.playSound(name:"son7")
@@ -671,14 +683,28 @@ extension WebSockerServer {
             self.audioPlayer.playSound(name:"son3")
         case "volcano_to_crystal#end", "crystal#volcano":
             self.audioPlayer.playSound(name:"son3")
-        case "crystal_volcano#end": 
-            self.audioPlayer.playSound(name:"son4") // add delay
-            self.audioPlayer.playSound(name:"musique6") // add delay
+        case "crystal_finish#start":
+            self.audioPlayer.playSound(name:"son4", delay: 6) // add delay
+            self.audioPlayer.playMusic(name:"musique6", delay: 8) // add delay
             
             
-            // DEBUT EXPÉRIENCE CRYSTAL /!\ élément manquant
-            //            - Son ambiance crystal, déclencher dès le début de l’expérience (=musique1)
             
+//            Sons
+//            son1 : Son court de “déblocage” (lorsque les amulettes sont posées sur les ateliers ou pour la pose des 4 amulettes au début).
+//            son2 : Son de validation (joué à la fin de l’expérience pendant le clignotement des LEDs).
+//            son3 : Son “méchant” (l’esprit reprend la main lorsque les LEDs retournent au crystal).
+//            son4 : Son de joie (les éléments reprennent la main sur le crystal après le feu, avec délai pour ne pas parer l’éruption).
+//            son5 : Son d’orage (lors de la validation d’une étape du bouton sur l’atelier d’électricité).
+//            son6 : Son beaucoup d’éclair (joué avec les LEDs du labyrinthe imitant des éclairs).
+//            son7 : Son grondement volcan (enchaîné après l’atelier du feu).
+//            Musiques
+//            musique1 : Ambiance crystal (déclenchée dès le début de l’expérience).
+//            musique2 : Ambiance du vent (jouée après la pose de l’amulette sur l’atelier du vent et jusqu’à la fin de l’expérience).
+//            musique3 : Ambiance de l’électricité (jouée après la pose de l’amulette sur l’atelier de l’électricité et jusqu’à la fin de l’expérience).
+//            musique4 : Ambiance de l’eau (jouée après la pose de l’amulette sur l’atelier de l’eau et jusqu’à la fin de l’expérience).
+//            musique5 : Ambiance du feu (jouée après la pose de l’amulette sur l’atelier du feu et jusqu’à la fin de l’expérience).
+//            musique6 : Musique de victoire (jouée à la fin de l’expérience après la joie des éléments).
+
             
         default:
             print("no sound")
