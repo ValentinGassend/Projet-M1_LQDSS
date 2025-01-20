@@ -5,7 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="868203fe-ea1a-4764-995e-19394b0c87a1" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/DeviceStatusView.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/MazeSpheroControlView.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/SimpleSpheroConnectionView.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/SpheroConnectionController.swift" afterDir="false" />
@@ -59,12 +58,19 @@
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SDK/SDKUtils.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SDK/String+Utils.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/libs/SpheroSDK/SharedToyBox.swift" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/esp/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/esp/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/maze/led/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/led/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/tornado/esp/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/esp/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/typhoon/esp/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/typhoon/esp/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/DashbaordView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/DashbaordView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/ContentView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2/ContentView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rvr/WSclient.py" beforeDir="false" afterPath="$PROJECT_DIR$/rvr/WSclient.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,22 +111,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.AmbianceManager.executor": "Run",
-    "Python.main.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "remoteControl",
-    "last_opened_file_path": "/Users/valentin/ProjetDrone/Projet-M1_LQDSS/rpi",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.AmbianceManager.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;remoteControl&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/valentin/ProjetDrone/Projet-M1_LQDSS/rpi&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/rpi" />
@@ -155,7 +161,8 @@
       <workItem from="1736467639227" duration="4861000" />
       <workItem from="1736722214304" duration="932000" />
       <workItem from="1736878277341" duration="12728000" />
-      <workItem from="1737132693703" duration="23358000" />
+      <workItem from="1737132693703" duration="24019000" />
+      <workItem from="1737356462802" duration="5151000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />

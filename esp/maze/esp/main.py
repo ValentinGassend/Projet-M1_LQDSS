@@ -175,7 +175,7 @@ class ESP32Controller:
     def handle_entrance_tag(self, card_id):
         
         if card_id == 322763907:
-            msg = "maze_esp=>[maze_iphone,maze_esp,ambianceManager]=>rfid#maze"
+            msg = "maze_esp=>[remoteController_iphone1,remoteController_iphone2,maze_esp,ambianceManager]=>rfid#maze"
             print(f"Sending RFID entrance message: {msg}")
             ws = self.ws_client.route_ws_map.get("message", None)
             if ws:

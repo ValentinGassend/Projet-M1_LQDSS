@@ -70,13 +70,13 @@ struct RemoteControllerView: View {
     
     private func startAutoRefresh() {
         // Cancel any existing timer
-        timer?.invalidate()
-        
-        // Create new timer that fires every 6 seconds
-        timer = Timer
-            .scheduledTimer(withTimeInterval: 2.0, repeats: true) { _ in
-                refreshDevices()
-            }
+//        timer?.invalidate()
+//        
+//        // Create new timer that fires every 6 seconds
+//        timer = Timer
+//            .scheduledTimer(withTimeInterval: 10.0, repeats: true) { _ in
+//                refreshDevices()
+//            }
     }
     
     private func stopAutoRefresh() {
@@ -161,8 +161,8 @@ struct TyphoonView: View {
     @State private var connectedSpheros: [String: BoltToy] = [:]
     @State private var spheroStates: [String: SpheroBoltState] = [:]
     
-    private let ROTATION_SPEED_THRESHOLD: Double = 10.0
-    private let TOTAL_ROTATIONS_TARGET: Double = 5.0
+    private let ROTATION_SPEED_THRESHOLD: Double = 50.0
+    private let TOTAL_ROTATIONS_TARGET: Double = 10.0
     
     private var spheroIds: [String] {
         return getHandleAssignments()

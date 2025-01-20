@@ -499,7 +499,8 @@ class ESP32Controller:
         elif message == "btn1#end":
             self.set_color(self.ZONE_BTN1, *self.COLORS["maze"])
             self.start_animation(self.inside_progressive_animation)
-            
+            self.start_animation(self.maze_finished_animation)
+
         elif message == "btn1#false":
             print("Button 1 OFF")
             self.clear(self.ZONE_BTN1)

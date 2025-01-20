@@ -10,31 +10,31 @@ class ESP32Controller:
         self.rfid = RFIDController()
         self.ws_client = WSclient("Cudy-F810", "13022495", "tornado_esp")
         self.microphones = [
-            Microphone(pin_number=34, sound_threshold=50),
-            Microphone(pin_number=35, sound_threshold=50),
-            Microphone(pin_number=36, sound_threshold=50),
-            Microphone(pin_number=32, sound_threshold=50)
+            Microphone(pin_number=34, sound_threshold=33),
+            Microphone(pin_number=35, sound_threshold=33),
+            Microphone(pin_number=36, sound_threshold=33),
+            Microphone(pin_number=32, sound_threshold=33)
         ]
+        # Add a list to track locked states
+        self.mic_locked_states = [False] * len(self.microphones)
 
         self.last_reconnect_attempt = 0
         self.reconnect_interval = 1
 
     def handle_entrance_tag(self, card_id):
-
         if card_id == 152301587:
-            msg = f"tornado_esp=>[tornado_rpi,tornado_esp,ambianceManager_rpi]=>rfid#tornado"
+            msg = f"tornado_esp=>[tornado_rpi,tornado_esp,ambianceManager]=>rfid#tornado"
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:
             print(f"card {card_id} is wrong card")
 
     def handle_exit_tag(self, card_id):
-        
-
         msg = f"tornado_esp=>[tornado_rpi]=>rfid#false"
         self.ws_client.route_ws_map.get("message", None).send(msg)
+        # Reset locked states when exit tag is detected
+        self.mic_locked_states = [False] * len(self.microphones)
 
     def handle_mic_message(self, message):
-        
         try:
             if "#" in message:
                 mic_cmd, state = message.split("#")
@@ -42,23 +42,34 @@ class ESP32Controller:
                     mic_num = int(mic_cmd[-1]) - 1
                     if 0 <= mic_num < len(self.microphones):
                         print(f"Processing microphone {mic_num + 1} state: {state}")
+                        # Reset locked state if receiving a false state
+                        if state.lower() == "false":
+                            self.mic_locked_states[mic_num] = False
         except Exception as e:
             print(f"Error processing microphone message: {e}")
 
     def monitor_microphones(self):
-
         active_mics = 0
         mic_states = []
+
         for index, mic in enumerate(self.microphones, start=1):
             try:
-                samples = mic.read_samples()
-                audio_info = mic.analyze_audio(samples)
-                current_state = "true" if audio_info['sound_detected'] else "false"
+                # If microphone is already locked in true state, skip reading
+                if self.mic_locked_states[index - 1]:
+                    current_state = "true"
+                    active_mics += 1
+                else:
+                    samples = mic.read_samples()
+                    audio_info = mic.analyze_audio(samples)
+                    current_state = "true" if audio_info['sound_detected'] else "false"
+
+                    # Lock the microphone state if sound is detected
+                    if current_state == "true":
+                        self.mic_locked_states[index - 1] = True
+                        active_mics += 1
 
                 # Store the state for each microphone
                 mic_states.append(current_state)
-                if current_state == "true":
-                    active_mics += 1
 
                 # Send individual mic state changes as before
                 if current_state != mic.last_detection_state:

@@ -90,10 +90,10 @@ struct DashboardView: View {
         }
         .onAppear {
             setupConnections()
-            startAutoRefresh()
+//            startAutoRefresh()
         }
         .onDisappear {
-            stopAutoRefresh()
+//            stopAutoRefresh()
             disconnectAll()
         }
     }

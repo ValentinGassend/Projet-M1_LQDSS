@@ -239,6 +239,10 @@ class WSClient:
 
     def process_message(self, message):
         try:
+            if message == "all_mics_active#true":
+                print("All mics active signal received - stopping movement")
+                self.stop_movement()
+                return
             if "#" in message:
                 component, state = message.split("#")
                 state = state.lower() == "true"
