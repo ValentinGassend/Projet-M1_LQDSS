@@ -478,7 +478,7 @@ struct CrystalView: View {
         "crystal_esp1=>[crystal_esp1]=>rfid#maze",
         "crystal_esp2=>[crystal_esp1]=>rfid#tornado",
         "crystal_esp2=>[crystal_esp1]=>rfid#typhoon",
-        "crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>crystal_started#truex"
+        "crystal_esp1=>[crystal_esp2,crystal_esp1,ambianceManager]=>crystal_started#true"
     ]
     
     var body: some View {

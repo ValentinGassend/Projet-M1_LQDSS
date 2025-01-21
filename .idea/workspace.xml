@@ -109,12 +109,10 @@
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3/libs/SpheroSDK/SDK/SDKUtils.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3/libs/SpheroSDK/SDK/String+Utils.swift" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3/libs/SpheroSDK/SharedToyBox.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/maze/esp/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/maze/esp/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/esp/tornado/esp/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/tornado/esp/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/typhoon/esp/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/typhoon/esp/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/esp/volcano/esp1/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/esp/volcano/esp1/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/MazeSpheroControlView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/MazeSpheroControlView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteControler/remoteControler/RemoteControllerView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController2/remoteController2.xcodeproj/xcuserdata/valentin.xcuserdatad/xcschemes/xcschememanagement.plist" afterDir="false" />
@@ -122,8 +120,6 @@
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3.xcodeproj/project.pbxproj" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3.xcodeproj/project.pbxproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3/ContentView.swift" beforeDir="false" afterPath="$PROJECT_DIR$/iPhone/remoteControler/remoteController3/remoteController3/ContentView.swift" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer.xcodeproj/project.xcworkspace/xcuserdata/valentin.xcuserdatad/UserInterfaceState.xcuserstate" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/WebSocketServer.swift" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" beforeDir="false" afterPath="$PROJECT_DIR$/mac/WebSocketServer/WebSocketServer/main.swift" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -215,7 +211,8 @@
       <workItem from="1736722214304" duration="932000" />
       <workItem from="1736878277341" duration="12728000" />
       <workItem from="1737132693703" duration="24019000" />
-      <workItem from="1737356462802" duration="13153000" />
+      <workItem from="1737356462802" duration="16674000" />
+      <workItem from="1737466470161" duration="1289000" />
     </task>
     <task id="LOCAL-00001" summary="feat: remote Controller improvement">
       <option name="closed" value="true" />

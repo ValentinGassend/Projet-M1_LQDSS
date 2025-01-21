@@ -48,6 +48,10 @@ class ESP32Controller:
         try:
             if "#" in message:
                 sphero_cmd, state = message.split("#")
+                
+                if command == "all_relays" and state == "completed":
+                    self.reset_all_relays()
+                    return
                 if sphero_cmd.startswith("sphero"):
                     relay_num = int(sphero_cmd[-1]) - 1  # Extract relay number (sphero1 -> relay 0)
                     
@@ -86,6 +90,14 @@ class ESP32Controller:
                 print(f"Relay {relay_num + 1} set to {state}")
             except Exception as e:
                 print(f"Error setting relay {relay_num + 1} state: {e}")
+    
+    def reset_all_relays(self):
+        """Reset all relays to their initial state and unlock them."""
+        for i, relay in enumerate(self.relays):
+            relay.off()  # Désactive le relay (logique inversée)
+            self.relay_locked[i] = False  # Déverrouille le relay
+            self.notify_relay_state(i, False)
+        print("All relays have been reset and unlocked")
 
     def check_all_relays_completed(self):
         """Check if all relays are locked (completed) and notify server if true."""
@@ -95,6 +107,7 @@ class ESP32Controller:
                 if "message" in self.ws_client.route_ws_map:
                     self.ws_client.route_ws_map["message"].send(msg)
                     print("All relays completed notification sent")
+                    self.reset_all_relays()
                 else:
                     print("WebSocket message route not available")
             except Exception as e:

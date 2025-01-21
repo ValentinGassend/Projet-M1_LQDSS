@@ -18,6 +18,13 @@ class ESP32Controller:
         # Ajout du suivi d'état des relais
         self.relay_states = [False] * len(self.relays)
 
+        # Ajout de l'état de verrouillage pour le relay 2
+        self.relay2_locked = False
+
+        # Variables pour le contrôle temporel du relay 2
+        self.relay2_start_time = 0
+        self.relay2_active = False
+
         # Désactiver tous les relais à l'initialisation
         for relay in self.relays:
             relay.on()  # on() désactive le relay car la logique est inversée
@@ -32,7 +39,17 @@ class ESP32Controller:
             "third": False
         }
 
-        
+    def check_relay2_timing(self):
+        current_time = utime.ticks_ms()
+
+        # Si le relay 2 est actif, vérifier s'il faut le désactiver
+        if self.relay2_active and not self.relay2_locked:
+            if utime.ticks_diff(current_time, self.relay2_start_time) >= 1500:
+                self.set_relay_state(1, False)  # Désactiver relay 2
+                self.relay2_active = False
+                self.relay2_locked = True  # Verrouiller le relay 2
+                print("Relay 2 locked in disabled state")
+
 
     def check_all_rfids_active(self):
         """Check if all RFID states are True"""
@@ -40,9 +57,20 @@ class ESP32Controller:
         return all(self.rfid_states.values())
 
     def activate_all_relays(self):
-        """Activate all relays and send notifications"""
-        for i in range(len(self.relays)):
-            self.set_relay_state(i, True)
+        """Active le relay 1 immédiatement et programme l'activation du relay 2"""
+        # Réinitialiser le verrouillage du relay 2 avant une nouvelle séquence
+        # self.relay2_locked = False
+
+        # Activer le relay 1 immédiatement
+        self.set_relay_state(0, True)
+
+        # Programmer l'activation du relay 2 après 5 secondes
+        utime.sleep(5)  # Attendre 5 secondes
+
+        # Activer le relay 2
+        self.set_relay_state(1, True)
+        self.relay2_start_time = utime.ticks_ms()
+        self.relay2_active = True
 
     def notify_relay_state(self, relay_num, state):
         msg = f"volcano_esp1=>[volcano_esp2,volcano_esp1]=>relay{relay_num + 1}#{state}"
@@ -50,6 +78,11 @@ class ESP32Controller:
 
     def set_relay_state(self, relay_num, state):
         if 0 <= relay_num < len(self.relays):
+            # Vérifier si le relay 2 est verrouillé
+            if relay_num == 1 and self.relay2_locked:
+                print("Relay 2 is locked, ignoring state change request")
+                return
+
             # Vérifier si l'état change réellement
             new_state = bool(state)
             if self.relay_states[relay_num] != new_state:
@@ -171,6 +204,9 @@ class ESP32Controller:
                     callback_entrance=self.handle_entrance_tag,
                     callback_exit=self.handle_exit_tag
                 )
+
+
+                self.check_relay2_timing()
                 utime.sleep_ms(100)
             except Exception as e:
                 print(f"General error: {e}")
