@@ -64,7 +64,7 @@ class ButtonController:
                 return f"{button_name}#end"
         return f"{button_name}#{'true' if is_pressed else 'false'}"
 
-    def check_buttons(self, callback_press=None, callback_release=None):
+    def check_buttons(self, callback_press=None, callback_release=None, server_message_callback=None):
         for name, button in self.buttons.items():
             if button.update():
                 if button.pressed:
@@ -78,19 +78,25 @@ class ButtonController:
                                 if self.btn1_first_press:
                                     self.btn1_first_press = False
                                     self.btn1_locked = True
-                            self.check_button_sequence(callback_press)
+                            self.check_button_sequence(callback_press, server_message_callback)
                     else:
                         print(f"{name} is locked - activate other buttons first")
                 elif button.released and callback_release:
                     message = self.get_button_message(name, False)
                     callback_release(message)
 
-    def check_button_sequence(self, callback_press=None):
+    def check_button_sequence(self, callback_press=None, server_message_callback=None):
         if (self.btn1_locked and not self.btn1_unlock_notified and
                 self.button_states["btn2"] and self.button_states["btn3"]):
             if callback_press:
                 callback_press("btn1#unlock")
                 self.btn1_unlock_notified = True
+                
+                # Send message to server when btn1 is unlocked
+                if server_message_callback:
+                    server_message = "maze_esp=>[remoteController_iphone1,remoteController_iphone2,remoteController_iphone3,maze_esp,ambianceManager]=>btn1#unlock"
+                    server_message_callback(server_message)
+
 
     def reset_sequence(self):
         self.button_states = {
@@ -238,7 +244,8 @@ class ESP32Controller:
                 # Check buttons
                 self.button_controller.check_buttons(
                     callback_press=self.handle_button_press,
-                    callback_release=self.handle_button_release
+                    callback_release=self.handle_button_release,
+                    server_message_callback=self.send_message
                 )
 
                 utime.sleep_ms(10)

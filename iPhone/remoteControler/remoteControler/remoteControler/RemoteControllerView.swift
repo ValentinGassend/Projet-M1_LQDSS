@@ -139,6 +139,7 @@ struct MazeView: View {
         "maze_esp=>[maze_iphone,ambianceManager,remoteController_iphone1,remoteController_iphone2,remoteController_iphone3]=>btn1#start",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn2#true",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn3#true",
+        "maze_esp=>[maze_iphone,ambianceManager]=>btn1#unlock",
         "maze_esp=>[maze_iphone,ambianceManager]=>btn1#end",
     ]
     
