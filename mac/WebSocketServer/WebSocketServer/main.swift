@@ -127,6 +127,26 @@ let newRoutes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
+    RouteInfos(routeName: "remoteController_iphone3Connect", textCode: { session, receivedText in
+        print("remoteController iphone 3 connecté")
+        serverWS.remoteController_iphone3Session = session
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    },disconnectedCode: { session in
+        serverWS.remoteController_iphone3Session = nil
+        print("remoteController iphone 3 déconnecté")
+    }),
+    RouteInfos(routeName: "remoteController_iphone3Message", textCode: { session, receivedText in
+        print("remoteController iphone 3 message: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
+    RouteInfos(routeName: "remoteController_iphone3Ping", textCode: { session, receivedText in
+        
+        //        print("typhoon_iphone // ping reçu: \(receivedText)")
+    }, dataCode: { session, receivedData in
+        print(receivedData)
+    }),
     
     // Routes pour volcano
     RouteInfos(routeName: "volcano_esp1Connect", textCode: { session, receivedText in
@@ -171,28 +191,7 @@ let newRoutes: [RouteInfos] = [
     }, dataCode: { session, receivedData in
         print(receivedData)
     }),
-    
-    RouteInfos(routeName: "volcano_rpiConnect", textCode: { session, receivedText in
-        serverWS.volcanoRpiSession = session
-        
-        print("volcano_rpi connecté")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    },disconnectedCode: { session in
-        serverWS.volcanoRpiSession = nil
-        print("Remote controller déconnecté")
-    }),
-    RouteInfos(routeName: "volcano_rpiMessage", textCode: { session, receivedText in
-        print("volcano_rpi message: \(receivedText)")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
-    RouteInfos(routeName: "volcano_rpiPing", textCode: { session, receivedText in
-        
-        print("volcano_rpi // ping reçu: \(receivedText)")
-    }, dataCode: { session, receivedData in
-        print(receivedData)
-    }),
+
     
     // Routes pour maze
     RouteInfos(routeName: "maze_espConnect", textCode: { session, receivedText in

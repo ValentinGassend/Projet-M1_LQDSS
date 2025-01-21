@@ -42,9 +42,12 @@ class ESP32Controller:
                     mic_num = int(mic_cmd[-1]) - 1
                     if 0 <= mic_num < len(self.microphones):
                         print(f"Processing microphone {mic_num + 1} state: {state}")
+                        # Lock microphone state to true when receiving true state
+                        if state.lower() == "true":
+                            self.mic_locked_states[mic_num] = True
                         # Reset locked state if receiving a false state
-                        if state.lower() == "false":
-                            self.mic_locked_states[mic_num] = False
+                        # elif state.lower() == "false":
+                        #     self.mic_locked_states[mic_num] = False
         except Exception as e:
             print(f"Error processing microphone message: {e}")
 
@@ -81,11 +84,16 @@ class ESP32Controller:
             except Exception as e:
                 print(f"Error monitoring microphone {index}: {e}")
 
-        if active_mics == 4:
+        if active_mics == 4 and not self.all_mics_active_sent:
+            
             all_mics_msg = f"tornado_esp=>[tornado_rpi, ambianceManager]=>all_mics_active#true"
             print(f"Sending all microphones active message: {all_mics_msg}")
             self.ws_client.route_ws_map.get("message", None).send(all_mics_msg)
-
+            
+            all_mics_msg = f"tornado_esp=>[tornado_rpi, ambianceManager]=>tornado_finished#true"
+            print(f"Sending all microphones active message: {all_mics_msg}")
+            self.ws_client.route_ws_map.get("message", None).send(all_mics_msg)
+            self.all_mics_active_sent = True
     def handle_websocket_messages(self):
         for ws_route, ws in self.ws_client.route_ws_map.items():
             try:

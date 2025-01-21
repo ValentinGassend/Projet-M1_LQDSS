@@ -34,7 +34,7 @@ struct MazeSpheroControlView: View {
                         connectionManager.disconnectSphero(spheroName)
                     }) {
                         HStack {
-                            Image(systemName: "disconnect.circle.fill")
+                            Image(systemName: "xmark.circle.fill")
                             Text("Disconnect Maze Sphero")
                         }
                         .padding()

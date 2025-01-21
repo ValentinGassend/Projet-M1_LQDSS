@@ -25,17 +25,14 @@ class WebSockerServer {
     static let instance = WebSockerServer()
     let server = HttpServer()
     var deviceStates: [String: (type: String, isConnected: Bool)] = [
+        "remoteController_iphone3": ("remoteController", false),
         "remoteController_iphone2": ("remoteController", false),
         "remoteController_iphone1": ("remoteController", false),
         "tornado_rpi": ("tornado", false),
         "typhoon_esp": ("typhoon", false),
-        "typhoon_iphone": ("typhoon", false),
-        "typhoon_iphone1": ("typhoon", false),
         "volcano_esp1": ("volcano", false),
         "volcano_esp2": ("volcano", false),
-        "volcano_rpi": ("volcano", false),
         "maze_esp": ("maze", false),
-        "maze_iphone": ("maze", false),
         "tornado_esp": ("tornado", false),
         "crystal_esp1": ("crystal", false),
         "crystal_esp2": ("crystal", false),
@@ -71,12 +68,12 @@ class WebSockerServer {
     
     // New device group sessions
     @State var typhoonEspSession: WebSocketSession?
+    @State var remoteController_iphone3Session: WebSocketSession?
     @State var remoteController_iphone2Session: WebSocketSession?
     @State var remoteController_iphone1Session: WebSocketSession?
     
     @State var volcanoEsp1Session: WebSocketSession?
     @State var volcanoEsp2Session: WebSocketSession?
-    @State var volcanoRpiSession: WebSocketSession?
     
     @State var mazeEspSession: WebSocketSession?
     @State var mazeIphoneSession: WebSocketSession?
@@ -209,6 +206,8 @@ class WebSockerServer {
                             self.remoteController_iphone1Session = session
                         case "remoteController_iphone2":
                             self.remoteController_iphone2Session = session
+                         case "remoteController_iphone3":
+                            self.remoteController_iphone3Session = session
                             
                         default:
                             break
@@ -305,15 +304,6 @@ class WebSockerServer {
             // Update device state
             self.updateDeviceState(routeName: deviceName, isConnected: false)
             
-            // Clean up specific phone sessions based on device name
-            switch deviceName {
-            case "typhoon_iphone":
-                self.remoteController_iphone2Session = nil
-            case "maze_iphone":
-                self.mazeIphoneSession = nil
-            default:
-                break
-            }
         }
     }
     private func registerMessageSession(
@@ -338,17 +328,17 @@ class WebSockerServer {
         switch routeInfos.routeName {
         case "typhoon_espConnect": self.typhoonEspSession = session
         case "typhoon_espDisconnect": self.typhoonEspSession = nil
-        case "typhoon_iphoneConnect": self.remoteController_iphone2Session = session
-        case "typhoon_iphoneDisconnect": self.remoteController_iphone2Session = nil
         case "remoteController_iphone1Connect": self.remoteController_iphone1Session = session
         case "remoteController_iphone1Disconnect": self.remoteController_iphone1Session = nil
+        case "remoteController_iphone2Connect": self.remoteController_iphone2Session = session
+        case "remoteController_iphone2Disconnect": self.remoteController_iphone2Session = nil
+        case "remoteController_iphone3Connect": self.remoteController_iphone3Session = session
+        case "remoteController_iphone3Disconnect": self.remoteController_iphone3Session = nil
             
         case "volcano_esp1Connect": self.volcanoEsp1Session = session
         case "volcano_esp1Disconnect": self.volcanoEsp1Session = nil
         case "volcano_esp2Connect": self.volcanoEsp2Session = session
         case "volcano_esp2Disconnect": self.volcanoEsp2Session = nil
-        case "volcano_rpiConnect": self.volcanoRpiSession = session
-        case "volcano_rpiDisconnect": self.volcanoRpiSession = nil
             
         case "maze_espConnect": self.mazeEspSession = session
         case "maze_espDisconnect": self.mazeEspSession = nil
@@ -459,9 +449,9 @@ extension WebSockerServer {
             "typhoon_esp": typhoonEspSession,
             "remoteController_iphone1": remoteController_iphone1Session,
             "remoteController_iphone2": remoteController_iphone2Session,
+            "remoteController_iphone3": remoteController_iphone3Session,
             "volcano_esp1": volcanoEsp1Session,
             "volcano_esp2": volcanoEsp2Session,
-            "volcano_rpi": volcanoRpiSession,
             "maze_esp": mazeEspSession,
             "maze_iphone": mazeIphoneSession,
             "tornado_esp": tornadoEspSession,
@@ -520,6 +510,12 @@ extension WebSockerServer {
                 registerMessageSession(routeName: routeName, session: session)
             }
             updateDeviceState(routeName: deviceName, isConnected: true)
+        case "remoteController_iphone3":
+            self.remoteController_iphone3Session = session
+            if routeName.contains("Message") {
+                registerMessageSession(routeName: routeName, session: session)
+            }
+            updateDeviceState(routeName: deviceName, isConnected: true)
             
         default:
             break
@@ -556,6 +552,10 @@ extension WebSockerServer {
             case "remoteController_iphone2":
                 if self.remoteController_iphone2Session?.socket.hashValue == session.socket.hashValue {
                     self.remoteController_iphone2Session = nil
+                }
+            case "remoteController_iphone3":
+                if self.remoteController_iphone3Session?.socket.hashValue == session.socket.hashValue {
+                    self.remoteController_iphone3Session = nil
                 }
             default:
                 break

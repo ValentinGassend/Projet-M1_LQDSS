@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/iPhone/remoteControler/remoteController2" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/iPhone/remoteControler/remoteController3" vcs="Git" />
   </component>
 </project>
