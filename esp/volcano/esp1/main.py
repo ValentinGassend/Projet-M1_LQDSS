@@ -100,7 +100,7 @@ class ESP32Controller:
 
     def handle_entrance_tag(self, card_id):
         if card_id == 323235155:
-            msg = f"volcano_esp1=>[volcano_esp1,volcano_esp2,crystal_esp1]=>rfid#volcano"
+            msg = f"volcano_esp1=>[ambianceManager,volcano_esp1,volcano_esp2,crystal_esp1]=>rfid#volcano"
             print(f"Sending RFID entrance message: {msg}")
             self.ws_client.route_ws_map.get("message", None).send(msg)
         else:

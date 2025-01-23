@@ -614,7 +614,7 @@ extension WebSockerServer {
             self.audioPlayer.stopMusic("musique1")
             self.audioPlayer.playSound(name:"son1")
             self.audioPlayer
-                .playMusic(name:"musique2", type: "mp3")  // end on tornado_to_crystal#end
+                .playMusic(name:"musique2")  // end on tornado_to_crystal#end
         case "tornado_to_crystal#end":
             self.audioPlayer.stopMusic("musique2")
         case "tornado_finished#true", "all_mics_active#true":
@@ -648,7 +648,7 @@ extension WebSockerServer {
         case "rfid#typhoon":
             self.audioPlayer.playSound(name:"son1")
             self.audioPlayer
-                .playMusic(name:"musique4", type: "mp3")  // end on typhoon_to_crystal#end
+                .playMusic(name:"musique4")  // end on typhoon_to_crystal#end
             
     case "typhoon_to_crystal#end":
         self.audioPlayer.stopMusic("musique4")

@@ -49,7 +49,7 @@ class ESP32Controller:
             if "#" in message:
                 sphero_cmd, state = message.split("#")
                 
-                if command == "all_relays" and state == "completed":
+                if sphero_cmd == "all_relays" and state == "completed":
                     self.reset_all_relays()
                     return
                 if sphero_cmd.startswith("sphero"):
@@ -103,6 +103,8 @@ class ESP32Controller:
         """Check if all relays are locked (completed) and notify server if true."""
         if all(self.relay_locked):
             try:
+                utime.sleep_ms(100)
+
                 msg = f"typhoon_esp=>[ambianceManager, typhoon_esp]=>all_relays#completed"
                 if "message" in self.ws_client.route_ws_map:
                     self.ws_client.route_ws_map["message"].send(msg)

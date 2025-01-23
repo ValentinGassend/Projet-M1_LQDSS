@@ -86,7 +86,7 @@ class AudioPlayer: NSObject {
             }
             
             let musicURL = URL(fileURLWithPath: musicPath)
-            
+        print("Music file path '\(musicURL)'")
             do {
                 let player = try AVAudioPlayer(contentsOf: musicURL)
                 player.prepareToPlay()
